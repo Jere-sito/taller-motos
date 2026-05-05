@@ -9,6 +9,7 @@ const App = {
     }
     this._renderUserMenu();
     this._highlightNav();
+    this._injectBottomNav();
     if (typeof onAppReady === 'function') onAppReady();
   },
 
@@ -35,6 +36,31 @@ const App = {
     document.querySelectorAll('.nav-link').forEach(a => {
       a.classList.toggle('active', a.getAttribute('href') === path || (path === '/' && a.getAttribute('href') === '/'));
     });
+  },
+
+  _injectBottomNav() {
+    if (document.querySelector('.bottom-nav')) return;
+    const path = window.location.pathname;
+    const role = this.currentUser?.role;
+    const items = [
+      { href: '/',          icon: '📊', label: 'Inicio' },
+      { href: '/ordenes',   icon: '📋', label: 'Órdenes' },
+      { href: '/clientes',  icon: '👤', label: 'Clientes' },
+      { href: '/motos',     icon: '🏍️', label: 'Motos' },
+      { href: '/mecanicos', icon: '🔧', label: 'Mecánicos', roles: ['admin', 'recepcion'] },
+    ];
+    const nav = document.createElement('nav');
+    nav.className = 'bottom-nav';
+    nav.innerHTML = items
+      .filter(item => !item.roles || item.roles.includes(role))
+      .map(item => {
+        const active = path === item.href;
+        return `<a href="${item.href}" class="bottom-nav-item${active ? ' active' : ''}">
+          <span class="bnav-icon">${item.icon}</span>
+          <span>${item.label}</span>
+        </a>`;
+      }).join('');
+    document.body.appendChild(nav);
   },
 
   toast(msg, type = 'info', duration = 3000) {

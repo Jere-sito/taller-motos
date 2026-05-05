@@ -621,12 +621,108 @@ tr:hover td { background: var(--bg); }
   margin-right: 6px;
 }
 
+/* ── Navegación inferior (solo móvil) ────────────────────────────────────── */
+.bottom-nav { display: none; }
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 2px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  font-weight: 600;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: color 0.15s;
+  min-height: 54px;
+}
+.bottom-nav-item.active { color: var(--primary); }
+.bottom-nav-item .bnav-icon { font-size: 1.35rem; line-height: 1; }
+
+/* ── Dashboard grid de alertas ───────────────────────────────────────────── */
+.dashboard-alerts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .page { padding: 16px 14px; }
+  /* Layout */
+  .page { padding: 14px 12px; }
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
-  .modal-box { padding: 20px; }
-  .app-header { padding: 0 14px; }
-  .nav-link { padding: 5px 10px; font-size: 0.82rem; }
-  .stat-cards { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  .app-header { padding: 0 12px; gap: 8px; }
+
+  /* Ocultar nav superior — reemplazado por bottom nav */
+  .nav-links { display: none !important; }
+
+  /* Espacio para bottom nav */
+  body { padding-bottom: 60px; }
+
+  /* Toasts por encima del bottom nav */
+  #toastContainer { bottom: 68px; right: 12px; left: 12px; }
+  .toast { max-width: 100%; }
+
+  /* Bottom nav visible */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1.5px solid var(--border);
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+    z-index: 200;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  /* Dashboard: una columna en móvil */
+  .dashboard-alerts { grid-template-columns: 1fr; }
+
+  /* Modales como sheet desde abajo */
+  .modal { align-items: flex-end; padding: 0; }
+  .modal-box {
+    border-radius: 20px 20px 0 0;
+    max-height: 93vh;
+    width: 100%;
+    max-width: 100%;
+    padding: 20px 16px;
+  }
+  .modal-box.modal-lg { max-width: 100%; }
+
+  /* Stat cards: 2 por fila */
+  .stat-cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-card-count { font-size: 1.7rem; }
+
+  /* Tablas más compactas */
+  th { font-size: 0.72rem; padding: 8px 8px; }
+  td { padding: 10px 8px; font-size: 0.85rem; }
+
+  /* Ocultar columnas secundarias en tablas */
+  .col-hide-mobile { display: none; }
+
+  /* Header derecho */
+  .user-badge span:first-child { display: none; }
+
+  /* Botones de acción */
+  .btn-sm { padding: 7px 12px; }
+
+  /* Filtros en columna */
+  .filter-bar { flex-direction: column; align-items: stretch; }
+  .filter-bar input[type="text"],
+  .filter-bar select { width: 100%; min-width: unset; }
+
+  /* OT progress: texto más chico */
+  .ot-progress-label { font-size: 0.6rem; }
+  .ot-progress-step { min-width: 60px; }
+
+  /* Chips scrollables */
+  .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .chips::-webkit-scrollbar { display: none; }
 }
