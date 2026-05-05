@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Taller Motos</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="app-header">
+  <a href="/" class="brand">
+    <span class="brand-icon">🏍️</span>
+    Taller Motos
+  </a>
+  <nav class="nav-links">
+    <a href="/" class="nav-link active">Dashboard</a>
+    <a href="/ordenes" class="nav-link">Órdenes</a>
+    <a href="/clientes" class="nav-link">Clientes</a>
+    <a href="/motos" class="nav-link">Motos</a>
+    <a href="/mecanicos" class="nav-link" data-require-role="admin,recepcion">Mecánicos</a>
+    <a href="/usuarios" class="nav-link" data-require-role="admin">Usuarios</a>
+  </nav>
+  <div class="header-right">
+    <div class="user-badge">
+      <span id="userDisplayName"></span>
+      <span class="role-badge" id="userRoleBadge"></span>
+    </div>
+    <button class="btn-icon" id="btnLogout">Salir</button>
+  </div>
+</header>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <button class="btn btn-primary" id="btnNuevaOT">+ Nueva OT</button>
+  </div>
+
+  <!-- Tarjetas de estadísticas por estado -->
+  <div class="stat-cards" id="statCards">
+    <div class="card" style="grid-column: 1/-1; text-align: center; color: var(--text-muted)">Cargando...</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 4px;">
+    <!-- Motos vencidas -->
+    <div class="card">
+      <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:14px; color: #B91C1C;">⚠️ Fecha prometida vencida</h3>
+      <div id="listVencidas">
+        <div class="text-muted">Cargando...</div>
+      </div>
+    </div>
+
+    <!-- Motos listas para retirar -->
+    <div class="card">
+      <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:14px; color: var(--state-lista);">✅ Listas para retirar</h3>
+      <div id="listListas">
+        <div class="text-muted">Cargando...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nueva OT (wizard) -->
+<div class="modal hidden" id="modalNuevaOT">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title" id="wizardTitle">Nueva Orden de Trabajo</h2>
+      <button class="modal-close" onclick="App.closeModal('modalNuevaOT')">✕</button>
+    </div>
+
+    <!-- Paso 1: Patente -->
+    <div id="wizardStep1">
+      <div class="form-group">
+        <label class="form-label required">Patente</label>
+        <input type="text" id="inputPatente" placeholder="Ej: ABC123" style="text-transform:uppercase; font-size:1.2rem; text-align:center; letter-spacing:4px; font-weight:700">
+        <div class="text-muted mt-1" id="patenteStatus"></div>
+      </div>
+      <div id="motoEncontrada" class="hidden">
+        <div class="card" style="padding:12px; background: #F0FDF4; border-color: #BBF7D0;">
+          <div style="font-weight:700" id="motoEncontradaTitle"></div>
+          <div class="text-muted text-sm" id="motoEncontradaMeta"></div>
+        </div>
+      </div>
+      <div id="motoNueva" class="hidden">
+        <div style="background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 8px; padding: 12px; margin-bottom: 12px; font-size: 0.85rem; color: #92400E;">
+          Moto nueva — completá los datos
+        </div>
+        <!-- Datos moto nueva -->
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Marca</label>
+            <input type="text" id="newMotoMarca" placeholder="Honda, Yamaha...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Modelo</label>
+            <input type="text" id="newMotoModelo" placeholder="CB300, FZ...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Año</label>
+            <input type="number" id="newMotoAnio" placeholder="2020" min="1980" max="2030">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Color</label>
+            <input type="text" id="newMotoColor" placeholder="Rojo, Negro...">
+          </div>
+        </div>
+        <!-- Cliente -->
+        <div class="form-group">
+          <label class="form-label required">Cliente</label>
+          <div class="input-group">
+            <input type="text" id="searchCliente" placeholder="Buscar cliente por nombre o teléfono...">
+            <button class="btn btn-secondary btn-sm" id="btnNuevoCliente">+ Nuevo</button>
+          </div>
+          <div id="clienteResults" class="hidden" style="border: 1.5px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; background: #fff; max-height: 160px; overflow-y: auto;"></div>
+          <div id="clienteSeleccionado" class="hidden" style="margin-top: 8px; padding: 8px 12px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; font-size: 0.875rem; font-weight: 600;"></div>
+        </div>
+        <!-- Nuevo cliente inline -->
+        <div id="formNuevoCliente" class="hidden" style="border: 1.5px solid var(--border); border-radius: 8px; padding: 14px; margin-top: 8px;">
+          <div class="fw-bold text-sm mb-1">Nuevo cliente</div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label required">Nombre</label>
+              <input type="text" id="ncNombre" placeholder="Juan García">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input type="tel" id="ncTelefono" placeholder="11 2345-6789">
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btnGuardarNuevoCliente">Guardar cliente</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="App.closeModal('modalNuevaOT')">Cancelar</button>
+        <button class="btn btn-primary" id="btnPaso1Siguiente">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- Paso 2: Datos del ingreso -->
+    <div id="wizardStep2" class="hidden">
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Kilómetros</label>
+          <input type="number" id="otKm" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mecánico</label>
+          <select id="otMecanico">
+            <option value="">— Sin asignar —</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label required">Problema declarado por el cliente</label>
+        <textarea id="otProblema" placeholder="¿Qué le pasa a la moto según el cliente?"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Observaciones internas</label>
+        <textarea id="otObservaciones" placeholder="Notas que el cliente no verá..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha prometida de entrega</label>
+        <input type="date" id="otFechaPrometida">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnPaso2Atras">← Atrás</button>
+        <button class="btn btn-primary" id="btnCrearOT">Crear OT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/dashboard.js"></script>
+<script src="/js/nueva-ot.js"></script>
+</body>
+</html>

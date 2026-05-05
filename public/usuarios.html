@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Usuarios — Taller Motos</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<header class="app-header">
+  <a href="/" class="brand"><span class="brand-icon">🏍️</span>Taller Motos</a>
+  <nav class="nav-links">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/ordenes" class="nav-link">Órdenes</a>
+    <a href="/clientes" class="nav-link">Clientes</a>
+    <a href="/motos" class="nav-link">Motos</a>
+    <a href="/mecanicos" class="nav-link">Mecánicos</a>
+    <a href="/usuarios" class="nav-link active">Usuarios</a>
+  </nav>
+  <div class="header-right">
+    <div class="user-badge"><span id="userDisplayName"></span><span class="role-badge" id="userRoleBadge"></span></div>
+    <button class="btn-icon" id="btnLogout">Salir</button>
+  </div>
+</header>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Usuarios</h1>
+    <button class="btn btn-primary" id="btnNuevoUsuario">+ Nuevo usuario</button>
+  </div>
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Creado</th><th></th></tr></thead>
+        <tbody id="tablaUsuarios"><tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="modalUsuario">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">Nuevo usuario</h2>
+      <button class="modal-close" onclick="App.closeModal('modalUsuario')">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label required">Usuario</label><input type="text" id="uUsername" placeholder="nombre.apellido" autocomplete="off"></div>
+    <div class="form-group"><label class="form-label required">Nombre completo</label><input type="text" id="uDisplay" placeholder="Juan García" autocomplete="off"></div>
+    <div class="form-group"><label class="form-label required">Contraseña</label><input type="password" id="uPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password"></div>
+    <div class="form-group">
+      <label class="form-label required">Rol</label>
+      <select id="uRol">
+        <option value="recepcion">Recepción</option>
+        <option value="mecanico">Mecánico</option>
+        <option value="admin">Administrador</option>
+      </select>
+    </div>
+    <div style="background:#FFF7ED; border:1px solid #FED7AA; border-radius:8px; padding:10px; font-size:0.82rem; color:#92400E; margin-bottom:16px">
+      <strong>Rol mecánico:</strong> para que el sistema vincule automáticamente el usuario a un mecánico, el nombre completo debe coincidir exactamente con el nombre del mecánico registrado.
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('modalUsuario')">Cancelar</button>
+      <button class="btn btn-primary" id="btnGuardarUsuario">Crear usuario</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="modalPassword">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">Cambiar contraseña</h2>
+      <button class="modal-close" onclick="App.closeModal('modalPassword')">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label required">Nueva contraseña</label><input type="password" id="newPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('modalPassword')">Cancelar</button>
+      <button class="btn btn-primary" id="btnGuardarPassword">Cambiar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/app.js"></script>
+<script>
+let passwordUserId = null;
+const ROL_LABELS = { admin: 'Admin', mecanico: 'Mecánico', recepcion: 'Recepción' };
+
+async function onAppReady() {
+  if (!App.isAdmin()) { window.location.href = '/'; return; }
+  await cargarUsuarios();
+  document.getElementById('btnNuevoUsuario').addEventListener('click', () => App.openModal('modalUsuario'));
+  document.getElementById('btnGuardarUsuario').addEventListener('click', crearUsuario);
+  document.getElementById('btnGuardarPassword').addEventListener('click', cambiarPassword);
+}
+
+async function cargarUsuarios() {
+  try {
+    const users = await API.get('/api/auth/users');
+    const tbody = document.getElementById('tablaUsuarios');
+    tbody.innerHTML = users.map(u => `
+      <tr>
+        <td><strong>${esc(u.username)}</strong></td>
+        <td>${esc(u.display_name)}</td>
+        <td><span class="role-badge" data-role="${u.role}">${esc(ROL_LABELS[u.role] || u.role)}</span></td>
+        <td class="text-muted text-sm">${fmtDate(u.created_at)}</td>
+        <td style="text-align:right; white-space:nowrap">
+          <button class="btn btn-secondary btn-sm" onclick="abrirCambiarPassword(${u.id})">Contraseña</button>
+          <button class="btn btn-sm" style="margin-left:4px; color:#EF4444; border:1px solid #FCA5A5; background:#fff" onclick="eliminarUsuario(${u.id})">✕</button>
+        </td>
+      </tr>`).join('');
+  } catch {}
+}
+
+async function crearUsuario() {
+  const body = {
+    username: document.getElementById('uUsername').value.trim(),
+    display_name: document.getElementById('uDisplay').value.trim(),
+    password: document.getElementById('uPassword').value,
+    role: document.getElementById('uRol').value
+  };
+  if (!body.username || !body.password || !body.display_name) return App.toast('Completá todos los campos', 'error');
+  try {
+    await API.post('/api/auth/users', body);
+    App.closeModal('modalUsuario');
+    App.toast('Usuario creado', 'success');
+    await cargarUsuarios();
+  } catch (e) { App.toast(e.message || 'Error', 'error'); }
+}
+
+function abrirCambiarPassword(id) {
+  passwordUserId = id;
+  document.getElementById('newPassword').value = '';
+  App.openModal('modalPassword');
+}
+
+async function cambiarPassword() {
+  const password = document.getElementById('newPassword').value;
+  if (!password || password.length < 6) return App.toast('Mínimo 6 caracteres', 'error');
+  try {
+    await API.patch(`/api/auth/users/${passwordUserId}/password`, { password });
+    App.closeModal('modalPassword');
+    App.toast('Contraseña actualizada', 'success');
+  } catch (e) { App.toast(e.message || 'Error', 'error'); }
+}
+
+async function eliminarUsuario(id) {
+  if (!App.confirm('¿Eliminar este usuario?')) return;
+  try {
+    await API.del(`/api/auth/users/${id}`);
+    App.toast('Usuario eliminado', 'success');
+    await cargarUsuarios();
+  } catch (e) { App.toast(e.message || 'No se puede eliminar', 'error'); }
+}
+</script>
+</body>
+</html>

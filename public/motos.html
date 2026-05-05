@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Motos — Taller Motos</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<header class="app-header">
+  <a href="/" class="brand"><span class="brand-icon">🏍️</span>Taller Motos</a>
+  <nav class="nav-links">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/ordenes" class="nav-link">Órdenes</a>
+    <a href="/clientes" class="nav-link">Clientes</a>
+    <a href="/motos" class="nav-link">Motos</a>
+    <a href="/mecanicos" class="nav-link" data-require-role="admin,recepcion">Mecánicos</a>
+    <a href="/usuarios" class="nav-link" data-require-role="admin">Usuarios</a>
+  </nav>
+  <div class="header-right">
+    <div class="user-badge"><span id="userDisplayName"></span><span class="role-badge" id="userRoleBadge"></span></div>
+    <button class="btn-icon" id="btnLogout">Salir</button>
+  </div>
+</header>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Motos</h1>
+  </div>
+  <div class="filter-bar">
+    <input type="text" id="searchQ" placeholder="Buscar por patente, marca, modelo o cliente...">
+  </div>
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Patente</th><th>Moto</th><th>Cliente</th><th>OTs</th><th></th></tr></thead>
+        <tbody id="tablaMotos"><tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="modalMoto">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title" id="motoModalTitle">Editar moto</h2>
+      <button class="modal-close" onclick="App.closeModal('modalMoto')">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label">Patente</label><input type="text" id="mPatente" readonly style="font-weight:700; letter-spacing:3px;"></div>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">Marca</label><input type="text" id="mMarca" placeholder="Honda"></div>
+      <div class="form-group"><label class="form-label">Modelo</label><input type="text" id="mModelo" placeholder="CB300"></div>
+      <div class="form-group"><label class="form-label">Año</label><input type="number" id="mAnio" placeholder="2020"></div>
+      <div class="form-group"><label class="form-label">Color</label><input type="text" id="mColor" placeholder="Rojo"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notas</label><textarea id="mNotas" placeholder="Notas sobre la moto..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('modalMoto')">Cancelar</button>
+      <button class="btn btn-primary" id="btnGuardarMoto">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/motos.js"></script>
+</body>
+</html>

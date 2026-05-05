@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Taller Motos — Ingresar</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #F3F4F6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.09);
+    }
+    .logo { text-align: center; margin-bottom: 28px; }
+    .logo-icon { font-size: 2.4rem; margin-bottom: 8px; }
+    .logo h1 { font-size: 1.4rem; font-weight: 700; color: #111827; }
+    .logo p { font-size: 0.85rem; color: #6B7280; margin-top: 4px; }
+    .setup-badge {
+      display: none;
+      background: #FFF7ED;
+      color: #C2410C;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 99px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    input[type="text"], input[type="password"] {
+      display: block;
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #D1D5DB;
+      border-radius: 8px;
+      font-size: 1rem;
+      color: #111827;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 16px;
+      -webkit-appearance: none;
+      font-family: inherit;
+    }
+    input:focus { border-color: #EA580C; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: #EA580C;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+    .btn:hover { background: #C2410C; }
+    .btn:disabled { background: #FDBA74; cursor: not-allowed; }
+    .msg {
+      display: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.875rem;
+      margin-bottom: 16px;
+    }
+    .msg.error { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+    .msg.success { background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
+    select {
+      display: block;
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #D1D5DB;
+      border-radius: 8px;
+      font-size: 1rem;
+      color: #111827;
+      background: #fff;
+      outline: none;
+      margin-bottom: 16px;
+      -webkit-appearance: none;
+      font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🏍️</div>
+    <h1>Taller Motos</h1>
+    <p id="subtitle">Ingresá con tu cuenta</p>
+  </div>
+
+  <div class="setup-badge" id="setupBadge">⚙️ Configuración inicial</div>
+  <div class="msg error" id="errorMsg"></div>
+  <div class="msg success" id="successMsg"></div>
+
+  <div id="loginForm">
+    <label for="username">Usuario</label>
+    <input type="text" id="username" autocomplete="username" placeholder="Tu nombre de usuario" autofocus>
+    <label for="password">Contraseña</label>
+    <input type="password" id="password" autocomplete="current-password" placeholder="••••••••">
+    <button class="btn" id="btnLogin">Ingresar</button>
+  </div>
+
+  <div id="setupForm" style="display:none">
+    <label for="sUsername">Nombre de usuario</label>
+    <input type="text" id="sUsername" placeholder="Ej: admin" autocomplete="off">
+    <label for="sDisplay">Tu nombre completo</label>
+    <input type="text" id="sDisplay" placeholder="Ej: Juan García" autocomplete="off">
+    <label for="sPassword">Contraseña</label>
+    <input type="password" id="sPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+    <label for="sPassword2">Repetir contraseña</label>
+    <input type="password" id="sPassword2" placeholder="••••••••" autocomplete="new-password">
+    <button class="btn" id="btnSetup">Crear cuenta administrador</button>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  function showError(msg) {
+    $('errorMsg').textContent = msg; $('errorMsg').style.display = 'block';
+    $('successMsg').style.display = 'none';
+  }
+  function showSuccess(msg) {
+    $('successMsg').textContent = msg; $('successMsg').style.display = 'block';
+    $('errorMsg').style.display = 'none';
+  }
+  function clearMsg() {
+    $('errorMsg').style.display = 'none'; $('successMsg').style.display = 'none';
+  }
+
+  async function checkStatus() {
+    try {
+      const r = await fetch('/api/auth/status');
+      const d = await r.json();
+      if (d.loggedIn) { window.location.href = '/'; return; }
+      if (!d.hasUsers) {
+        $('loginForm').style.display = 'none';
+        $('setupForm').style.display = 'block';
+        $('setupBadge').style.display = 'block';
+        $('subtitle').textContent = 'Creá tu primera cuenta de administrador';
+        $('sUsername').focus();
+      }
+    } catch { /* servidor no disponible */ }
+  }
+
+  async function doLogin() {
+    clearMsg();
+    const username = $('username').value.trim();
+    const password = $('password').value;
+    if (!username || !password) return showError('Completá usuario y contraseña.');
+
+    const btn = $('btnLogin');
+    btn.disabled = true; btn.textContent = 'Ingresando...';
+    try {
+      const r = await fetch('/api/auth/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const d = await r.json();
+      if (!r.ok) return showError(d.error || 'Error al ingresar.');
+      window.location.href = '/';
+    } catch { showError('Error de conexión. Intentá de nuevo.'); }
+    finally { btn.disabled = false; btn.textContent = 'Ingresar'; }
+  }
+
+  async function doSetup() {
+    clearMsg();
+    const username = $('sUsername').value.trim();
+    const display = $('sDisplay').value.trim();
+    const password = $('sPassword').value;
+    const password2 = $('sPassword2').value;
+
+    if (!username || !password) return showError('Completá todos los campos.');
+    if (password !== password2) return showError('Las contraseñas no coinciden.');
+    if (password.length < 6) return showError('La contraseña debe tener al menos 6 caracteres.');
+
+    const btn = $('btnSetup');
+    btn.disabled = true; btn.textContent = 'Creando cuenta...';
+    try {
+      const r = await fetch('/api/auth/setup', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, display_name: display || username, password })
+      });
+      const d = await r.json();
+      if (!r.ok) return showError(d.error || 'Error al crear la cuenta.');
+      showSuccess('¡Cuenta creada! Iniciando sesión...');
+      await fetch('/api/auth/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      window.location.href = '/';
+    } catch { showError('Error de conexión. Intentá de nuevo.'); }
+    finally { btn.disabled = false; btn.textContent = 'Crear cuenta administrador'; }
+  }
+
+  $('btnLogin').addEventListener('click', doLogin);
+  $('btnSetup').addEventListener('click', doSetup);
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    if ($('setupForm').style.display !== 'none') doSetup();
+    else doLogin();
+  });
+
+  checkStatus();
+</script>
+</body>
+</html>

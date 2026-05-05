@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Clientes — Taller Motos</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<header class="app-header">
+  <a href="/" class="brand"><span class="brand-icon">🏍️</span>Taller Motos</a>
+  <nav class="nav-links">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/ordenes" class="nav-link">Órdenes</a>
+    <a href="/clientes" class="nav-link">Clientes</a>
+    <a href="/motos" class="nav-link">Motos</a>
+    <a href="/mecanicos" class="nav-link" data-require-role="admin,recepcion">Mecánicos</a>
+    <a href="/usuarios" class="nav-link" data-require-role="admin">Usuarios</a>
+  </nav>
+  <div class="header-right">
+    <div class="user-badge"><span id="userDisplayName"></span><span class="role-badge" id="userRoleBadge"></span></div>
+    <button class="btn-icon" id="btnLogout">Salir</button>
+  </div>
+</header>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Clientes</h1>
+    <button class="btn btn-primary" id="btnNuevoCliente" data-require-role="admin,recepcion">+ Nuevo cliente</button>
+  </div>
+  <div class="filter-bar">
+    <input type="text" id="searchQ" placeholder="Buscar por nombre, teléfono o email...">
+  </div>
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Motos</th><th></th></tr></thead>
+        <tbody id="tablaClientes"><tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="modalCliente">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title" id="clienteModalTitle">Nuevo cliente</h2>
+      <button class="modal-close" onclick="App.closeModal('modalCliente')">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label required">Nombre</label><input type="text" id="cNombre" placeholder="Juan García"></div>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">Teléfono</label><input type="tel" id="cTelefono" placeholder="11 2345-6789"></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" id="cEmail" placeholder="juan@mail.com"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Dirección</label><input type="text" id="cDireccion" placeholder="Av. Siempreviva 742"></div>
+    <div class="form-group"><label class="form-label">Notas</label><textarea id="cNotas" placeholder="Notas sobre el cliente..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('modalCliente')">Cancelar</button>
+      <button class="btn btn-primary" id="btnGuardarCliente">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/clientes.js"></script>
+</body>
+</html>

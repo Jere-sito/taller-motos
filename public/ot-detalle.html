@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>OT — Taller Motos</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/print.css" media="print">
+</head>
+<body>
+
+<header class="app-header no-print">
+  <a href="/" class="brand"><span class="brand-icon">🏍️</span>Taller Motos</a>
+  <nav class="nav-links">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/ordenes" class="nav-link">Órdenes</a>
+    <a href="/clientes" class="nav-link">Clientes</a>
+    <a href="/motos" class="nav-link">Motos</a>
+    <a href="/mecanicos" class="nav-link" data-require-role="admin,recepcion">Mecánicos</a>
+    <a href="/usuarios" class="nav-link" data-require-role="admin">Usuarios</a>
+  </nav>
+  <div class="header-right">
+    <div class="user-badge">
+      <span id="userDisplayName"></span>
+      <span class="role-badge" id="userRoleBadge"></span>
+    </div>
+    <button class="btn-icon" id="btnLogout">Salir</button>
+  </div>
+</header>
+
+<div class="page" id="paginaDetalle">
+  <div class="empty-state"><div class="empty-icon">🔄</div><p>Cargando...</p></div>
+</div>
+
+<!-- Modal cambiar estado -->
+<div class="modal hidden" id="modalCambiarEstado">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">Cambiar estado</h2>
+      <button class="modal-close" onclick="App.closeModal('modalCambiarEstado')">✕</button>
+    </div>
+    <div id="listaBotonesEstado"></div>
+    <div class="form-group mt-2">
+      <label class="form-label">Notas (opcional)</label>
+      <textarea id="notasEstado" placeholder="Aclaraciones sobre este cambio..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar OT -->
+<div class="modal hidden" id="modalEditarOT">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">Editar orden</h2>
+      <button class="modal-close" onclick="App.closeModal('modalEditarOT')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mecánico</label>
+      <select id="editMecanico"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Kilómetros</label>
+      <input type="number" id="editKm" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Problema declarado</label>
+      <textarea id="editProblema"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Observaciones internas</label>
+      <textarea id="editObservaciones"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fecha prometida</label>
+      <input type="date" id="editFechaPrometida">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('modalEditarOT')">Cancelar</button>
+      <button class="btn btn-primary" id="btnGuardarEdicion">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal presupuesto agregar ítem -->
+<div class="modal hidden" id="modalAgregarItem">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">Agregar ítem</h2>
+      <button class="modal-close" onclick="App.closeModal('modalAgregarItem')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label required">Tipo</label>
+      <select id="itemTipo">
+        <option value="repuesto">Repuesto</option>
+        <option value="mano_obra">Mano de obra</option>
+      </select>
+    </div>
+    <div id="buscadorHusky">
+      <div class="form-group">
+        <label class="form-label">Buscar en HUSKY</label>
+        <input type="text" id="huskySearch" placeholder="Nombre o código del repuesto...">
+        <div id="huskyResults" class="hidden" style="border:1.5px solid var(--border); border-top:none; border-radius:0 0 8px 8px; background:#fff; max-height:160px; overflow-y:auto;"></div>
+        <div class="text-muted text-sm mt-1" id="huskyStatus"></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label required">Descripción</label>
+      <input type="text" id="itemDescripcion" placeholder="Descripción del ítem">
+    </div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Cantidad</label>
+        <input type="number" id="itemCantidad" value="1" min="0.01" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Precio unitario ($)</label>
+        <input type="number" id="itemPrecio" value="0" min="0">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('modalAgregarItem')">Cancelar</button>
+      <button class="btn btn-primary" id="btnGuardarItem">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox fotos -->
+<div class="modal hidden" id="modalFoto">
+  <div style="max-width:90vw; max-height:90vh; cursor:pointer" onclick="App.closeModal('modalFoto')">
+    <img id="lightboxImg" src="" style="max-width:90vw; max-height:90vh; border-radius:8px; display:block;">
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/ot-detalle.js"></script>
+</body>
+</html>

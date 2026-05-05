@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Mecánicos — Taller Motos</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<header class="app-header">
+  <a href="/" class="brand"><span class="brand-icon">🏍️</span>Taller Motos</a>
+  <nav class="nav-links">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/ordenes" class="nav-link">Órdenes</a>
+    <a href="/clientes" class="nav-link">Clientes</a>
+    <a href="/motos" class="nav-link">Motos</a>
+    <a href="/mecanicos" class="nav-link">Mecánicos</a>
+    <a href="/usuarios" class="nav-link" data-require-role="admin">Usuarios</a>
+  </nav>
+  <div class="header-right">
+    <div class="user-badge"><span id="userDisplayName"></span><span class="role-badge" id="userRoleBadge"></span></div>
+    <button class="btn-icon" id="btnLogout">Salir</button>
+  </div>
+</header>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Mecánicos</h1>
+    <button class="btn btn-primary" id="btnNuevoMecanico" data-require-role="admin">+ Nuevo mecánico</button>
+  </div>
+  <div id="listaMecanicos">
+    <div class="empty-state"><div class="empty-icon">🔄</div><p>Cargando...</p></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="modalMecanico">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title" id="mecModalTitle">Nuevo mecánico</h2>
+      <button class="modal-close" onclick="App.closeModal('modalMecanico')">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label required">Nombre</label><input type="text" id="mecNombre" placeholder="Nombre completo"></div>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">Teléfono</label><input type="tel" id="mecTelefono" placeholder="11 2345-6789"></div>
+      <div class="form-group"><label class="form-label">Especialidad</label><input type="text" id="mecEspecialidad" placeholder="Eléctrico, Carburación..."></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('modalMecanico')">Cancelar</button>
+      <button class="btn btn-primary" id="btnGuardarMecanico">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/mecanicos.js"></script>
+</body>
+</html>
