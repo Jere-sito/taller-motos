@@ -689,10 +689,12 @@ tr:hover td { background: var(--bg); }
   .modal { align-items: flex-end; padding: 0; }
   .modal-box {
     border-radius: 20px 20px 0 0;
-    max-height: 93vh;
+    max-height: 93dvh;
     width: 100%;
     max-width: 100%;
-    padding: 20px 16px;
+    padding: 20px 16px 24px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .modal-box.modal-lg { max-width: 100%; }
 

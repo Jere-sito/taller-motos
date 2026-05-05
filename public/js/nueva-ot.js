@@ -47,6 +47,11 @@ const NuevaOT = {
     const patente = document.getElementById('inputPatente').value.trim().toUpperCase().replace(/\s+/g, '');
     if (!patente) return App.toast('Ingresá la patente', 'error');
 
+    // Si el usuario apretó rápido antes de que termine el debounce, buscar ahora
+    if (!this.motoId && !this.motoNueva && patente.length >= 4) {
+      await this.buscarPatente(patente);
+    }
+
     if (this.motoNueva) {
       if (!this.clienteId) return App.toast('Seleccioná o creá el cliente', 'error');
       // Crear moto nueva
