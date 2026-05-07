@@ -225,9 +225,10 @@ document.addEventListener('focusout', e => {
 });
 document.addEventListener('input', e => {
   if (!e.target.classList?.contains('input-precio')) return;
-  const pos = e.target.selectionStart;
-  e.target.value = e.target.value.replace(/[^0-9]/g, '');
-  try { e.target.setSelectionRange(pos, pos); } catch {}
+  const raw = e.target.value.replace(/[^0-9]/g, '');
+  e.target.value = raw ? parseInt(raw).toLocaleString('es-AR') : '';
+  const len = e.target.value.length;
+  try { e.target.setSelectionRange(len, len); } catch {}
 });
 
 document.addEventListener('DOMContentLoaded', () => {
