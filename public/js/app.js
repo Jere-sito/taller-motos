@@ -145,11 +145,6 @@ document.addEventListener('keydown', e => {
   document.querySelectorAll('.modal:not(.hidden)').forEach(m => m.classList.add('hidden'));
 });
 
-// Cerrar modal al hacer click en backdrop
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('modal')) e.target.classList.add('hidden');
-});
-
 // Logout
 document.addEventListener('click', async e => {
   if (!e.target.closest('#btnLogout')) return;
