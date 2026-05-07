@@ -2,16 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { getDb, generateOTNumber } = require('../database');
 
-// Transiciones de estado válidas
-const TRANSICIONES = {
-  ingresada:          ['en_diagnostico', 'cancelada'],
-  en_diagnostico:     ['presupuestada', 'cancelada'],
-  presupuestada:      ['aprobada', 'cancelada'],
-  aprobada:           ['en_reparacion'],
-  en_reparacion:      ['esperando_repuesto', 'lista'],
-  esperando_repuesto: ['en_reparacion', 'lista'],
-  lista:              ['entregada']
-};
+const ALL_ESTADOS = [
+  'ingresada', 'en_diagnostico', 'presupuestada', 'aprobada',
+  'en_reparacion', 'esperando_repuesto', 'lista', 'entregada', 'cancelada'
+];
 
 // GET /api/ordenes?estado=&mecanico_id=&q=&fecha_desde=&fecha_hasta=
 router.get('/ordenes', (req, res) => {
@@ -190,9 +184,8 @@ router.patch('/ordenes/:id/estado', (req, res) => {
     if (!mec || ot.mecanico_id !== mec.id) return res.status(403).json({ error: 'Solo podés cambiar estados de tus propias órdenes.' });
   }
 
-  const validos = TRANSICIONES[ot.estado] || [];
-  if (!validos.includes(estado)) {
-    return res.status(400).json({ error: `No se puede pasar de "${ot.estado}" a "${estado}".` });
+  if (!ALL_ESTADOS.includes(estado)) {
+    return res.status(400).json({ error: 'Estado inválido.' });
   }
 
   try {
@@ -233,7 +226,7 @@ function _getOTCompleta(db, id) {
     SELECT * FROM ot_estado_historial WHERE orden_id = ? ORDER BY created_at DESC
   `).all(id);
 
-  ot.transiciones_validas = TRANSICIONES[ot.estado] || [];
+  ot.transiciones_validas = ALL_ESTADOS.filter(e => e !== ot.estado);
 
   return ot;
 }
