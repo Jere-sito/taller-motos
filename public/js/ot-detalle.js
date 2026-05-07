@@ -315,15 +315,30 @@ async function compartirWhatsApp() {
 }
 
 // ── Modal agregar ítem ─────────────────────────────────────────────────────
+function _actualizarCamposCantidad(tipo) {
+  const grupo = document.getElementById('grupoCantidad');
+  if (!grupo) return;
+  if (tipo === 'mano_obra') {
+    grupo.style.display = 'none';
+    document.getElementById('itemCantidad').value = '1';
+  } else {
+    grupo.style.display = '';
+  }
+}
+
 function abrirModalItem() {
   document.getElementById('itemTipo').value = 'repuesto';
   document.getElementById('itemDescripcion').value = '';
   document.getElementById('itemCantidad').value = '1';
   document.getElementById('itemPrecio').value = '0';
+  _actualizarCamposCantidad('repuesto');
   App.openModal('modalAgregarItem');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('itemTipo')?.addEventListener('change', e => {
+    _actualizarCamposCantidad(e.target.value);
+  });
   document.getElementById('btnGuardarItem')?.addEventListener('click', guardarItem);
 });
 
