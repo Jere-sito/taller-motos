@@ -87,7 +87,7 @@ function eliminarCliente(id) {
   if (!c) return;
   const motos = c.cant_motos || 0;
   const linea = motos > 0
-    ? `¿Eliminar a <strong>${esc(c.nombre)}</strong>? También se eliminarán sus ${motos} moto(s) y todas sus órdenes de trabajo.`
+    ? `¿Eliminar a <strong>${esc(c.nombre)}</strong>? También se eliminarán sus ${motos} moto(s) y todas sus órdenes.`
     : `¿Eliminar al cliente <strong>${esc(c.nombre)}</strong>?`;
   App.confirmarDoble(
     'Eliminar cliente',

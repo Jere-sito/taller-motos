@@ -27,12 +27,12 @@ const NuevaOT = {
     const panel = document.getElementById(`wizardStep${step}`);
     if (panel) panel.classList.remove('hidden');
     const titles = {
-      1: 'Nueva Orden de Trabajo',
+      1: 'Nueva Orden',
       2: 'Datos de la moto',
       3: 'Titular de la moto',
       4: 'Datos del ingreso'
     };
-    document.getElementById('wizardTitle').textContent = titles[step] || 'Nueva Orden de Trabajo';
+    document.getElementById('wizardTitle').textContent = titles[step] || 'Nueva Orden';
     this._renderDots(step);
   },
 
@@ -163,12 +163,12 @@ const NuevaOT = {
         cedula
       });
       App.closeModal('modalNuevaOT');
-      App.toast(`OT ${ot.numero} creada`, 'success');
+      App.toast(`Orden ${ot.numero} creada`, 'success');
       window.location.href = `/ot-detalle?id=${ot.id}`;
     } catch (e) {
-      App.toast(e.message || 'Error al crear la OT', 'error');
+      App.toast(e.message || 'Error al crear la orden', 'error');
     } finally {
-      btn.disabled = false; btn.textContent = 'Crear OT';
+      btn.disabled = false; btn.textContent = 'Crear Orden';
     }
   },
 

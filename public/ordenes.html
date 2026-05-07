@@ -30,7 +30,7 @@
 <div class="page">
   <div class="page-header">
     <h1 class="page-title">Órdenes de Trabajo</h1>
-    <button class="btn btn-primary" id="btnNuevaOT" data-require-role="admin,recepcion">+ Nueva OT</button>
+    <button class="btn btn-primary" id="btnNuevaOT" data-require-role="admin,recepcion">+ Nueva Orden</button>
   </div>
 
   <!-- Filtros por estado -->
@@ -48,7 +48,7 @@
 
   <!-- Filtros de búsqueda -->
   <div class="filter-bar">
-    <input type="text" id="searchQ" placeholder="Buscar patente, cliente, número OT...">
+    <input type="text" id="searchQ" placeholder="Buscar patente, cliente, número de orden...">
     <select id="filtroMecanico" data-require-role="admin,recepcion">
       <option value="">Todos los mecánicos</option>
     </select>
@@ -63,7 +63,7 @@
 <div class="modal hidden" id="modalNuevaOT">
   <div class="modal-box">
     <div class="modal-header">
-      <h2 class="modal-title" id="wizardTitle">Nueva Orden de Trabajo</h2>
+      <h2 class="modal-title" id="wizardTitle">Nueva Orden</h2>
       <button class="modal-close" onclick="App.closeModal('modalNuevaOT')">✕</button>
     </div>
 
@@ -191,7 +191,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" id="btnPaso4Atras">← Atrás</button>
-        <button class="btn btn-primary" id="btnCrearOT">Crear OT</button>
+        <button class="btn btn-primary" id="btnCrearOT">Crear Orden</button>
       </div>
     </div>
   </div>

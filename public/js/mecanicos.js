@@ -26,7 +26,7 @@ function renderMecanicos(mecs) {
         <div>
           <div style="font-size:1.05rem; font-weight:700">${esc(m.nombre)}</div>
           <div class="text-muted text-sm">${m.especialidad ? `🔧 ${esc(m.especialidad)}` : ''} ${m.telefono ? `· 📞 ${esc(m.telefono)}` : ''}</div>
-          <div style="margin-top:8px; font-size:0.85rem; font-weight:600; color:var(--primary)">${m.ot_activas || 0} OT activa(s)</div>
+          <div style="margin-top:8px; font-size:0.85rem; font-weight:600; color:var(--primary)">${m.ot_activas || 0} orden(es) activa(s)</div>
         </div>
         ${isAdmin ? `<div style="display:flex; gap:8px">
           <button class="btn btn-secondary btn-sm" onclick="abrirModal(${m.id})">Editar</button>

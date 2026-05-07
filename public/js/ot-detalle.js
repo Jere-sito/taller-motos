@@ -187,7 +187,7 @@ async function abrirEditarOT() {
         fecha_prometida: document.getElementById('editFechaPrometida').value || null
       });
       App.closeModal('modalEditarOT');
-      App.toast('OT actualizada', 'success');
+      App.toast('Orden actualizada', 'success');
       renderOT();
     } catch (e) {
       App.toast(e.message || 'Error al guardar', 'error');
