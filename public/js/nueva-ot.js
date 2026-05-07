@@ -7,17 +7,43 @@ const NuevaOT = {
     this.motoId = null;
     this.clienteId = null;
     this.motoNueva = false;
-    document.getElementById('inputPatente').value = '';
+    ['inputPatente','newMotoMarca','newMotoModelo','newMotoAnio','newMotoColor',
+     'searchCliente','ncNombre','ncTelefono','otKm','otProblema','otObservaciones','otFechaPrometida']
+      .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     document.getElementById('patenteStatus').textContent = '';
     document.getElementById('motoEncontrada').classList.add('hidden');
-    document.getElementById('motoNueva').classList.add('hidden');
-    document.getElementById('wizardStep1').classList.remove('hidden');
-    document.getElementById('wizardStep2').classList.add('hidden');
+    document.getElementById('motoNuevaAlert').classList.add('hidden');
     document.getElementById('clienteSeleccionado').classList.add('hidden');
     document.getElementById('formNuevoCliente').classList.add('hidden');
-    document.getElementById('searchCliente').value = '';
+    document.getElementById('clienteResults').classList.add('hidden');
+    this._goTo(1);
     App.openModal('modalNuevaOT');
     setTimeout(() => document.getElementById('inputPatente').focus(), 100);
+  },
+
+  _goTo(step) {
+    [1,2,3,4].forEach(n => document.getElementById(`wizardStep${n}`)?.classList.add('hidden'));
+    const panel = document.getElementById(`wizardStep${step}`);
+    if (panel) panel.classList.remove('hidden');
+    const titles = {
+      1: 'Nueva Orden de Trabajo',
+      2: 'Datos de la moto',
+      3: 'Titular de la moto',
+      4: 'Datos del ingreso'
+    };
+    document.getElementById('wizardTitle').textContent = titles[step] || 'Nueva Orden de Trabajo';
+    this._renderDots(step);
+  },
+
+  _renderDots(activeStep) {
+    const flow = this.motoNueva ? [1,2,3,4] : [1,4];
+    const pos = flow.indexOf(activeStep);
+    const el = document.getElementById('wizardDots');
+    if (!el) return;
+    el.innerHTML = flow.map((s, i) => {
+      const cls = i < pos ? 'wdot done' : i === pos ? 'wdot active' : 'wdot';
+      return `<div class="${cls}"></div>${i < flow.length - 1 ? '<div class="wdot-line"></div>' : ''}`;
+    }).join('');
   },
 
   async buscarPatente(patente) {
@@ -30,31 +56,80 @@ const NuevaOT = {
       this.clienteId = moto.cliente_id;
       this.motoNueva = false;
       document.getElementById('motoEncontrada').classList.remove('hidden');
-      document.getElementById('motoNueva').classList.add('hidden');
+      document.getElementById('motoNuevaAlert').classList.add('hidden');
       document.getElementById('motoEncontradaTitle').textContent = `${moto.patente} — ${moto.marca} ${moto.modelo} ${moto.anio || ''}`.trim();
       document.getElementById('motoEncontradaMeta').textContent = `Cliente: ${moto.cliente_nombre}${moto.ots_recientes?.length ? ` · ${moto.ots_recientes.length} visita(s) anterior(es)` : ''}`;
       document.getElementById('patenteStatus').textContent = '';
+      this._renderDots(1);
     } catch {
       this.motoId = null;
       this.motoNueva = true;
       document.getElementById('motoEncontrada').classList.add('hidden');
-      document.getElementById('motoNueva').classList.remove('hidden');
-      document.getElementById('patenteStatus').textContent = '✦ Moto nueva';
+      document.getElementById('motoNuevaAlert').classList.remove('hidden');
+      document.getElementById('patenteStatus').textContent = '';
+      this._renderDots(1);
     }
+  },
+
+  _shake(inputId, msg) {
+    App.toast(msg, 'error');
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    el.classList.add('input-error', 'shake');
+    setTimeout(() => el.classList.remove('shake'), 500);
+    el.focus();
   },
 
   async paso1Siguiente() {
     const patente = document.getElementById('inputPatente').value.trim().toUpperCase().replace(/\s+/g, '');
-    if (!patente) return App.toast('Ingresá la patente', 'error');
+    if (!patente || patente.length < 3) return this._shake('inputPatente', 'Ingresá la patente');
 
-    // Si el usuario apretó rápido antes de que termine el debounce, buscar ahora
     if (!this.motoId && !this.motoNueva && patente.length >= 4) {
       await this.buscarPatente(patente);
     }
+    if (!this.motoId && !this.motoNueva) return this._shake('inputPatente', 'Esperá el resultado de la búsqueda');
 
     if (this.motoNueva) {
-      if (!this.clienteId) return App.toast('Seleccioná o creá el cliente', 'error');
-      // Crear moto nueva
+      this._goTo(2);
+      setTimeout(() => document.getElementById('newMotoMarca')?.focus(), 100);
+    } else {
+      await this._cargarMecanicos();
+      this._goTo(4);
+      setTimeout(() => document.getElementById('otKm')?.focus(), 100);
+    }
+  },
+
+  paso2Siguiente() {
+    const anio = document.getElementById('newMotoAnio').value;
+    if (anio && (Number(anio) < 1950 || Number(anio) > 2030)) {
+      return this._shake('newMotoAnio', 'Año inválido (1950–2030)');
+    }
+    this._goTo(3);
+    setTimeout(() => document.getElementById('searchCliente')?.focus(), 100);
+  },
+
+  async paso3Siguiente() {
+    if (!this.clienteId) return this._shake('searchCliente', 'Seleccioná o creá el cliente');
+    await this._cargarMecanicos();
+    this._goTo(4);
+    setTimeout(() => document.getElementById('otKm')?.focus(), 100);
+  },
+
+  async _cargarMecanicos() {
+    try {
+      const mecs = await API.get('/api/mecanicos');
+      const sel = document.getElementById('otMecanico');
+      sel.innerHTML = '<option value="">— Sin asignar —</option>' +
+        mecs.map(m => `<option value="${m.id}">${esc(m.nombre)}</option>`).join('');
+    } catch {}
+  },
+
+  async crearOT() {
+    const problema = document.getElementById('otProblema').value.trim();
+    if (!problema) return this._shake('otProblema', 'Describí el problema declarado por el cliente');
+
+    if (this.motoNueva) {
+      const patente = document.getElementById('inputPatente').value.trim().toUpperCase().replace(/\s+/g, '');
       try {
         const moto = await API.post('/api/motos', {
           patente,
@@ -70,29 +145,7 @@ const NuevaOT = {
       }
     }
 
-    if (!this.motoId) return App.toast('Ingresá la patente y esperá la búsqueda', 'error');
-
-    // Ir al paso 2
-    document.getElementById('wizardStep1').classList.add('hidden');
-    document.getElementById('wizardStep2').classList.remove('hidden');
-    document.getElementById('wizardTitle').textContent = 'Datos del ingreso';
-
-    // Cargar mecánicos
-    await this._cargarMecanicos();
-  },
-
-  async _cargarMecanicos() {
-    try {
-      const mecs = await API.get('/api/mecanicos');
-      const sel = document.getElementById('otMecanico');
-      sel.innerHTML = '<option value="">— Sin asignar —</option>' +
-        mecs.map(m => `<option value="${m.id}">${esc(m.nombre)}</option>`).join('');
-    } catch {}
-  },
-
-  async crearOT() {
-    const problema = document.getElementById('otProblema').value.trim();
-    if (!problema) return App.toast('Describí el problema declarado por el cliente', 'error');
+    if (!this.motoId) return App.toast('Error: moto no identificada', 'error');
 
     const btn = document.getElementById('btnCrearOT');
     btn.disabled = true; btn.textContent = 'Creando...';
@@ -144,7 +197,7 @@ const NuevaOT = {
   async guardarNuevoCliente() {
     const nombre = document.getElementById('ncNombre').value.trim();
     const telefono = document.getElementById('ncTelefono').value.trim();
-    if (!nombre) return App.toast('El nombre es requerido', 'error');
+    if (!nombre) return this._shake('ncNombre', 'El nombre es requerido');
     try {
       const c = await API.post('/api/clientes', { nombre, telefono });
       this.seleccionarCliente(c.id, c.nombre);
@@ -156,19 +209,43 @@ const NuevaOT = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Auto-uppercase para campos marcados
+  document.querySelectorAll('.input-uppercase').forEach(input => {
+    input.addEventListener('input', () => {
+      const pos = input.selectionStart;
+      input.value = input.value.toUpperCase();
+      try { input.setSelectionRange(pos, pos); } catch {}
+    });
+  });
+
+  // Limpiar estado de error al tipear
+  document.querySelectorAll('input, textarea, select').forEach(el => {
+    el.addEventListener('input', () => el.classList.remove('input-error'));
+  });
+
   // Patente con debounce
   let timer;
   document.getElementById('inputPatente')?.addEventListener('input', e => {
     clearTimeout(timer);
+    NuevaOT.motoId = null;
+    NuevaOT.motoNueva = false;
+    document.getElementById('motoEncontrada').classList.add('hidden');
+    document.getElementById('motoNuevaAlert').classList.add('hidden');
+    document.getElementById('patenteStatus').textContent = '';
     const v = e.target.value;
-    timer = setTimeout(() => NuevaOT.buscarPatente(v), 400);
+    if (v.replace(/\s/g,'').length >= 4) {
+      document.getElementById('patenteStatus').textContent = 'Buscando...';
+      timer = setTimeout(() => NuevaOT.buscarPatente(v), 400);
+    }
   });
 
   document.getElementById('btnPaso1Siguiente')?.addEventListener('click', () => NuevaOT.paso1Siguiente());
-  document.getElementById('btnPaso2Atras')?.addEventListener('click', () => {
-    document.getElementById('wizardStep2').classList.add('hidden');
-    document.getElementById('wizardStep1').classList.remove('hidden');
-    document.getElementById('wizardTitle').textContent = 'Nueva Orden de Trabajo';
+  document.getElementById('btnPaso2Atras')?.addEventListener('click', () => NuevaOT._goTo(1));
+  document.getElementById('btnPaso2Siguiente')?.addEventListener('click', () => NuevaOT.paso2Siguiente());
+  document.getElementById('btnPaso3Atras')?.addEventListener('click', () => NuevaOT._goTo(2));
+  document.getElementById('btnPaso3Siguiente')?.addEventListener('click', () => NuevaOT.paso3Siguiente());
+  document.getElementById('btnPaso4Atras')?.addEventListener('click', () => {
+    NuevaOT.motoNueva ? NuevaOT._goTo(3) : NuevaOT._goTo(1);
   });
   document.getElementById('btnCrearOT')?.addEventListener('click', () => NuevaOT.crearOT());
 

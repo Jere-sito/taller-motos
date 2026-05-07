@@ -68,11 +68,16 @@
       <button class="modal-close" onclick="App.closeModal('modalNuevaOT')">✕</button>
     </div>
 
+    <!-- Indicador de pasos -->
+    <div class="wizard-steps" id="wizardDots"></div>
+
     <!-- Paso 1: Patente -->
-    <div id="wizardStep1">
+    <div id="wizardStep1" class="wizard-panel">
       <div class="form-group">
         <label class="form-label required">Patente</label>
-        <input type="text" id="inputPatente" placeholder="Ej: ABC123" style="text-transform:uppercase; font-size:1.2rem; text-align:center; letter-spacing:4px; font-weight:700">
+        <input type="text" id="inputPatente" class="input-uppercase"
+               placeholder="Ej: ABC123"
+               style="font-size:1.2rem; text-align:center; letter-spacing:4px; font-weight:700">
         <div class="text-muted mt-1" id="patenteStatus"></div>
       </div>
       <div id="motoEncontrada" class="hidden">
@@ -81,53 +86,9 @@
           <div class="text-muted text-sm" id="motoEncontradaMeta"></div>
         </div>
       </div>
-      <div id="motoNueva" class="hidden">
-        <div style="background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 8px; padding: 12px; margin-bottom: 12px; font-size: 0.85rem; color: #92400E;">
-          Moto nueva — completá los datos
-        </div>
-        <!-- Datos moto nueva -->
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Marca</label>
-            <input type="text" id="newMotoMarca" placeholder="Honda, Yamaha...">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Modelo</label>
-            <input type="text" id="newMotoModelo" placeholder="CB300, FZ...">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Año</label>
-            <input type="number" id="newMotoAnio" placeholder="2020" min="1980" max="2030">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Color</label>
-            <input type="text" id="newMotoColor" placeholder="Rojo, Negro...">
-          </div>
-        </div>
-        <!-- Cliente -->
-        <div class="form-group">
-          <label class="form-label required">Cliente</label>
-          <div class="input-group">
-            <input type="text" id="searchCliente" placeholder="Buscar cliente por nombre o teléfono...">
-            <button class="btn btn-secondary btn-sm" id="btnNuevoCliente">+ Nuevo</button>
-          </div>
-          <div id="clienteResults" class="hidden" style="border: 1.5px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; background: #fff; max-height: 160px; overflow-y: auto;"></div>
-          <div id="clienteSeleccionado" class="hidden" style="margin-top: 8px; padding: 8px 12px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; font-size: 0.875rem; font-weight: 600;"></div>
-        </div>
-        <!-- Nuevo cliente inline -->
-        <div id="formNuevoCliente" class="hidden" style="border: 1.5px solid var(--border); border-radius: 8px; padding: 14px; margin-top: 8px;">
-          <div class="fw-bold text-sm mb-1">Nuevo cliente</div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label class="form-label required">Nombre</label>
-              <input type="text" id="ncNombre" placeholder="Juan García">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Teléfono</label>
-              <input type="tel" id="ncTelefono" placeholder="11 2345-6789">
-            </div>
-          </div>
-          <button class="btn btn-secondary btn-sm" id="btnGuardarNuevoCliente">Guardar cliente</button>
+      <div id="motoNuevaAlert" class="hidden">
+        <div style="background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 8px; padding: 12px; font-size: 0.85rem; color: #92400E;">
+          Moto nueva — completá los datos en los siguientes pasos
         </div>
       </div>
       <div class="modal-footer">
@@ -136,12 +97,69 @@
       </div>
     </div>
 
-    <!-- Paso 2: Datos del ingreso -->
-    <div id="wizardStep2" class="hidden">
+    <!-- Paso 2: Datos de la moto nueva -->
+    <div id="wizardStep2" class="wizard-panel hidden">
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Marca</label>
+          <input type="text" id="newMotoMarca" class="input-uppercase" placeholder="HONDA, YAMAHA...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Modelo</label>
+          <input type="text" id="newMotoModelo" class="input-uppercase" placeholder="CB300, FZ...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Año</label>
+          <input type="number" id="newMotoAnio" inputmode="numeric" placeholder="2020" min="1950" max="2030">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Color</label>
+          <input type="text" id="newMotoColor" placeholder="Rojo, Negro...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnPaso2Atras">← Atrás</button>
+        <button class="btn btn-primary" id="btnPaso2Siguiente">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- Paso 3: Titular de la moto -->
+    <div id="wizardStep3" class="wizard-panel hidden">
+      <div class="form-group">
+        <label class="form-label required">Titular de la moto</label>
+        <div class="input-group">
+          <input type="text" id="searchCliente" placeholder="Buscar por nombre o teléfono...">
+          <button class="btn btn-secondary btn-sm" id="btnNuevoCliente">+ Nuevo</button>
+        </div>
+        <div id="clienteResults" class="hidden" style="border: 1.5px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; background: #fff; max-height: 160px; overflow-y: auto;"></div>
+        <div id="clienteSeleccionado" class="hidden" style="margin-top: 8px; padding: 8px 12px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; font-size: 0.875rem; font-weight: 600;"></div>
+      </div>
+      <div id="formNuevoCliente" class="hidden" style="border: 1.5px solid var(--border); border-radius: 8px; padding: 14px; margin-top: 8px;">
+        <div class="fw-bold text-sm mb-1">Nuevo cliente</div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label required">Nombre</label>
+            <input type="text" id="ncNombre" placeholder="Juan García">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teléfono</label>
+            <input type="tel" id="ncTelefono" placeholder="11 2345-6789">
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btnGuardarNuevoCliente">Guardar cliente</button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnPaso3Atras">← Atrás</button>
+        <button class="btn btn-primary" id="btnPaso3Siguiente">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- Paso 4: Datos del ingreso -->
+    <div id="wizardStep4" class="wizard-panel hidden">
       <div class="grid-2">
         <div class="form-group">
           <label class="form-label">Kilómetros</label>
-          <input type="number" id="otKm" placeholder="0" min="0">
+          <input type="number" id="otKm" inputmode="numeric" placeholder="0" min="0">
         </div>
         <div class="form-group">
           <label class="form-label">Mecánico</label>
@@ -163,7 +181,7 @@
         <input type="date" id="otFechaPrometida">
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="btnPaso2Atras">← Atrás</button>
+        <button class="btn btn-secondary" id="btnPaso4Atras">← Atrás</button>
         <button class="btn btn-primary" id="btnCrearOT">Crear OT</button>
       </div>
     </div>

@@ -595,7 +595,7 @@ tr:hover td { background: var(--bg); }
 /* ── Dashboard cards ─────────────────────────────────────────────────────── */
 .stat-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   gap: 12px;
   margin-bottom: 24px;
 }
@@ -728,3 +728,59 @@ tr:hover td { background: var(--bg); }
   .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
   .chips::-webkit-scrollbar { display: none; }
 }
+
+/* ── Wizard de nueva OT ──────────────────────────────────────────────────── */
+.wizard-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  min-height: 20px;
+}
+.wdot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s, width 0.2s, height 0.2s;
+  flex-shrink: 0;
+}
+.wdot.active {
+  width: 13px;
+  height: 13px;
+  background: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+.wdot.done { background: var(--primary); opacity: 0.45; }
+.wdot-line {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  min-width: 28px;
+  max-width: 64px;
+}
+
+.wizard-panel { animation: panelIn 0.18s ease; }
+.wizard-panel.hidden { animation: none; }
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Estados de inputs ───────────────────────────────────────────────────── */
+.input-uppercase { text-transform: uppercase; }
+
+.input-error {
+  border-color: #EF4444 !important;
+  background-color: #FEF2F2 !important;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-7px); }
+  40%       { transform: translateX(7px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+.shake { animation: shake 0.42s ease; }
