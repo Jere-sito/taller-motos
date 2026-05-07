@@ -2,6 +2,13 @@ let editandoId = null;
 let timer;
 const _clientesData = {};
 
+function waLink(telefono) {
+  const digits = String(telefono || '').replace(/\D/g, '');
+  if (!digits) return null;
+  const num = digits.startsWith('54') && digits.length >= 12 ? digits : '54' + digits;
+  return `https://wa.me/${num}`;
+}
+
 async function onAppReady() {
   await cargarClientes();
   document.getElementById('btnNuevoCliente')?.addEventListener('click', () => abrirModal());
@@ -35,6 +42,7 @@ function renderClientes(clientes) {
       <td>${esc(c.email || '—')}</td>
       <td>${c.cant_motos || 0}</td>
       <td style="text-align:right; white-space:nowrap">
+        ${waLink(c.telefono) ? `<a href="${waLink(c.telefono)}" target="_blank" class="btn btn-sm" style="margin-right:4px; color:#25D366; border:1px solid #25D366; background:#fff; text-decoration:none">💬</a>` : ''}
         ${canEdit ? `<button class="btn btn-secondary btn-sm" onclick="abrirModal(${c.id})">Editar</button>` : ''}
         ${canEdit ? `<button class="btn btn-sm" style="margin-left:4px; color:#EF4444; border:1px solid #FCA5A5; background:#fff" onclick="eliminarCliente(${c.id})">✕</button>` : ''}
       </td>
