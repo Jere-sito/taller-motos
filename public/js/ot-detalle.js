@@ -240,6 +240,7 @@ function renderPresupuesto() {
       btns += ` <button class="btn btn-secondary btn-sm" id="btnAgregarItem">+ Ítem</button>`;
       btns += ` <button class="btn btn-secondary btn-sm" id="btnWA">📱 WhatsApp</button>`;
       if (pres.estado === 'borrador') btns += ` <button class="btn btn-secondary btn-sm" id="btnPresentar">Presentar</button>`;
+      if (pres.estado === 'presentado') btns += ` <button class="btn btn-secondary btn-sm" id="btnVolvBorrador">← Borrador</button>`;
       if (pres.estado === 'presentado') btns += ` <button class="btn btn-success btn-sm" id="btnAprobar">Aprobar</button>`;
     }
     if (otActual.estado === 'lista' || otActual.estado === 'entregada') {
@@ -249,6 +250,7 @@ function renderPresupuesto() {
     document.getElementById('btnAgregarItem')?.addEventListener('click', abrirModalItem);
     document.getElementById('btnWA')?.addEventListener('click', compartirWhatsApp);
     document.getElementById('btnPresentar')?.addEventListener('click', () => cambiarEstadoPres('presentado'));
+    document.getElementById('btnVolvBorrador')?.addEventListener('click', () => cambiarEstadoPres('borrador'));
     document.getElementById('btnAprobar')?.addEventListener('click', aprobarPresupuesto);
   }
 
