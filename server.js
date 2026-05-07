@@ -40,7 +40,7 @@ app.locals.upload = multer({
 
 // Sesión simulada con usuario de desarrollo (auth deshabilitada)
 app.use((req, _res, next) => {
-  req.session = { userId: 1, username: 'dev', displayName: 'Desarrollo', role: 'admin' };
+  req.session = { userId: null, username: 'dev', displayName: 'Desarrollo', role: 'admin' };
   next();
 });
 
@@ -81,7 +81,7 @@ app.get('/api/backup', (req, res) => {
 
 // API auth — /me siempre devuelve usuario de desarrollo
 app.get('/api/auth/me', (_req, res) => {
-  res.json({ userId: 1, username: 'dev', displayName: 'Desarrollo', role: 'admin', mecanico_id: null });
+  res.json({ userId: null, username: 'dev', displayName: 'Desarrollo', role: 'admin', mecanico_id: null });
 });
 app.get('/api/auth/status', (_req, res) => {
   res.json({ hasUsers: true, loggedIn: true, displayName: 'Desarrollo', role: 'admin' });
