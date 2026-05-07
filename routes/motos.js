@@ -135,13 +135,21 @@ router.patch('/:id', (req, res) => {
   `).get(Number(req.params.id)));
 });
 
-// DELETE /api/motos/:id  — bloquea si tiene cualquier OT registrada
+// DELETE /api/motos/:id  — cascade: elimina OTs (y su historial/presupuestos/pagos) y la moto
 router.delete('/:id', (req, res) => {
   const db = getDb();
   const id = Number(req.params.id);
-  const ot = db.prepare('SELECT id FROM ordenes_trabajo WHERE moto_id = ? LIMIT 1').get(id);
-  if (ot) return res.status(409).json({ error: 'La moto tiene órdenes de trabajo registradas y no puede eliminarse.' });
-  db.prepare('DELETE FROM motos WHERE id = ?').run(id);
+  const moto = db.prepare('SELECT id FROM motos WHERE id = ?').get(id);
+  if (!moto) return res.status(404).json({ error: 'Moto no encontrada.' });
+  try {
+    db.exec('BEGIN');
+    db.prepare('DELETE FROM ordenes_trabajo WHERE moto_id = ?').run(id);
+    db.prepare('DELETE FROM motos WHERE id = ?').run(id);
+    db.exec('COMMIT');
+  } catch (e) {
+    try { db.exec('ROLLBACK'); } catch (_) {}
+    return res.status(500).json({ error: 'Error al eliminar.' });
+  }
   res.json({ ok: true });
 });
 

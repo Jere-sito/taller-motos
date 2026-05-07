@@ -62,10 +62,11 @@ function eliminarMoto(id) {
   const m = _motosData[id];
   if (!m) return;
   const desc = [m.marca, m.modelo, m.anio ? `(${m.anio})` : ''].filter(Boolean).join(' ');
+  const tieneOTs = (m.cant_ot || 0) > 0;
   App.confirmarDoble(
     'Eliminar moto',
     `${m.patente}${desc ? ' — ' + desc : ''}`,
-    `¿Eliminar la moto <strong>${esc(m.patente)}</strong>${desc ? ` (${esc(desc)})` : ''}?`,
+    `¿Eliminar la moto <strong>${esc(m.patente)}</strong>${desc ? ` (${esc(desc)})` : ''}?${tieneOTs ? `<br><span style="color:#DC2626;font-size:0.85rem">También se eliminarán sus ${m.cant_ot} orden(es) de trabajo y todo su historial.</span>` : ''}`,
     async () => {
       try {
         await API.del(`/api/motos/${id}`);
