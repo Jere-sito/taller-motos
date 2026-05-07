@@ -135,14 +135,13 @@ router.patch('/:id', (req, res) => {
   `).get(Number(req.params.id)));
 });
 
-// DELETE /api/motos/:id
+// DELETE /api/motos/:id  — bloquea si tiene cualquier OT registrada
 router.delete('/:id', (req, res) => {
   const db = getDb();
-  const ot = db.prepare(`
-    SELECT id FROM ordenes_trabajo WHERE moto_id = ? AND estado NOT IN ('entregada','cancelada') LIMIT 1
-  `).get(Number(req.params.id));
-  if (ot) return res.status(409).json({ error: 'La moto tiene órdenes de trabajo activas.' });
-  db.prepare('DELETE FROM motos WHERE id = ?').run(Number(req.params.id));
+  const id = Number(req.params.id);
+  const ot = db.prepare('SELECT id FROM ordenes_trabajo WHERE moto_id = ? LIMIT 1').get(id);
+  if (ot) return res.status(409).json({ error: 'La moto tiene órdenes de trabajo registradas y no puede eliminarse.' });
+  db.prepare('DELETE FROM motos WHERE id = ?').run(id);
   res.json({ ok: true });
 });
 

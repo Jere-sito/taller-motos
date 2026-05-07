@@ -1,5 +1,6 @@
 let editandoId = null;
 let timer;
+const _clientesData = {};
 
 async function onAppReady() {
   await cargarClientes();
@@ -26,6 +27,7 @@ function renderClientes(clientes) {
     return;
   }
   const canEdit = App.canEdit();
+  clientes.forEach(c => { _clientesData[c.id] = c; });
   tbody.innerHTML = clientes.map(c => `
     <tr>
       <td><strong>${esc(c.nombre)}</strong></td>
@@ -80,13 +82,25 @@ async function guardarCliente() {
   }
 }
 
-async function eliminarCliente(id) {
-  if (!App.confirm('¿Eliminar este cliente?')) return;
-  try {
-    await API.del(`/api/clientes/${id}`);
-    App.toast('Cliente eliminado', 'success');
-    await cargarClientes();
-  } catch (e) {
-    App.toast(e.message || 'No se puede eliminar', 'error');
-  }
+function eliminarCliente(id) {
+  const c = _clientesData[id];
+  if (!c) return;
+  const motos = c.cant_motos || 0;
+  const linea = motos > 0
+    ? `¿Eliminar a <strong>${esc(c.nombre)}</strong>? También se eliminarán sus ${motos} moto(s).`
+    : `¿Eliminar al cliente <strong>${esc(c.nombre)}</strong>?`;
+  App.confirmarDoble(
+    'Eliminar cliente',
+    c.nombre,
+    linea,
+    async () => {
+      try {
+        await API.del(`/api/clientes/${id}`);
+        App.toast('Cliente eliminado', 'success');
+        await cargarClientes();
+      } catch (e) {
+        App.toast(e.message || 'No se puede eliminar', 'error');
+      }
+    }
+  );
 }

@@ -1,5 +1,6 @@
 let editandoMotoId = null;
 let timer;
+const _motosData = {};
 
 async function onAppReady() {
   await cargarMotos();
@@ -25,14 +26,16 @@ function renderMotos(motos) {
     return;
   }
   const canEdit = App.canEdit();
+  motos.forEach(m => { _motosData[m.id] = m; });
   tbody.innerHTML = motos.map(m => `
     <tr>
       <td><strong style="letter-spacing:2px">${esc(m.patente)}</strong></td>
       <td>${esc(m.marca)} ${esc(m.modelo)} ${m.anio ? `(${m.anio})` : ''}</td>
       <td>${esc(m.cliente_nombre)}</td>
       <td>${m.cant_ot || 0}</td>
-      <td style="text-align:right">
+      <td style="text-align:right; white-space:nowrap">
         ${canEdit ? `<button class="btn btn-secondary btn-sm" onclick="abrirModal(${m.id})">Editar</button>` : ''}
+        ${canEdit ? `<button class="btn btn-sm" style="margin-left:4px; color:#EF4444; border:1px solid #FCA5A5; background:#fff" onclick="eliminarMoto(${m.id})">✕</button>` : ''}
       </td>
     </tr>`).join('');
 }
@@ -53,6 +56,26 @@ async function cargarDatosMoto(id) {
     document.getElementById('mColor').value = m.color || '';
     document.getElementById('mNotas').value = m.notas || '';
   } catch {}
+}
+
+function eliminarMoto(id) {
+  const m = _motosData[id];
+  if (!m) return;
+  const desc = [m.marca, m.modelo, m.anio ? `(${m.anio})` : ''].filter(Boolean).join(' ');
+  App.confirmarDoble(
+    'Eliminar moto',
+    `${m.patente}${desc ? ' — ' + desc : ''}`,
+    `¿Eliminar la moto <strong>${esc(m.patente)}</strong>${desc ? ` (${esc(desc)})` : ''}?`,
+    async () => {
+      try {
+        await API.del(`/api/motos/${id}`);
+        App.toast('Moto eliminada', 'success');
+        await cargarMotos();
+      } catch (e) {
+        App.toast(e.message || 'No se puede eliminar', 'error');
+      }
+    }
+  );
 }
 
 async function guardarMoto() {

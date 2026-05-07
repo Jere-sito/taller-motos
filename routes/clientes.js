@@ -80,12 +80,29 @@ router.patch('/:id', (req, res) => {
   res.json(db.prepare('SELECT * FROM clientes WHERE id = ?').get(Number(req.params.id)));
 });
 
-// DELETE /api/clientes/:id
+// DELETE /api/clientes/:id  — cascade: elimina motos del cliente (bloquea si tienen OTs)
 router.delete('/:id', (req, res) => {
   const db = getDb();
-  const moto = db.prepare('SELECT id FROM motos WHERE cliente_id = ? LIMIT 1').get(Number(req.params.id));
-  if (moto) return res.status(409).json({ error: 'El cliente tiene motos registradas. Eliminá las motos primero.' });
-  db.prepare('DELETE FROM clientes WHERE id = ?').run(Number(req.params.id));
+  const id = Number(req.params.id);
+  const cliente = db.prepare('SELECT id FROM clientes WHERE id = ?').get(id);
+  if (!cliente) return res.status(404).json({ error: 'Cliente no encontrado.' });
+
+  const otExistente = db.prepare(`
+    SELECT ot.id FROM ordenes_trabajo ot
+    JOIN motos m ON m.id = ot.moto_id
+    WHERE m.cliente_id = ? LIMIT 1
+  `).get(id);
+  if (otExistente) return res.status(409).json({ error: 'El cliente tiene órdenes de trabajo registradas. No se puede eliminar.' });
+
+  try {
+    db.exec('BEGIN');
+    db.prepare('DELETE FROM motos WHERE cliente_id = ?').run(id);
+    db.prepare('DELETE FROM clientes WHERE id = ?').run(id);
+    db.exec('COMMIT');
+  } catch (e) {
+    try { db.exec('ROLLBACK'); } catch (_) {}
+    return res.status(500).json({ error: 'Error al eliminar.' });
+  }
   res.json({ ok: true });
 });
 

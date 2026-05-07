@@ -85,6 +85,51 @@ const App = {
     return window.confirm(msg);
   },
 
+  confirmarDoble(titulo, nombreItem, lineaDetalle, callback) {
+    const uid = '_cdm_' + Date.now();
+    const overlay = document.createElement('div');
+    overlay.className = 'modal';
+    overlay.id = uid;
+    overlay.innerHTML = `
+      <div class="modal-box" style="max-width:420px">
+        <div id="${uid}_s1">
+          <div class="modal-header">
+            <h2 class="modal-title">${esc(titulo)}</h2>
+          </div>
+          <p style="margin:16px 0; font-size:0.95rem">${lineaDetalle}</p>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" id="${uid}_c1">Cancelar</button>
+            <button class="btn btn-primary" id="${uid}_nx">Continuar →</button>
+          </div>
+        </div>
+        <div id="${uid}_s2" class="hidden">
+          <div class="modal-header">
+            <h2 class="modal-title" style="color:#DC2626">⚠️ Confirmar eliminación</h2>
+          </div>
+          <div style="background:#FEF2F2; border:1px solid #FCA5A5; border-radius:8px; padding:14px; margin:16px 0; font-size:0.9rem">
+            Esta acción <strong>no se puede deshacer</strong>. Se eliminará permanentemente:<br>
+            <span style="font-weight:700; margin-top:6px; display:block">${esc(nombreItem)}</span>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" id="${uid}_bk">← Volver</button>
+            <button class="btn" style="background:#DC2626;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-weight:600;cursor:pointer" id="${uid}_ok">🗑️ Eliminar definitivamente</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const close = () => overlay.remove();
+    document.getElementById(`${uid}_c1`).onclick = close;
+    document.getElementById(`${uid}_nx`).onclick = () => {
+      document.getElementById(`${uid}_s1`).classList.add('hidden');
+      document.getElementById(`${uid}_s2`).classList.remove('hidden');
+    };
+    document.getElementById(`${uid}_bk`).onclick = () => {
+      document.getElementById(`${uid}_s2`).classList.add('hidden');
+      document.getElementById(`${uid}_s1`).classList.remove('hidden');
+    };
+    document.getElementById(`${uid}_ok`).onclick = () => { close(); callback(); };
+  },
+
   openModal(id) {
     const m = document.getElementById(id);
     if (m) { m.classList.remove('hidden'); m.querySelector('input,textarea,select')?.focus(); }
