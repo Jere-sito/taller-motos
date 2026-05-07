@@ -197,6 +197,39 @@ document.addEventListener('click', async e => {
   window.location.href = '/login';
 });
 
+// ── Mayúsculas globales ───────────────────────────────────────────────────
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.classList.contains('input-precio')) return;
+  const type = (el.getAttribute('type') || '').toLowerCase();
+  const skip = ['email','password','date','number','color','file','range','time','url'];
+  if (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && !skip.includes(type))) {
+    const pos = el.selectionStart;
+    const upper = el.value.toUpperCase();
+    if (upper !== el.value) {
+      el.value = upper;
+      try { el.setSelectionRange(pos, pos); } catch {}
+    }
+  }
+});
+
+// ── Formato de precio (.input-precio) ────────────────────────────────────
+document.addEventListener('focusin', e => {
+  if (!e.target.classList?.contains('input-precio')) return;
+  e.target.value = e.target.value.replace(/\./g, '').replace(/[^0-9]/g, '');
+});
+document.addEventListener('focusout', e => {
+  if (!e.target.classList?.contains('input-precio')) return;
+  const n = parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0;
+  e.target.value = n > 0 ? n.toLocaleString('es-AR') : '';
+});
+document.addEventListener('input', e => {
+  if (!e.target.classList?.contains('input-precio')) return;
+  const pos = e.target.selectionStart;
+  e.target.value = e.target.value.replace(/[^0-9]/g, '');
+  try { e.target.setSelectionRange(pos, pos); } catch {}
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   // Aplicar auto-formato a todos los inputs tel de la página
   document.querySelectorAll('input[type="tel"]').forEach(input => {
@@ -204,7 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const pos = input.selectionStart;
       const prev = input.value;
       input.value = formatPhone(prev);
-      // Mantener cursor aproximado si el largo no cambió
       if (input.value.length === prev.length) input.setSelectionRange(pos, pos);
     });
   });

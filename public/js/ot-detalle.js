@@ -351,7 +351,7 @@ function abrirModalItem() {
   document.getElementById('itemTipo').disabled = false;
   document.getElementById('itemDescripcion').value = '';
   document.getElementById('itemCantidad').value = '1';
-  document.getElementById('itemPrecio').value = '0';
+  document.getElementById('itemPrecio').value = '';
   document.getElementById('btnGuardarItem').textContent = 'Agregar';
   _actualizarCamposCantidad('repuesto');
   App.openModal('modalAgregarItem');
@@ -366,7 +366,8 @@ function abrirEditarItem(itemId) {
   document.getElementById('itemTipo').disabled = false;
   document.getElementById('itemDescripcion').value = item.descripcion;
   document.getElementById('itemCantidad').value = item.cantidad;
-  document.getElementById('itemPrecio').value = item.precio_unitario;
+  const p = Math.round(item.precio_unitario || 0);
+  document.getElementById('itemPrecio').value = p > 0 ? p.toLocaleString('es-AR') : '';
   document.getElementById('btnGuardarItem').textContent = 'Guardar';
   _actualizarCamposCantidad(item.tipo);
   App.openModal('modalAgregarItem');
@@ -461,7 +462,7 @@ function abrirModalPago() {
 async function guardarPago() {
   const medio = document.getElementById('pagoMedio').value;
   const proveedor = document.getElementById('pagoProveedor').value.trim();
-  const monto = parseFloat(document.getElementById('pagoMonto').value) || 0;
+  const monto = parseInt(document.getElementById('pagoMonto').value.replace(/\./g, '').replace(/[^0-9]/g, '')) || 0;
   const notas = document.getElementById('pagoNotas').value.trim();
 
   if (medio === 'puente' && !proveedor) return App.toast('Ingresá el proveedor destino', 'error');
@@ -503,7 +504,7 @@ async function guardarItem() {
   const tipo = document.getElementById('itemTipo').value;
   const descripcion = document.getElementById('itemDescripcion').value.trim();
   const cantidad = parseFloat(document.getElementById('itemCantidad').value) || 1;
-  const precio_unitario = parseFloat(document.getElementById('itemPrecio').value) || 0;
+  const precio_unitario = parseInt(document.getElementById('itemPrecio').value.replace(/\./g, '').replace(/[^0-9]/g, '')) || 0;
 
   if (!descripcion) return App.toast('La descripción es requerida', 'error');
 
