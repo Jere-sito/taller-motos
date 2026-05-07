@@ -1,7 +1,6 @@
 const otId = Number(new URLSearchParams(window.location.search).get('id'));
 let otActual = null;
 let presupuestoActual = null;
-let huskyItemSeleccionado = null;
 
 const ESTADO_LABELS = {
   ingresada: 'Ingresada', en_diagnostico: 'En diagnóstico', presupuestada: 'Presupuestada',
@@ -20,7 +19,6 @@ async function cargarOT() {
     otActual = await API.get(`/api/ordenes/${otId}`);
     renderOT();
     await cargarPresupuesto();
-    await cargarFotos();
   } catch {
     document.getElementById('paginaDetalle').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Orden no encontrada</p></div>`;
   }
@@ -111,15 +109,6 @@ function renderOT() {
       </div>
     </div>
 
-    <!-- Fotos de ingreso -->
-    <div class="card" style="margin-bottom:16px">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
-        <h3 style="font-weight:700">Fotos de ingreso</h3>
-        ${App.canEdit() ? `<label class="btn btn-secondary btn-sm" style="cursor:pointer">+ Agregar fotos<input type="file" accept="image/*" multiple id="inputFotos" style="display:none"></label>` : ''}
-      </div>
-      <div class="foto-grid" id="fotoGrid"></div>
-    </div>
-
     <!-- Presupuesto -->
     <div class="card" id="seccionPresupuesto">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
@@ -133,7 +122,6 @@ function renderOT() {
   // Eventos
   document.getElementById('btnCambiarEstado')?.addEventListener('click', abrirCambiarEstado);
   document.getElementById('btnEditarOT')?.addEventListener('click', abrirEditarOT);
-  document.getElementById('inputFotos')?.addEventListener('change', subirFotos);
 }
 
 // ── Cambiar estado ─────────────────────────────────────────────────────────
@@ -156,7 +144,6 @@ async function cambiarEstado(nuevoEstado) {
     App.closeModal('modalCambiarEstado');
     App.toast(`Estado actualizado: ${ESTADO_LABELS[nuevoEstado]}`, 'success');
     renderOT();
-    await cargarFotos();
     await cargarPresupuesto();
   } catch (e) {
     App.toast(e.message || 'Error al cambiar estado', 'error');
@@ -194,57 +181,6 @@ async function abrirEditarOT() {
       App.toast(e.message || 'Error al guardar', 'error');
     }
   };
-}
-
-// ── Fotos ─────────────────────────────────────────────────────────────────
-async function cargarFotos() {
-  try {
-    const fotos = await API.get(`/api/ordenes/${otId}/fotos`);
-    renderFotos(fotos);
-  } catch {}
-}
-
-function renderFotos(fotos) {
-  const grid = document.getElementById('fotoGrid');
-  if (!grid) return;
-  const canDel = App.canEdit();
-  grid.innerHTML = fotos.map(f => `
-    <div class="foto-item" onclick="abrirFoto('${esc(f.url)}')">
-      <img src="${esc(f.url)}" alt="Foto de ingreso">
-      ${canDel ? `<button class="foto-del" onclick="event.stopPropagation(); eliminarFoto(${f.id})">✕</button>` : ''}
-    </div>`).join('') +
-    (canDel ? '' : '');
-}
-
-function abrirFoto(url) {
-  document.getElementById('lightboxImg').src = url;
-  App.openModal('modalFoto');
-}
-
-async function eliminarFoto(fotoId) {
-  if (!App.confirm('¿Eliminar esta foto?')) return;
-  try {
-    await API.del(`/api/ordenes/${otId}/fotos/${fotoId}`);
-    await cargarFotos();
-    App.toast('Foto eliminada', 'success');
-  } catch (e) {
-    App.toast(e.message || 'Error', 'error');
-  }
-}
-
-async function subirFotos(e) {
-  const files = e.target.files;
-  if (!files.length) return;
-  const fd = new FormData();
-  for (const f of files) fd.append('fotos', f);
-  try {
-    await API.postForm(`/api/ordenes/${otId}/fotos`, fd);
-    await cargarFotos();
-    App.toast('Fotos subidas', 'success');
-    e.target.value = '';
-  } catch (err) {
-    App.toast(err.message || 'Error al subir fotos', 'error');
-  }
 }
 
 // ── Presupuesto ───────────────────────────────────────────────────────────
@@ -326,7 +262,7 @@ function renderPresupuesto() {
           ${items.map(item => `
             <tr>
               <td><span style="font-size:0.72rem; font-weight:600; padding:2px 8px; border-radius:99px; background:${item.tipo==='repuesto'?'#EDE9FE':'#FFF7ED'}; color:${item.tipo==='repuesto'?'#5B21B6':'#C2410C'}">${item.tipo==='repuesto'?'Repuesto':'M. de obra'}</span></td>
-              <td>${esc(item.descripcion)}${item.husky_item_ref ? `<div class="text-sm text-muted">↗ ${esc(item.husky_item_ref)}</div>` : ''}</td>
+              <td>${esc(item.descripcion)}</td>
               <td style="text-align:right">${item.cantidad}</td>
               <td style="text-align:right">${fmtMoney(item.precio_unitario)}</td>
               <td style="text-align:right; font-weight:600">${fmtMoney(item.cantidad * item.precio_unitario)}</td>
@@ -379,70 +315,17 @@ async function compartirWhatsApp() {
 }
 
 // ── Modal agregar ítem ─────────────────────────────────────────────────────
-let huskyTimer;
 function abrirModalItem() {
-  huskyItemSeleccionado = null;
   document.getElementById('itemTipo').value = 'repuesto';
   document.getElementById('itemDescripcion').value = '';
   document.getElementById('itemCantidad').value = '1';
   document.getElementById('itemPrecio').value = '0';
-  document.getElementById('huskySearch').value = '';
-  document.getElementById('huskyResults').classList.add('hidden');
-  document.getElementById('huskyStatus').textContent = '';
-  document.getElementById('buscadorHusky').style.display = 'block';
   App.openModal('modalAgregarItem');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('itemTipo')?.addEventListener('change', e => {
-    document.getElementById('buscadorHusky').style.display = e.target.value === 'repuesto' ? 'block' : 'none';
-  });
-
-  document.getElementById('huskySearch')?.addEventListener('input', e => {
-    clearTimeout(huskyTimer);
-    const q = e.target.value.trim();
-    if (!q) { document.getElementById('huskyResults').classList.add('hidden'); return; }
-    huskyTimer = setTimeout(() => buscarHusky(q), 350);
-  });
-
-  document.getElementById('huskySearch')?.addEventListener('blur', () => {
-    setTimeout(() => document.getElementById('huskyResults')?.classList.add('hidden'), 150);
-  });
-
   document.getElementById('btnGuardarItem')?.addEventListener('click', guardarItem);
 });
-
-async function buscarHusky(q) {
-  document.getElementById('huskyStatus').textContent = 'Buscando en HUSKY...';
-  try {
-    const items = await API.get(`/api/husky/search?q=${encodeURIComponent(q)}`);
-    const res = document.getElementById('huskyResults');
-    if (!items.length) {
-      document.getElementById('huskyStatus').textContent = 'Sin resultados en HUSKY — podés ingresar el repuesto manualmente';
-      res.classList.add('hidden');
-      return;
-    }
-    document.getElementById('huskyStatus').textContent = '';
-    res.innerHTML = items.slice(0, 10).map(it =>
-      `<div style="padding:8px 12px; cursor:pointer; font-size:0.85rem; border-bottom:1px solid var(--border);"
-            onmousedown="seleccionarHusky(${it.id},'${esc(it.name)}')">
-         <strong>${esc(it.name)}</strong>${it.code ? ` — ${esc(it.code)}` : ''}
-         <span style="font-size:0.75rem; color:var(--text-muted)"> · ${esc(it.state)}</span>
-       </div>`
-    ).join('');
-    res.classList.remove('hidden');
-  } catch {
-    document.getElementById('huskyStatus').textContent = 'HUSKY no disponible — ingresá el repuesto manualmente';
-  }
-}
-
-function seleccionarHusky(id, nombre) {
-  huskyItemSeleccionado = { id, nombre };
-  document.getElementById('huskySearch').value = nombre;
-  document.getElementById('huskyResults').classList.add('hidden');
-  document.getElementById('itemDescripcion').value = nombre;
-  document.getElementById('huskyStatus').textContent = `✓ Repuesto de HUSKY seleccionado`;
-}
 
 async function guardarItem() {
   const tipo = document.getElementById('itemTipo').value;
@@ -456,9 +339,7 @@ async function guardarItem() {
   btn.disabled = true;
   try {
     await API.post(`/api/presupuestos/${presupuestoActual.id}/items`, {
-      tipo, descripcion, cantidad, precio_unitario,
-      husky_item_id: huskyItemSeleccionado?.id || null,
-      husky_item_ref: huskyItemSeleccionado?.nombre || ''
+      tipo, descripcion, cantidad, precio_unitario
     });
     presupuestoActual = await API.get(`/api/ordenes/${otId}/presupuesto`);
     renderPresupuesto();

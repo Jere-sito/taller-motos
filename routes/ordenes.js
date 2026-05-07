@@ -1,7 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const fs = require('fs');
 const { getDb, generateOTNumber } = require('../database');
 
 // Transiciones de estado válidas
@@ -216,52 +214,6 @@ router.patch('/ordenes/:id/estado', (req, res) => {
   res.json(otActualizada);
 });
 
-// POST /api/ordenes/:id/fotos — upload con multer
-router.post('/ordenes/:id/fotos', (req, res) => {
-  const upload = req.app.locals.upload;
-  upload.array('fotos', 10)(req, res, (err) => {
-    if (err) return res.status(400).json({ error: err.message });
-    const db = getDb();
-    const id = Number(req.params.id);
-    const ot = db.prepare('SELECT id FROM ordenes_trabajo WHERE id = ?').get(id);
-    if (!ot) return res.status(404).json({ error: 'Orden no encontrada.' });
-
-    const insertadas = [];
-    for (const file of (req.files || [])) {
-      const result = db.prepare(`
-        INSERT INTO ot_fotos (orden_id, filename, original_name, mimetype, size_bytes, uploaded_by)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run(id, file.filename, file.originalname, file.mimetype, file.size, req.session.userId);
-      insertadas.push({
-        id: result.lastInsertRowid,
-        filename: file.filename,
-        url: `/uploads/${file.filename}`
-      });
-    }
-    res.json(insertadas);
-  });
-});
-
-// GET /api/ordenes/:id/fotos
-router.get('/ordenes/:id/fotos', (req, res) => {
-  const db = getDb();
-  const fotos = db.prepare('SELECT * FROM ot_fotos WHERE orden_id = ? ORDER BY created_at').all(Number(req.params.id));
-  res.json(fotos.map(f => ({ ...f, url: `/uploads/${f.filename}` })));
-});
-
-// DELETE /api/ordenes/:id/fotos/:fotoId
-router.delete('/ordenes/:id/fotos/:fotoId', (req, res) => {
-  if (req.session.role === 'mecanico') return res.status(403).json({ error: 'Sin permiso.' });
-  const db = getDb();
-  const foto = db.prepare('SELECT * FROM ot_fotos WHERE id = ? AND orden_id = ?').get(Number(req.params.fotoId), Number(req.params.id));
-  if (!foto) return res.status(404).json({ error: 'Foto no encontrada.' });
-
-  const filepath = path.join(process.env.UPLOADS_DIR || './uploads', foto.filename);
-  try { fs.unlinkSync(filepath); } catch (_) {}
-  db.prepare('DELETE FROM ot_fotos WHERE id = ?').run(foto.id);
-  res.json({ ok: true });
-});
-
 function _getOTCompleta(db, id) {
   const ot = db.prepare(`
     SELECT ot.*,
@@ -280,8 +232,6 @@ function _getOTCompleta(db, id) {
   ot.historial = db.prepare(`
     SELECT * FROM ot_estado_historial WHERE orden_id = ? ORDER BY created_at DESC
   `).all(id);
-
-  ot.fotos = db.prepare("SELECT *, '/uploads/' || filename as url FROM ot_fotos WHERE orden_id = ? ORDER BY created_at").all(id);
 
   ot.transiciones_validas = TRANSICIONES[ot.estado] || [];
 

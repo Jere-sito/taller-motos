@@ -95,14 +95,6 @@
         <option value="mano_obra">Mano de obra</option>
       </select>
     </div>
-    <div id="buscadorHusky">
-      <div class="form-group">
-        <label class="form-label">Buscar en HUSKY</label>
-        <input type="text" id="huskySearch" placeholder="Nombre o código del repuesto...">
-        <div id="huskyResults" class="hidden" style="border:1.5px solid var(--border); border-top:none; border-radius:0 0 8px 8px; background:#fff; max-height:160px; overflow-y:auto;"></div>
-        <div class="text-muted text-sm mt-1" id="huskyStatus"></div>
-      </div>
-    </div>
     <div class="form-group">
       <label class="form-label required">Descripción</label>
       <input type="text" id="itemDescripcion" placeholder="Descripción del ítem">
@@ -121,13 +113,6 @@
       <button class="btn btn-secondary" onclick="App.closeModal('modalAgregarItem')">Cancelar</button>
       <button class="btn btn-primary" id="btnGuardarItem">Agregar</button>
     </div>
-  </div>
-</div>
-
-<!-- Lightbox fotos -->
-<div class="modal hidden" id="modalFoto">
-  <div style="max-width:90vw; max-height:90vh; cursor:pointer" onclick="App.closeModal('modalFoto')">
-    <img id="lightboxImg" src="" style="max-width:90vw; max-height:90vh; border-radius:8px; display:block;">
   </div>
 </div>
 
