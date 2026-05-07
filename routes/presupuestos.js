@@ -79,7 +79,7 @@ router.post('/presupuestos/:id/items', (req, res) => {
 
 // PATCH /api/presupuestos/:id/items/:itemId
 router.patch('/presupuestos/:id/items/:itemId', (req, res) => {
-  if (req.session.role !== 'admin') return res.status(403).json({ error: 'Solo administradores pueden editar ítems.' });
+  if (req.session.role === 'mecanico') return res.status(403).json({ error: 'Sin permiso.' });
   const db = getDb();
   const { descripcion, cantidad, precio_unitario } = req.body;
   db.prepare(`

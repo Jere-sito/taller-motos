@@ -2,6 +2,7 @@ const otId = Number(new URLSearchParams(window.location.search).get('id'));
 let otActual = null;
 let presupuestoActual = null;
 let pagosActuales = [];
+let editandoItemId = null;
 
 const ESTADO_LABELS = {
   ingresada: 'Ingresada', en_diagnostico: 'En diagnóstico', presupuestada: 'Presupuestada',
@@ -278,7 +279,10 @@ function renderPresupuesto() {
               <td style="text-align:right">${item.cantidad}</td>
               <td style="text-align:right">${fmtMoney(item.precio_unitario)}</td>
               <td style="text-align:right; font-weight:600">${fmtMoney(item.cantidad * item.precio_unitario)}</td>
-              ${canEdit ? `<td><button class="btn btn-sm" style="color:#EF4444; background:none; border:none; cursor:pointer" onclick="eliminarItem(${pres.id},${item.id})">✕</button></td>` : ''}
+              ${canEdit ? `<td style="white-space:nowrap">
+                <button class="btn btn-sm" style="color:var(--primary); background:none; border:none; cursor:pointer" onclick="abrirEditarItem(${item.id})">✏️</button>
+                <button class="btn btn-sm" style="color:#EF4444; background:none; border:none; cursor:pointer" onclick="eliminarItem(${pres.id},${item.id})">✕</button>
+              </td>` : ''}
             </tr>`).join('')}
         </tbody>
       </table>
@@ -339,11 +343,30 @@ function _actualizarCamposCantidad(tipo) {
 }
 
 function abrirModalItem() {
+  editandoItemId = null;
+  document.querySelector('#modalAgregarItem .modal-title').textContent = 'Agregar ítem';
   document.getElementById('itemTipo').value = 'repuesto';
+  document.getElementById('itemTipo').disabled = false;
   document.getElementById('itemDescripcion').value = '';
   document.getElementById('itemCantidad').value = '1';
   document.getElementById('itemPrecio').value = '0';
+  document.getElementById('btnGuardarItem').textContent = 'Agregar';
   _actualizarCamposCantidad('repuesto');
+  App.openModal('modalAgregarItem');
+}
+
+function abrirEditarItem(itemId) {
+  const item = (presupuestoActual?.items || []).find(i => i.id === itemId);
+  if (!item) return;
+  editandoItemId = itemId;
+  document.querySelector('#modalAgregarItem .modal-title').textContent = 'Editar ítem';
+  document.getElementById('itemTipo').value = item.tipo;
+  document.getElementById('itemTipo').disabled = true;
+  document.getElementById('itemDescripcion').value = item.descripcion;
+  document.getElementById('itemCantidad').value = item.cantidad;
+  document.getElementById('itemPrecio').value = item.precio_unitario;
+  document.getElementById('btnGuardarItem').textContent = 'Guardar';
+  _actualizarCamposCantidad(item.tipo);
   App.openModal('modalAgregarItem');
 }
 
@@ -485,13 +508,20 @@ async function guardarItem() {
   const btn = document.getElementById('btnGuardarItem');
   btn.disabled = true;
   try {
-    await API.post(`/api/presupuestos/${presupuestoActual.id}/items`, {
-      tipo, descripcion, cantidad, precio_unitario
-    });
+    if (editandoItemId) {
+      await API.patch(`/api/presupuestos/${presupuestoActual.id}/items/${editandoItemId}`, {
+        descripcion, cantidad, precio_unitario
+      });
+      App.toast('Ítem actualizado', 'success');
+    } else {
+      await API.post(`/api/presupuestos/${presupuestoActual.id}/items`, {
+        tipo, descripcion, cantidad, precio_unitario
+      });
+      App.toast('Ítem agregado', 'success');
+    }
     presupuestoActual = await API.get(`/api/ordenes/${otId}/presupuesto`);
     renderPresupuesto();
     App.closeModal('modalAgregarItem');
-    App.toast('Ítem agregado', 'success');
   } catch (e) {
     App.toast(e.message || 'Error', 'error');
   } finally {
