@@ -363,7 +363,7 @@ function abrirEditarItem(itemId) {
   editandoItemId = itemId;
   document.querySelector('#modalAgregarItem .modal-title').textContent = 'Editar ítem';
   document.getElementById('itemTipo').value = item.tipo;
-  document.getElementById('itemTipo').disabled = true;
+  document.getElementById('itemTipo').disabled = false;
   document.getElementById('itemDescripcion').value = item.descripcion;
   document.getElementById('itemCantidad').value = item.cantidad;
   document.getElementById('itemPrecio').value = item.precio_unitario;
@@ -512,7 +512,7 @@ async function guardarItem() {
   try {
     if (editandoItemId) {
       await API.patch(`/api/presupuestos/${presupuestoActual.id}/items/${editandoItemId}`, {
-        descripcion, cantidad, precio_unitario
+        tipo, descripcion, cantidad, precio_unitario
       });
       App.toast('Ítem actualizado', 'success');
     } else {

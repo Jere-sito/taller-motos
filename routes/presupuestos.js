@@ -81,14 +81,16 @@ router.post('/presupuestos/:id/items', (req, res) => {
 router.patch('/presupuestos/:id/items/:itemId', (req, res) => {
   if (req.session.role === 'mecanico') return res.status(403).json({ error: 'Sin permiso.' });
   const db = getDb();
-  const { descripcion, cantidad, precio_unitario } = req.body;
+  const { tipo, descripcion, cantidad, precio_unitario } = req.body;
+  if (tipo && !['repuesto', 'mano_obra'].includes(tipo)) return res.status(400).json({ error: 'Tipo inválido.' });
   db.prepare(`
     UPDATE presupuesto_items SET
+      tipo = COALESCE(?, tipo),
       descripcion = COALESCE(?, descripcion),
       cantidad = COALESCE(?, cantidad),
       precio_unitario = COALESCE(?, precio_unitario)
     WHERE id = ? AND presupuesto_id = ?
-  `).run(descripcion ?? null, cantidad ?? null, precio_unitario ?? null,
+  `).run(tipo ?? null, descripcion ?? null, cantidad ?? null, precio_unitario ?? null,
          Number(req.params.itemId), Number(req.params.id));
   res.json(db.prepare('SELECT * FROM presupuesto_items WHERE id = ?').get(Number(req.params.itemId)));
 });
