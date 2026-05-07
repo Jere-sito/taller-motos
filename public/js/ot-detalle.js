@@ -1,6 +1,7 @@
 const otId = Number(new URLSearchParams(window.location.search).get('id'));
 let otActual = null;
 let presupuestoActual = null;
+let pagosActuales = [];
 
 const ESTADO_LABELS = {
   ingresada: 'Ingresada', en_diagnostico: 'En diagnóstico', presupuestada: 'Presupuestada',
@@ -18,7 +19,7 @@ async function cargarOT() {
   try {
     otActual = await API.get(`/api/ordenes/${otId}`);
     renderOT();
-    await cargarPresupuesto();
+    await Promise.all([cargarPresupuesto(), cargarPagos()]);
   } catch {
     document.getElementById('paginaDetalle').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Orden no encontrada</p></div>`;
   }
@@ -81,6 +82,7 @@ function renderOT() {
         <div class="text-sm text-muted mb-1">Ingreso: ${fmtDateTime(ot.fecha_ingreso)}</div>
         ${ot.fecha_prometida ? `<div class="text-sm text-muted mb-1">Prometida: ${fmtDate(ot.fecha_prometida)}</div>` : ''}
         ${ot.mecanico_nombre ? `<div class="text-sm text-muted mb-1">🔧 Mecánico: <strong>${esc(ot.mecanico_nombre)}</strong></div>` : '<div class="text-sm text-muted mb-1">Sin mecánico asignado</div>'}
+        ${ot.cedula ? `<div class="text-sm text-muted mb-1">${ot.cedula === 'fisica' ? '🪪' : '📱'} Cédula: <strong>${ot.cedula === 'fisica' ? 'Física' : 'Digital'}</strong></div>` : ''}
         <div style="margin-top:12px">
           <div class="text-sm fw-bold">Problema declarado:</div>
           <div style="margin-top:4px; white-space:pre-wrap; font-size:0.9rem">${esc(ot.problema_declarado || '—')}</div>
@@ -117,11 +119,21 @@ function renderOT() {
       </div>
       <div id="contenidoPresupuesto"><div class="text-muted text-sm">Sin presupuesto aún</div></div>
     </div>
+
+    <!-- Pagos -->
+    <div class="card" id="seccionPagos" style="margin-top:16px">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+        <h3 style="font-weight:700">Pagos</h3>
+        ${App.canEdit() ? `<button class="btn btn-secondary btn-sm" id="btnRegistrarPago">+ Registrar pago</button>` : ''}
+      </div>
+      <div id="contenidoPagos"><div class="text-muted text-sm">Cargando...</div></div>
+    </div>
   `;
 
   // Eventos
   document.getElementById('btnCambiarEstado')?.addEventListener('click', abrirCambiarEstado);
   document.getElementById('btnEditarOT')?.addEventListener('click', abrirEditarOT);
+  document.getElementById('btnRegistrarPago')?.addEventListener('click', abrirModalPago);
 }
 
 // ── Cambiar estado ─────────────────────────────────────────────────────────
@@ -335,11 +347,131 @@ function abrirModalItem() {
   App.openModal('modalAgregarItem');
 }
 
+// ── Pagos ─────────────────────────────────────────────────────────────────
+const MEDIO_LABELS = {
+  efectivo: 'Efectivo', mercadopago: 'MercadoPago', puente: 'Puente',
+  credito: 'Tarjeta crédito', debito: 'Tarjeta débito'
+};
+
+async function cargarPagos() {
+  try {
+    pagosActuales = await API.get(`/api/ordenes/${otId}/pagos`);
+  } catch {
+    pagosActuales = [];
+  }
+  renderPagos();
+}
+
+function renderPagos() {
+  const contenido = document.getElementById('contenidoPagos');
+  if (!contenido) return;
+
+  const totalPagado = pagosActuales.reduce((s, p) => s + p.monto, 0);
+  let saldo = null;
+  if (presupuestoActual) {
+    const items = presupuestoActual.items || [];
+    const subtotal = items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
+    const descMonto = (subtotal * (presupuestoActual.descuento || 0)) / 100;
+    saldo = (subtotal - descMonto) - totalPagado;
+  }
+
+  contenido.innerHTML = `
+    ${pagosActuales.length ? `
+      <table style="width:100%; border-collapse:collapse; font-size:0.875rem">
+        <thead>
+          <tr>
+            <th style="text-align:left; padding:6px 10px; color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; border-bottom:2px solid var(--border)">Medio</th>
+            <th style="text-align:left; padding:6px 10px; color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; border-bottom:2px solid var(--border)">Notas</th>
+            <th style="text-align:right; padding:6px 10px; color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; border-bottom:2px solid var(--border)">Monto</th>
+            ${App.canEdit() ? '<th style="border-bottom:2px solid var(--border)"></th>' : ''}
+          </tr>
+        </thead>
+        <tbody>
+          ${pagosActuales.map(p => `
+            <tr>
+              <td style="padding:8px 10px; border-bottom:1px solid var(--border)">
+                ${esc(MEDIO_LABELS[p.medio] || p.medio)}
+                ${p.proveedor ? `<br><span style="font-size:0.75rem; color:var(--text-muted)">${esc(p.proveedor)}</span>` : ''}
+              </td>
+              <td style="padding:8px 10px; border-bottom:1px solid var(--border); color:var(--text-muted)">${esc(p.notas || '—')}</td>
+              <td style="padding:8px 10px; border-bottom:1px solid var(--border); text-align:right; font-weight:600">${fmtMoney(p.monto)}</td>
+              ${App.canEdit() ? `<td style="padding:8px 10px; border-bottom:1px solid var(--border)"><button class="btn btn-sm" style="color:#EF4444; background:none; border:none; cursor:pointer" onclick="eliminarPago(${p.id})">✕</button></td>` : ''}
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    ` : '<div class="text-muted text-sm">Sin pagos registrados.</div>'}
+    <div style="margin-top:12px; border-top:2px solid var(--border); padding-top:12px; display:flex; justify-content:flex-end; gap:24px; font-size:0.9rem">
+      <span style="color:var(--text-muted)">Total pagado:</span>
+      <span style="font-weight:700; min-width:100px; text-align:right">${fmtMoney(totalPagado)}</span>
+    </div>
+    ${saldo !== null && saldo > 0 ? `
+    <div style="display:flex; justify-content:flex-end; gap:24px; font-size:0.9rem; margin-top:4px">
+      <span style="color:var(--text-muted)">Saldo pendiente:</span>
+      <span style="font-weight:700; color:#EF4444; min-width:100px; text-align:right">${fmtMoney(saldo)}</span>
+    </div>` : saldo !== null && saldo <= 0 && totalPagado > 0 ? `
+    <div style="display:flex; justify-content:flex-end; font-size:0.9rem; margin-top:4px">
+      <span style="color:#059669; font-weight:600">✓ Pago completo</span>
+    </div>` : ''}
+  `;
+}
+
+async function eliminarPago(pagoId) {
+  if (!App.confirm('¿Eliminar este pago?')) return;
+  try {
+    await API.del(`/api/ordenes/${otId}/pagos/${pagoId}`);
+    await cargarPagos();
+    App.toast('Pago eliminado', 'success');
+  } catch (e) { App.toast(e.message || 'Error', 'error'); }
+}
+
+function abrirModalPago() {
+  document.getElementById('pagoMedio').value = 'efectivo';
+  document.getElementById('grupoProveedor').classList.add('hidden');
+  document.getElementById('pagoProveedor').value = '';
+  document.getElementById('pagoMonto').value = '';
+  document.getElementById('pagoNotas').value = '';
+  App.openModal('modalPago');
+}
+
+async function guardarPago() {
+  const medio = document.getElementById('pagoMedio').value;
+  const proveedor = document.getElementById('pagoProveedor').value.trim();
+  const monto = parseFloat(document.getElementById('pagoMonto').value) || 0;
+  const notas = document.getElementById('pagoNotas').value.trim();
+
+  if (medio === 'puente' && !proveedor) return App.toast('Ingresá el proveedor destino', 'error');
+  if (!monto || monto <= 0) return App.toast('Ingresá un monto válido', 'error');
+
+  const btn = document.getElementById('btnGuardarPago');
+  btn.disabled = true;
+  try {
+    await API.post(`/api/ordenes/${otId}/pagos`, { medio, proveedor, monto, notas });
+    App.closeModal('modalPago');
+    await cargarPagos();
+    App.toast('Pago registrado', 'success');
+  } catch (e) {
+    App.toast(e.message || 'Error al registrar el pago', 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('itemTipo')?.addEventListener('change', e => {
     _actualizarCamposCantidad(e.target.value);
   });
   document.getElementById('btnGuardarItem')?.addEventListener('click', guardarItem);
+
+  document.getElementById('pagoMedio')?.addEventListener('change', e => {
+    const grupoProveedor = document.getElementById('grupoProveedor');
+    if (e.target.value === 'puente') {
+      grupoProveedor.classList.remove('hidden');
+    } else {
+      grupoProveedor.classList.add('hidden');
+      document.getElementById('pagoProveedor').value = '';
+    }
+  });
+  document.getElementById('btnGuardarPago')?.addEventListener('click', guardarPago);
 });
 
 async function guardarItem() {

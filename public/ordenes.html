@@ -176,6 +176,19 @@
         <label class="form-label">Fecha prometida de entrega</label>
         <input type="date" id="otFechaPrometida">
       </div>
+      <div class="form-group">
+        <label class="form-label required">Cédula presentada</label>
+        <div class="cedula-opciones">
+          <label class="cedula-opcion" id="labelCedulaFisica">
+            <input type="radio" name="otCedula" value="fisica" id="radioCedulaFisica">
+            <span>🪪 Física</span>
+          </label>
+          <label class="cedula-opcion" id="labelCedulaDigital">
+            <input type="radio" name="otCedula" value="digital" id="radioCedulaDigital">
+            <span>📱 Digital</span>
+          </label>
+        </div>
+      </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" id="btnPaso4Atras">← Atrás</button>
         <button class="btn btn-primary" id="btnCrearOT">Crear OT</button>

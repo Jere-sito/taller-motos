@@ -140,6 +140,23 @@ function initSchema() {
     );
   `);
 
+  // Migración: columna cedula en ordenes_trabajo
+  try { db.exec(`ALTER TABLE ordenes_trabajo ADD COLUMN cedula TEXT`); } catch (_) {}
+
+  // Tabla de pagos
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS pagos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      orden_id INTEGER NOT NULL,
+      medio TEXT NOT NULL CHECK(medio IN ('efectivo','mercadopago','puente','credito','debito')),
+      proveedor TEXT DEFAULT '',
+      monto REAL NOT NULL DEFAULT 0,
+      notas TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (orden_id) REFERENCES ordenes_trabajo(id) ON DELETE CASCADE
+    );
+  `);
+
   // Índices
   try { db.exec(`CREATE INDEX IF NOT EXISTS idx_clientes_nombre ON clientes(LOWER(nombre))`); } catch (_) {}
   try { db.exec(`CREATE INDEX IF NOT EXISTS idx_clientes_telefono ON clientes(telefono)`); } catch (_) {}
@@ -149,6 +166,7 @@ function initSchema() {
   try { db.exec(`CREATE INDEX IF NOT EXISTS idx_ot_estado ON ordenes_trabajo(estado)`); } catch (_) {}
   try { db.exec(`CREATE INDEX IF NOT EXISTS idx_ot_fecha_prometida ON ordenes_trabajo(fecha_prometida)`); } catch (_) {}
   try { db.exec(`CREATE INDEX IF NOT EXISTS idx_presupuesto_items ON presupuesto_items(presupuesto_id)`); } catch (_) {}
+  try { db.exec(`CREATE INDEX IF NOT EXISTS idx_pagos_orden ON pagos(orden_id)`); } catch (_) {}
 }
 
 function generateOTNumber(db) {

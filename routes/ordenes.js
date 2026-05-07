@@ -58,8 +58,9 @@ router.get('/ordenes', (req, res) => {
 // POST /api/ordenes
 router.post('/ordenes', (req, res) => {
   if (req.session.role === 'mecanico') return res.status(403).json({ error: 'Sin permiso.' });
-  const { moto_id, mecanico_id, km_ingreso = 0, problema_declarado = '', observaciones_internas = '', fecha_prometida } = req.body;
+  const { moto_id, mecanico_id, km_ingreso = 0, problema_declarado = '', observaciones_internas = '', fecha_prometida, cedula } = req.body;
   if (!moto_id) return res.status(400).json({ error: 'La moto es requerida.' });
+  if (!cedula || !['fisica','digital'].includes(cedula)) return res.status(400).json({ error: 'Indicá si la cédula es física o digital.' });
 
   const db = getDb();
   const moto = db.prepare('SELECT id FROM motos WHERE id = ?').get(Number(moto_id));
@@ -72,12 +73,12 @@ router.post('/ordenes', (req, res) => {
     db.exec('BEGIN');
     const result = db.prepare(`
       INSERT INTO ordenes_trabajo
-        (numero, moto_id, mecanico_id, km_ingreso, problema_declarado, observaciones_internas, fecha_prometida, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (numero, moto_id, mecanico_id, km_ingreso, problema_declarado, observaciones_internas, fecha_prometida, cedula, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       numero, Number(moto_id), mecanico_id ? Number(mecanico_id) : null,
       Number(km_ingreso), problema_declarado, observaciones_internas,
-      fecha_prometida || null, req.session.userId
+      fecha_prometida || null, cedula, req.session.userId
     );
 
     ordenId = result.lastInsertRowid;

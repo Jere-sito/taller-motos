@@ -71,6 +71,7 @@ app.use('/api/motos',     require('./routes/motos'));
 app.use('/api/mecanicos', require('./routes/mecanicos'));
 app.use('/api',           require('./routes/ordenes'));
 app.use('/api',           require('./routes/presupuestos'));
+app.use('/api',           require('./routes/pagos'));
 app.use('/api/husky',     require('./routes/husky'));
 app.use('/api/admin',     require('./routes/admin'));
 
