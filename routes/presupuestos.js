@@ -131,30 +131,44 @@ router.get('/presupuestos/:id/whatsapp', (req, res) => {
 
   const items = db.prepare('SELECT * FROM presupuesto_items WHERE presupuesto_id = ? ORDER BY orden_pos, id').all(pres.id);
 
-  const subtotal = items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
+  const fmt = n => '$' + Math.round(n).toLocaleString('es-AR');
+
+  const repuestos = items.filter(i => i.tipo === 'repuesto');
+  const manoObra  = items.filter(i => i.tipo === 'mano_obra');
+
+  const subtotalRep = repuestos.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
+  const subtotalMO  = manoObra.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
+  const subtotal = subtotalRep + subtotalMO;
   const descuentoMonto = (subtotal * (pres.descuento || 0)) / 100;
   const total = subtotal - descuentoMonto;
-
-  const fmt = n => '$' + Math.round(n).toLocaleString('es-AR');
 
   let lineas = [];
   lineas.push(`*PRESUPUESTO ${ot.numero}*`);
   lineas.push(`Moto: ${ot.marca} ${ot.modelo} (${ot.patente})`);
   lineas.push(`Cliente: ${ot.cliente_nombre}`);
-  lineas.push('');
-  lineas.push('*Trabajos:*');
-  for (const item of items) {
-    const subtot = item.cantidad * item.precio_unitario;
-    if (item.tipo === 'mano_obra') {
-      lineas.push(`- ${item.descripcion} - ${fmt(subtot)}`);
-    } else {
-      lineas.push(`- ${item.descripcion} x${item.cantidad} - ${fmt(subtot)}`);
+
+  if (repuestos.length) {
+    lineas.push('');
+    lineas.push('🔩 *REPUESTOS:*');
+    for (const item of repuestos) {
+      lineas.push(`- ${item.descripcion} x${item.cantidad} - ${fmt(item.cantidad * item.precio_unitario)}`);
     }
+    if (manoObra.length) lineas.push(`*Subtotal: ${fmt(subtotalRep)}*`);
   }
+
+  if (manoObra.length) {
+    lineas.push('');
+    lineas.push('🔧 *MANO DE OBRA:*');
+    for (const item of manoObra) {
+      lineas.push(`- ${item.descripcion} - ${fmt(item.cantidad * item.precio_unitario)}`);
+    }
+    if (repuestos.length) lineas.push(`*Subtotal: ${fmt(subtotalMO)}*`);
+  }
+
   lineas.push('');
   if (pres.descuento > 0) {
-    lineas.push(`Subtotal: ${fmt(subtotal)}`);
-    lineas.push(`Descuento: ${fmt(descuentoMonto)} (${pres.descuento}%)`);
+    lineas.push(`Subtotal general: ${fmt(subtotal)}`);
+    lineas.push(`Descuento (${pres.descuento}%): -${fmt(descuentoMonto)}`);
   }
   lineas.push(`*TOTAL: ${fmt(total)}*`);
   if (pres.notas_cliente) { lineas.push(''); lineas.push(pres.notas_cliente); }

@@ -170,13 +170,12 @@ function initSchema() {
 }
 
 function generateOTNumber(db) {
-  const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  const prefix = `OT-${today}-`;
-  const last = db.prepare(
-    "SELECT numero FROM ordenes_trabajo WHERE numero LIKE ? ORDER BY numero DESC LIMIT 1"
-  ).get(prefix + '%');
-  const lastN = last ? parseInt(last.numero.split('-')[2]) : 0;
-  return `${prefix}${String(lastN + 1).padStart(3, '0')}`;
+  const rows = db.prepare("SELECT numero FROM ordenes_trabajo").all();
+  const maxN = rows.reduce((max, row) => {
+    const n = parseInt(row.numero.split('-').at(-1)) || 0;
+    return Math.max(max, n);
+  }, 0);
+  return `OT-${String(maxN + 1).padStart(3, '0')}`;
 }
 
 module.exports = { getDb, generateOTNumber };
