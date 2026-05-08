@@ -676,6 +676,12 @@ tr:hover td { background: var(--bg); }
   /* Chips scrollables */
   .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
   .chips::-webkit-scrollbar { display: none; }
+
+  /* Card padding más compacto */
+  .card { padding: 14px 12px; }
+
+  /* Título OT más compacto */
+  .ot-detalle-title { font-size: 1.15rem !important; }
 }
 
 /* ── Wizard de nueva OT ──────────────────────────────────────────────────── */
@@ -761,6 +767,14 @@ tr:hover td { background: var(--bg); }
   color: var(--primary);
 }
 .cedula-opcion input[type="radio"] { display: none; }
+
+/* ── Items de presupuesto / pagos (card layout) ──────────────────────────── */
+.presup-items { margin-bottom: 4px; }
+.presup-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.presup-item:last-child { border-bottom: none; }
 
 /* ── Pagos ───────────────────────────────────────────────────────────────── */
 .pago-badge {

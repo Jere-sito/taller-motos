@@ -42,7 +42,7 @@ function renderOT() {
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
         <div>
           <div class="text-muted text-sm">${esc(ot.numero)}</div>
-          <h1 style="font-size:1.4rem; font-weight:800; margin:4px 0">${esc(ot.patente)} — ${esc(ot.marca)} ${esc(ot.modelo)}</h1>
+          <h1 class="ot-detalle-title" style="font-size:1.4rem; font-weight:800; margin:4px 0">${esc(ot.patente)} — ${esc(ot.marca)} ${esc(ot.modelo)}</h1>
           <div style="display:flex; gap:12px; flex-wrap:wrap; font-size:0.875rem; color:var(--text-muted)">
             <span>👤 <a href="/clientes" style="color:inherit">${esc(ot.cliente_nombre)}</a></span>
             <span>📞 ${esc(ot.cliente_telefono || '—')}</span>
@@ -76,7 +76,7 @@ function renderOT() {
       ${vencida ? `<div class="badge-vencida" style="margin-top:12px; display:inline-block">⚠️ Fecha prometida vencida</div>` : ''}
     </div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px">
+    <div class="grid-2" style="gap:16px; margin-bottom:16px">
       <!-- Info del ingreso -->
       <div class="card">
         <h3 style="font-weight:700; margin-bottom:12px">Datos del ingreso</h3>
@@ -116,7 +116,7 @@ function renderOT() {
     <div class="card" id="seccionPresupuesto">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
         <h3 style="font-weight:700">Presupuesto</h3>
-        <div style="display:flex; gap:8px;" id="accionesPresupuesto"></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;" id="accionesPresupuesto"></div>
       </div>
       <div id="contenidoPresupuesto"><div class="text-muted text-sm">Sin presupuesto aún</div></div>
     </div>
@@ -261,33 +261,22 @@ function renderPresupuesto() {
   }
 
   contenido.innerHTML = `
-    <div class="table-wrapper">
-      <table class="presupuesto-table">
-        <thead>
-          <tr>
-            <th>Tipo</th>
-            <th>Descripción</th>
-            <th style="text-align:right">Cant.</th>
-            <th style="text-align:right">Precio unit.</th>
-            <th style="text-align:right">Subtotal</th>
-            ${canEdit ? '<th></th>' : ''}
-          </tr>
-        </thead>
-        <tbody>
-          ${items.map(item => `
-            <tr>
-              <td><span style="font-size:0.72rem; font-weight:600; padding:2px 8px; border-radius:99px; background:${item.tipo==='repuesto'?'#EDE9FE':'#FFF7ED'}; color:${item.tipo==='repuesto'?'#5B21B6':'#C2410C'}">${item.tipo==='repuesto'?'Repuesto':'M. de obra'}</span></td>
-              <td>${esc(item.descripcion)}</td>
-              <td style="text-align:right">${item.cantidad}</td>
-              <td style="text-align:right">${fmtMoney(item.precio_unitario)}</td>
-              <td style="text-align:right; font-weight:600">${fmtMoney(item.cantidad * item.precio_unitario)}</td>
-              ${canEdit ? `<td style="white-space:nowrap">
-                <button class="btn btn-sm" style="color:var(--primary); background:none; border:none; cursor:pointer" onclick="abrirEditarItem(${item.id})">✏️</button>
-                <button class="btn btn-sm" style="color:#EF4444; background:none; border:none; cursor:pointer" onclick="eliminarItem(${pres.id},${item.id})">✕</button>
-              </td>` : ''}
-            </tr>`).join('')}
-        </tbody>
-      </table>
+    <div class="presup-items">
+      ${items.map(item => `
+        <div class="presup-item">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px">
+            <span style="font-size:0.72rem; font-weight:600; padding:2px 8px; border-radius:99px; background:${item.tipo==='repuesto'?'#EDE9FE':'#FFF7ED'}; color:${item.tipo==='repuesto'?'#5B21B6':'#C2410C'}">${item.tipo==='repuesto'?'Repuesto':'M. de obra'}</span>
+            <span style="font-weight:700">${fmtMoney(item.cantidad * item.precio_unitario)}</span>
+          </div>
+          <div style="font-size:0.9rem; margin-bottom:4px">${esc(item.descripcion)}</div>
+          <div style="display:flex; align-items:center; justify-content:space-between">
+            <span class="text-sm text-muted">${item.tipo !== 'mano_obra' ? `x${item.cantidad} · ` : ''}${fmtMoney(item.precio_unitario)} c/u</span>
+            ${canEdit ? `<div style="display:flex; gap:2px">
+              <button class="btn btn-sm" style="color:var(--primary);background:none;border:none;cursor:pointer;padding:4px 8px" onclick="abrirEditarItem(${item.id})">✏️</button>
+              <button class="btn btn-sm" style="color:#EF4444;background:none;border:none;cursor:pointer;padding:4px 8px" onclick="eliminarItem(${pres.id},${item.id})">✕</button>
+            </div>` : ''}
+          </div>
+        </div>`).join('')}
     </div>
     <div class="presupuesto-totales">
       <div class="presupuesto-total-row"><label>Subtotal</label><span>${fmtMoney(subtotal)}</span></div>
@@ -403,28 +392,22 @@ function renderPagos() {
 
   contenido.innerHTML = `
     ${pagosActuales.length ? `
-      <table style="width:100%; border-collapse:collapse; font-size:0.875rem">
-        <thead>
-          <tr>
-            <th style="text-align:left; padding:6px 10px; color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; border-bottom:2px solid var(--border)">Medio</th>
-            <th style="text-align:left; padding:6px 10px; color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; border-bottom:2px solid var(--border)">Notas</th>
-            <th style="text-align:right; padding:6px 10px; color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; border-bottom:2px solid var(--border)">Monto</th>
-            ${App.canEdit() ? '<th style="border-bottom:2px solid var(--border)"></th>' : ''}
-          </tr>
-        </thead>
-        <tbody>
-          ${pagosActuales.map(p => `
-            <tr>
-              <td style="padding:8px 10px; border-bottom:1px solid var(--border)">
-                ${esc(MEDIO_LABELS[p.medio] || p.medio)}
-                ${p.proveedor ? `<br><span style="font-size:0.75rem; color:var(--text-muted)">${esc(p.proveedor)}</span>` : ''}
-              </td>
-              <td style="padding:8px 10px; border-bottom:1px solid var(--border); color:var(--text-muted)">${esc(p.notas || '—')}</td>
-              <td style="padding:8px 10px; border-bottom:1px solid var(--border); text-align:right; font-weight:600">${fmtMoney(p.monto)}</td>
-              ${App.canEdit() ? `<td style="padding:8px 10px; border-bottom:1px solid var(--border)"><button class="btn btn-sm" style="color:#EF4444; background:none; border:none; cursor:pointer" onclick="eliminarPago(${p.id})">✕</button></td>` : ''}
-            </tr>`).join('')}
-        </tbody>
-      </table>
+      <div class="presup-items">
+        ${pagosActuales.map(p => `
+          <div class="presup-item">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:8px">
+              <div>
+                <div style="font-weight:600; font-size:0.9rem">${esc(MEDIO_LABELS[p.medio] || p.medio)}</div>
+                ${p.proveedor ? `<div class="text-sm text-muted">${esc(p.proveedor)}</div>` : ''}
+                ${p.notas ? `<div class="text-sm text-muted">${esc(p.notas)}</div>` : ''}
+              </div>
+              <div style="display:flex; align-items:center; gap:6px; flex-shrink:0">
+                <span style="font-weight:700">${fmtMoney(p.monto)}</span>
+                ${App.canEdit() ? `<button class="btn btn-sm" style="color:#EF4444;background:none;border:none;cursor:pointer;padding:4px 6px" onclick="eliminarPago(${p.id})">✕</button>` : ''}
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>
     ` : '<div class="text-muted text-sm">Sin pagos registrados.</div>'}
     <div style="margin-top:12px; border-top:2px solid var(--border); padding-top:12px; display:flex; justify-content:flex-end; gap:24px; font-size:0.9rem">
       <span style="color:var(--text-muted)">Total pagado:</span>

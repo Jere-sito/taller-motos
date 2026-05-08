@@ -39,8 +39,8 @@ function renderClientes(clientes) {
     <tr>
       <td><strong>${esc(c.nombre)}</strong></td>
       <td>${esc(c.telefono || '—')}</td>
-      <td>${esc(c.email || '—')}</td>
-      <td>${c.cant_motos || 0}</td>
+      <td class="col-hide-mobile">${esc(c.email || '—')}</td>
+      <td class="col-hide-mobile">${c.cant_motos || 0}</td>
       <td style="text-align:right; white-space:nowrap">
         ${waLink(c.telefono) ? `<a href="${waLink(c.telefono)}" target="_blank" class="btn btn-sm" style="margin-right:4px; color:#25D366; border:1px solid #25D366; background:#fff; text-decoration:none">💬</a>` : ''}
         ${canEdit ? `<button class="btn btn-secondary btn-sm" onclick="abrirModal(${c.id})">Editar</button>` : ''}

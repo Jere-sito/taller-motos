@@ -32,7 +32,7 @@ function renderMotos(motos) {
       <td><strong style="letter-spacing:2px">${esc(m.patente)}</strong></td>
       <td>${esc(m.marca)} ${esc(m.modelo)} ${m.anio ? `(${m.anio})` : ''}</td>
       <td>${esc(m.cliente_nombre)}</td>
-      <td>${m.cant_ot || 0}</td>
+      <td class="col-hide-mobile">${m.cant_ot || 0}</td>
       <td style="text-align:right; white-space:nowrap">
         ${canEdit ? `<button class="btn btn-secondary btn-sm" onclick="abrirModal(${m.id})">Editar</button>` : ''}
         ${canEdit ? `<button class="btn btn-sm" style="margin-left:4px; color:#EF4444; border:1px solid #FCA5A5; background:#fff" onclick="eliminarMoto(${m.id})">✕</button>` : ''}
