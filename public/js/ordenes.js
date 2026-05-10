@@ -3,11 +3,18 @@ let filtroMecanico = '';
 let timerBusqueda;
 
 const PRIORIDAD_LABELS = {
-  en_el_dia:   '🔴 En el día',
-  manana:      '🟠 Mañana',
-  esta_semana: '🟡 Esta semana',
-  sin_apuro:   '🟢 Sin apuro'
+  en_el_dia:       '🔴 En el día',
+  manana:          '🟠 Mañana',
+  esta_semana:     '🟡 Esta semana',
+  sin_apuro:       '🟢 Sin apuro',
+  fecha_especifica: '📅'
 };
+
+function fmtPrioridad(ot) {
+  if (!ot.prioridad) return null;
+  if (ot.prioridad === 'fecha_especifica') return `📅 ${fmtDate(ot.fecha_prometida)}`;
+  return PRIORIDAD_LABELS[ot.prioridad] || ot.prioridad;
+}
 
 const ESTADO_LABELS = {
   ingresada: 'Ingresada', en_diagnostico: 'En diagnóstico', presupuestada: 'Presupuestada',
@@ -73,7 +80,7 @@ function renderOrdenes(ordenes) {
         <div class="ot-card-meta">
           <span>👤 ${esc(ot.cliente_nombre)}</span>
           ${ot.mecanico_nombre ? `<span>🔧 ${esc(ot.mecanico_nombre)}</span>` : ''}
-          ${ot.prioridad ? `<span>${PRIORIDAD_LABELS[ot.prioridad]}</span>` : ''}
+          ${ot.prioridad ? `<span>${fmtPrioridad(ot)}</span>` : ''}
           <span>${fmtDate(ot.fecha_ingreso)}</span>
         </div>
       </div>

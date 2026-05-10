@@ -12,6 +12,8 @@ const NuevaOT = {
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     document.querySelectorAll('input[name="otCedula"]').forEach(r => r.checked = false);
     document.querySelectorAll('input[name="otPrioridad"]').forEach(r => r.checked = false);
+    document.getElementById('grupoPrioridadFecha')?.classList.add('hidden');
+    document.getElementById('otFechaPrioridad') && (document.getElementById('otFechaPrioridad').value = '');
     document.getElementById('patenteStatus').textContent = '';
     document.getElementById('motoEncontrada').classList.add('hidden');
     document.getElementById('motoNuevaAlert').classList.add('hidden');
@@ -131,6 +133,8 @@ const NuevaOT = {
     if (!problema) return this._shake('otProblema', 'Describí el problema declarado por el cliente');
     const prioridad = document.querySelector('input[name="otPrioridad"]:checked')?.value;
     if (!prioridad) return App.toast('Indicá el apuro del cliente', 'error');
+    const fechaPrioridad = document.getElementById('otFechaPrioridad').value;
+    if (prioridad === 'fecha_especifica' && !fechaPrioridad) return App.toast('Seleccioná la fecha específica', 'error');
     const cedula = document.querySelector('input[name="otCedula"]:checked')?.value;
     if (!cedula) return App.toast('Indicá si la cédula es física o digital', 'error');
 
@@ -162,7 +166,9 @@ const NuevaOT = {
         km_ingreso: document.getElementById('otKm').value || 0,
         problema_declarado: problema,
         observaciones_internas: document.getElementById('otObservaciones').value.trim(),
-        fecha_prometida: document.getElementById('otFechaPrometida').value || null,
+        fecha_prometida: prioridad === 'fecha_especifica'
+          ? fechaPrioridad
+          : (document.getElementById('otFechaPrometida').value || null),
         prioridad,
         cedula
       });
@@ -271,4 +277,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('formNuevoCliente').classList.toggle('hidden');
   });
   document.getElementById('btnGuardarNuevoCliente')?.addEventListener('click', () => NuevaOT.guardarNuevoCliente());
+
+  // Mostrar/ocultar date picker según prioridad seleccionada
+  document.querySelectorAll('input[name="otPrioridad"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const grupo = document.getElementById('grupoPrioridadFecha');
+      if (r.value === 'fecha_especifica') {
+        grupo.classList.remove('hidden');
+        document.getElementById('otFechaPrioridad').focus();
+      } else {
+        grupo.classList.add('hidden');
+      }
+    });
+  });
 });

@@ -5,11 +5,18 @@ let pagosActuales = [];
 let editandoItemId = null;
 
 const PRIORIDAD_LABELS = {
-  en_el_dia:   '🔴 En el día',
-  manana:      '🟠 Mañana',
-  esta_semana: '🟡 Esta semana',
-  sin_apuro:   '🟢 Sin apuro'
+  en_el_dia:       '🔴 En el día',
+  manana:          '🟠 Mañana',
+  esta_semana:     '🟡 Esta semana',
+  sin_apuro:       '🟢 Sin apuro',
+  fecha_especifica: '📅'
 };
+
+function fmtPrioridad(ot) {
+  if (!ot.prioridad) return null;
+  if (ot.prioridad === 'fecha_especifica') return `📅 ${fmtDate(ot.fecha_prometida)}`;
+  return PRIORIDAD_LABELS[ot.prioridad] || ot.prioridad;
+}
 
 const ESTADO_LABELS = {
   ingresada: 'Ingresada', en_diagnostico: 'En diagnóstico', presupuestada: 'Presupuestada',
@@ -90,7 +97,7 @@ function renderOT() {
         <div class="text-sm text-muted mb-1">Ingreso: ${fmtDateTime(ot.fecha_ingreso)}</div>
         ${ot.fecha_prometida ? `<div class="text-sm text-muted mb-1">Prometida: ${fmtDate(ot.fecha_prometida)}</div>` : ''}
         ${ot.mecanico_nombre ? `<div class="text-sm text-muted mb-1">🔧 Mecánico: <strong>${esc(ot.mecanico_nombre)}</strong></div>` : '<div class="text-sm text-muted mb-1">Sin mecánico asignado</div>'}
-        ${ot.prioridad ? `<div class="text-sm text-muted mb-1">⏱ Apuro: <strong>${PRIORIDAD_LABELS[ot.prioridad] || ot.prioridad}</strong></div>` : ''}
+        ${ot.prioridad ? `<div class="text-sm text-muted mb-1">⏱ Apuro: <strong>${fmtPrioridad(ot)}</strong></div>` : ''}
         ${ot.cedula ? `<div class="text-sm text-muted mb-1">${ot.cedula === 'fisica' ? '🪪' : '📱'} Cédula: <strong>${ot.cedula === 'fisica' ? 'Física' : 'Digital'}</strong></div>` : ''}
         <div style="margin-top:12px">
           <div class="text-sm fw-bold">Problema declarado:</div>

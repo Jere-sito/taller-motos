@@ -61,7 +61,7 @@ router.post('/ordenes', (req, res) => {
   const { moto_id, mecanico_id, km_ingreso = 0, problema_declarado = '', observaciones_internas = '', fecha_prometida, cedula, prioridad } = req.body;
   if (!moto_id) return res.status(400).json({ error: 'La moto es requerida.' });
   if (!cedula || !['fisica','digital'].includes(cedula)) return res.status(400).json({ error: 'Indicá si la cédula es física o digital.' });
-  if (!prioridad || !['en_el_dia','manana','esta_semana','sin_apuro'].includes(prioridad)) return res.status(400).json({ error: 'Indicá el apuro del cliente.' });
+  if (!prioridad || !['en_el_dia','manana','esta_semana','sin_apuro','fecha_especifica'].includes(prioridad)) return res.status(400).json({ error: 'Indicá el apuro del cliente.' });
 
   const db = getDb();
   const moto = db.prepare('SELECT id FROM motos WHERE id = ?').get(Number(moto_id));
