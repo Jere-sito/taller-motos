@@ -140,8 +140,9 @@ function initSchema() {
     );
   `);
 
-  // Migración: columna cedula en ordenes_trabajo
+  // Migraciones
   try { db.exec(`ALTER TABLE ordenes_trabajo ADD COLUMN cedula TEXT`); } catch (_) {}
+  try { db.exec(`ALTER TABLE ordenes_trabajo ADD COLUMN prioridad TEXT CHECK(prioridad IN ('en_el_dia','manana','esta_semana','sin_apuro'))`); } catch (_) {}
 
   // Tabla de pagos
   db.exec(`

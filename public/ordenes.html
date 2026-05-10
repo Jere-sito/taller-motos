@@ -173,6 +173,27 @@
         <textarea id="otObservaciones" placeholder="Notas que el cliente no verá..."></textarea>
       </div>
       <div class="form-group">
+        <label class="form-label required">Apuro del cliente</label>
+        <div class="cedula-opciones" style="flex-wrap:wrap; gap:8px">
+          <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
+            <input type="radio" name="otPrioridad" value="en_el_dia">
+            <span>🔴 En el día</span>
+          </label>
+          <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
+            <input type="radio" name="otPrioridad" value="manana">
+            <span>🟠 Mañana</span>
+          </label>
+          <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
+            <input type="radio" name="otPrioridad" value="esta_semana">
+            <span>🟡 Esta semana</span>
+          </label>
+          <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
+            <input type="radio" name="otPrioridad" value="sin_apuro">
+            <span>🟢 Sin apuro</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
         <label class="form-label">Fecha prometida de entrega</label>
         <input type="date" id="otFechaPrometida">
       </div>

@@ -11,6 +11,7 @@ const NuevaOT = {
      'searchCliente','ncNombre','ncTelefono','otKm','otProblema','otObservaciones','otFechaPrometida']
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     document.querySelectorAll('input[name="otCedula"]').forEach(r => r.checked = false);
+    document.querySelectorAll('input[name="otPrioridad"]').forEach(r => r.checked = false);
     document.getElementById('patenteStatus').textContent = '';
     document.getElementById('motoEncontrada').classList.add('hidden');
     document.getElementById('motoNuevaAlert').classList.add('hidden');
@@ -128,6 +129,8 @@ const NuevaOT = {
   async crearOT() {
     const problema = document.getElementById('otProblema').value.trim();
     if (!problema) return this._shake('otProblema', 'Describí el problema declarado por el cliente');
+    const prioridad = document.querySelector('input[name="otPrioridad"]:checked')?.value;
+    if (!prioridad) return App.toast('Indicá el apuro del cliente', 'error');
     const cedula = document.querySelector('input[name="otCedula"]:checked')?.value;
     if (!cedula) return App.toast('Indicá si la cédula es física o digital', 'error');
 
@@ -160,6 +163,7 @@ const NuevaOT = {
         problema_declarado: problema,
         observaciones_internas: document.getElementById('otObservaciones').value.trim(),
         fecha_prometida: document.getElementById('otFechaPrometida').value || null,
+        prioridad,
         cedula
       });
       App.closeModal('modalNuevaOT');

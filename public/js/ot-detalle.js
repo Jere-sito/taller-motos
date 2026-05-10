@@ -4,6 +4,13 @@ let presupuestoActual = null;
 let pagosActuales = [];
 let editandoItemId = null;
 
+const PRIORIDAD_LABELS = {
+  en_el_dia:   '🔴 En el día',
+  manana:      '🟠 Mañana',
+  esta_semana: '🟡 Esta semana',
+  sin_apuro:   '🟢 Sin apuro'
+};
+
 const ESTADO_LABELS = {
   ingresada: 'Ingresada', en_diagnostico: 'En diagnóstico', presupuestada: 'Presupuestada',
   aprobada: 'Aprobada', en_reparacion: 'En reparación', esperando_repuesto: 'Esperando repuesto',
@@ -83,6 +90,7 @@ function renderOT() {
         <div class="text-sm text-muted mb-1">Ingreso: ${fmtDateTime(ot.fecha_ingreso)}</div>
         ${ot.fecha_prometida ? `<div class="text-sm text-muted mb-1">Prometida: ${fmtDate(ot.fecha_prometida)}</div>` : ''}
         ${ot.mecanico_nombre ? `<div class="text-sm text-muted mb-1">🔧 Mecánico: <strong>${esc(ot.mecanico_nombre)}</strong></div>` : '<div class="text-sm text-muted mb-1">Sin mecánico asignado</div>'}
+        ${ot.prioridad ? `<div class="text-sm text-muted mb-1">⏱ Apuro: <strong>${PRIORIDAD_LABELS[ot.prioridad] || ot.prioridad}</strong></div>` : ''}
         ${ot.cedula ? `<div class="text-sm text-muted mb-1">${ot.cedula === 'fisica' ? '🪪' : '📱'} Cédula: <strong>${ot.cedula === 'fisica' ? 'Física' : 'Digital'}</strong></div>` : ''}
         <div style="margin-top:12px">
           <div class="text-sm fw-bold">Problema declarado:</div>
@@ -173,6 +181,7 @@ async function abrirEditarOT() {
       mecs.map(m => `<option value="${m.id}" ${m.id === otActual.mecanico_id ? 'selected' : ''}>${esc(m.nombre)}</option>`).join('');
   } catch {}
   document.getElementById('editKm').value = otActual.km_ingreso || 0;
+  document.getElementById('editPrioridad').value = otActual.prioridad || '';
   document.getElementById('editProblema').value = otActual.problema_declarado || '';
   document.getElementById('editObservaciones').value = otActual.observaciones_internas || '';
   document.getElementById('editFechaPrometida').value = otActual.fecha_prometida?.slice(0,10) || '';
@@ -183,6 +192,7 @@ async function abrirEditarOT() {
       otActual = await API.patch(`/api/ordenes/${otId}`, {
         mecanico_id: document.getElementById('editMecanico').value || null,
         km_ingreso: document.getElementById('editKm').value || 0,
+        prioridad: document.getElementById('editPrioridad').value || null,
         problema_declarado: document.getElementById('editProblema').value,
         observaciones_internas: document.getElementById('editObservaciones').value,
         fecha_prometida: document.getElementById('editFechaPrometida').value || null

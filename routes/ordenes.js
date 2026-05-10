@@ -58,9 +58,10 @@ router.get('/ordenes', (req, res) => {
 // POST /api/ordenes
 router.post('/ordenes', (req, res) => {
   if (req.session.role === 'mecanico') return res.status(403).json({ error: 'Sin permiso.' });
-  const { moto_id, mecanico_id, km_ingreso = 0, problema_declarado = '', observaciones_internas = '', fecha_prometida, cedula } = req.body;
+  const { moto_id, mecanico_id, km_ingreso = 0, problema_declarado = '', observaciones_internas = '', fecha_prometida, cedula, prioridad } = req.body;
   if (!moto_id) return res.status(400).json({ error: 'La moto es requerida.' });
   if (!cedula || !['fisica','digital'].includes(cedula)) return res.status(400).json({ error: 'Indicá si la cédula es física o digital.' });
+  if (!prioridad || !['en_el_dia','manana','esta_semana','sin_apuro'].includes(prioridad)) return res.status(400).json({ error: 'Indicá el apuro del cliente.' });
 
   const db = getDb();
   const moto = db.prepare('SELECT id FROM motos WHERE id = ?').get(Number(moto_id));
@@ -73,12 +74,12 @@ router.post('/ordenes', (req, res) => {
     db.exec('BEGIN');
     const result = db.prepare(`
       INSERT INTO ordenes_trabajo
-        (numero, moto_id, mecanico_id, km_ingreso, problema_declarado, observaciones_internas, fecha_prometida, cedula, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (numero, moto_id, mecanico_id, km_ingreso, problema_declarado, observaciones_internas, fecha_prometida, cedula, prioridad, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       numero, Number(moto_id), mecanico_id ? Number(mecanico_id) : null,
       Number(km_ingreso), problema_declarado, observaciones_internas,
-      fecha_prometida || null, cedula, req.session.userId
+      fecha_prometida || null, cedula, prioridad, req.session.userId
     );
 
     ordenId = result.lastInsertRowid;
@@ -152,7 +153,7 @@ router.get('/ordenes/:id', (req, res) => {
 router.patch('/ordenes/:id', (req, res) => {
   if (req.session.role === 'mecanico') return res.status(403).json({ error: 'Sin permiso.' });
   const db = getDb();
-  const { mecanico_id, fecha_prometida, km_ingreso, problema_declarado, observaciones_internas } = req.body;
+  const { mecanico_id, fecha_prometida, km_ingreso, problema_declarado, observaciones_internas, prioridad } = req.body;
   db.prepare(`
     UPDATE ordenes_trabajo SET
       mecanico_id = COALESCE(?, mecanico_id),
@@ -160,10 +161,12 @@ router.patch('/ordenes/:id', (req, res) => {
       km_ingreso = COALESCE(?, km_ingreso),
       problema_declarado = COALESCE(?, problema_declarado),
       observaciones_internas = COALESCE(?, observaciones_internas),
+      prioridad = COALESCE(?, prioridad),
       updated_at = datetime('now')
     WHERE id = ?
   `).run(mecanico_id ?? null, fecha_prometida ?? null, km_ingreso ?? null,
-         problema_declarado ?? null, observaciones_internas ?? null, Number(req.params.id));
+         problema_declarado ?? null, observaciones_internas ?? null,
+         prioridad ?? null, Number(req.params.id));
 
   const ot = _getOTCompleta(db, Number(req.params.id));
   req.app.locals.broadcast('ot_updated', ot);

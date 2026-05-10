@@ -2,6 +2,13 @@ let filtroEstado = new URLSearchParams(window.location.search).get('estado') || 
 let filtroMecanico = '';
 let timerBusqueda;
 
+const PRIORIDAD_LABELS = {
+  en_el_dia:   '🔴 En el día',
+  manana:      '🟠 Mañana',
+  esta_semana: '🟡 Esta semana',
+  sin_apuro:   '🟢 Sin apuro'
+};
+
 const ESTADO_LABELS = {
   ingresada: 'Ingresada', en_diagnostico: 'En diagnóstico', presupuestada: 'Presupuestada',
   aprobada: 'Aprobada', en_reparacion: 'En reparación', esperando_repuesto: 'Esperando repuesto',
@@ -66,6 +73,7 @@ function renderOrdenes(ordenes) {
         <div class="ot-card-meta">
           <span>👤 ${esc(ot.cliente_nombre)}</span>
           ${ot.mecanico_nombre ? `<span>🔧 ${esc(ot.mecanico_nombre)}</span>` : ''}
+          ${ot.prioridad ? `<span>${PRIORIDAD_LABELS[ot.prioridad]}</span>` : ''}
           <span>${fmtDate(ot.fecha_ingreso)}</span>
         </div>
       </div>
