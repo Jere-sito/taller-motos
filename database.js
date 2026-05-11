@@ -173,10 +173,13 @@ function initSchema() {
 function generateOTNumber(db) {
   const rows = db.prepare("SELECT numero FROM ordenes_trabajo").all();
   const maxN = rows.reduce((max, row) => {
-    const n = parseInt(row.numero.split('-').at(-1)) || 0;
+    // soporta ORDEN#NNN (nuevo) y OT-... / OT-FECHA-NNN (legado)
+    const n = row.numero.includes('#')
+      ? parseInt(row.numero.split('#')[1]) || 0
+      : parseInt(row.numero.split('-').at(-1)) || 0;
     return Math.max(max, n);
   }, 0);
-  return `OT-${String(maxN + 1).padStart(3, '0')}`;
+  return `ORDEN#${String(maxN + 1).padStart(3, '0')}`;
 }
 
 module.exports = { getDb, generateOTNumber };
