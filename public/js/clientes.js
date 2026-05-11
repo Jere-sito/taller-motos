@@ -2,13 +2,6 @@ let editandoId = null;
 let timer;
 const _clientesData = {};
 
-function waLink(telefono) {
-  const digits = String(telefono || '').replace(/\D/g, '');
-  if (!digits) return null;
-  const num = digits.startsWith('54') && digits.length >= 12 ? digits : '54' + digits;
-  return `https://wa.me/${num}`;
-}
-
 async function onAppReady() {
   await cargarClientes();
   document.getElementById('btnNuevoCliente')?.addEventListener('click', () => abrirModal());

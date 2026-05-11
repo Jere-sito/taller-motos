@@ -62,7 +62,7 @@ function renderOT() {
           <h1 class="ot-detalle-title" style="font-size:1.375rem; font-weight:900; letter-spacing:-0.02em; margin-bottom:6px">${esc(ot.patente)} — ${esc(ot.marca)} ${esc(ot.modelo)}</h1>
           <div style="display:flex; gap:12px; flex-wrap:wrap; font-size:0.875rem; color:var(--text-2); align-items:center">
             <span>👤 ${esc(ot.cliente_nombre)}</span>
-            ${ot.cliente_telefono ? `<span>📞 ${esc(ot.cliente_telefono)}</span>` : ''}
+            ${ot.cliente_telefono ? `<a href="${waLink(ot.cliente_telefono)}" target="_blank" style="color:inherit; text-decoration:none">📞 ${esc(ot.cliente_telefono)}</a>` : ''}
             ${ot.anio ? `<span>📅 ${ot.anio}</span>` : ''}
             ${ot.color ? `<span>🎨 ${esc(ot.color)}</span>` : ''}
             <span>🔢 ${ot.km_ingreso || 0} km</span>
@@ -364,7 +364,8 @@ async function aprobarPresupuesto() {
 async function compartirWhatsApp() {
   try {
     const { texto } = await API.get(`/api/presupuestos/${presupuestoActual.id}/whatsapp`);
-    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+    const base = waLink(otActual?.cliente_telefono) || 'https://wa.me/';
+    window.open(`${base}?text=${encodeURIComponent(texto)}`, '_blank');
   } catch (e) { App.toast('Error al generar el mensaje', 'error'); }
 }
 

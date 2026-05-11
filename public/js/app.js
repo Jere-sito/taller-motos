@@ -170,6 +170,17 @@ function fmtMoney(n) {
   return '$' + Number(n).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
+// Link directo de WhatsApp con prefijo argentino 549
+function waLink(telefono) {
+  const digits = String(telefono || '').replace(/\D/g, '');
+  if (!digits || digits.length < 8) return null;
+  let num;
+  if (digits.startsWith('549') && digits.length >= 13) num = digits;
+  else if (digits.startsWith('54') && digits.length >= 12) num = '549' + digits.slice(2);
+  else num = '549' + digits;
+  return `https://wa.me/${num}`;
+}
+
 // Auto-formato de teléfono argentino: XX-XXXX-XXXX
 function formatPhone(raw) {
   const d = String(raw || '').replace(/\D/g, '').slice(0, 10);
