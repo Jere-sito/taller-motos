@@ -285,28 +285,48 @@ function renderPresupuesto() {
     return;
   }
 
+  const repuestos = items.filter(i => i.tipo === 'repuesto');
+  const manoObra  = items.filter(i => i.tipo === 'mano_obra');
+  const subRep    = repuestos.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
+  const subMO     = manoObra.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
+
+  function renderItems(lista) {
+    return lista.map(item => `
+      <div class="presup-item" style="padding:7px 0">
+        <div style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:0.875rem; font-weight:600; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${esc(item.descripcion)}</span>
+          <span style="font-weight:700; font-size:0.875rem; flex-shrink:0">${fmtMoney(item.cantidad * item.precio_unitario)}</span>
+          ${canEdit ? `
+            <button onclick="abrirEditarItem(${item.id})" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--text-muted);font-size:0.875rem;flex-shrink:0;line-height:1">✏️</button>
+            <button onclick="eliminarItem(${pres.id},${item.id})" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:#EF4444;font-size:0.875rem;flex-shrink:0;line-height:1">✕</button>
+          ` : ''}
+        </div>
+        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px">
+          ${item.tipo !== 'mano_obra' ? `x${item.cantidad} · ` : ''}${fmtMoney(item.precio_unitario)} c/u
+        </div>
+      </div>`).join('');
+  }
+
+  function seccion(titulo, color, lista, subtotalMonto) {
+    if (!lista.length) return '';
+    return `
+      <div style="margin-bottom:4px">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 0 4px; border-bottom:2px solid ${color}20">
+          <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:${color}">${titulo}</span>
+        </div>
+        <div class="presup-items">${renderItems(lista)}</div>
+        <div style="display:flex; justify-content:flex-end; gap:16px; padding:6px 0; border-top:1px solid var(--border); font-size:0.875rem">
+          <span style="color:var(--text-muted)">Subtotal ${titulo.toLowerCase()}</span>
+          <span style="font-weight:700">${fmtMoney(subtotalMonto)}</span>
+        </div>
+      </div>`;
+  }
+
   contenido.innerHTML = `
-    <div class="presup-items">
-      ${items.map(item => `
-        <div class="presup-item" style="padding:7px 0">
-          <div style="display:flex; align-items:center; gap:8px">
-            <span style="font-size:0.625rem; font-weight:700; padding:2px 7px; border-radius:99px; flex-shrink:0;
-              background:${item.tipo==='repuesto'?'#EDE9FE':'#FFF4EE'};
-              color:${item.tipo==='repuesto'?'#5B21B6':'#EA580C'}">${item.tipo==='repuesto'?'Rep.':'M.O.'}</span>
-            <span style="font-size:0.875rem; font-weight:600; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${esc(item.descripcion)}</span>
-            <span style="font-weight:700; font-size:0.875rem; flex-shrink:0">${fmtMoney(item.cantidad * item.precio_unitario)}</span>
-            ${canEdit ? `
-              <button onclick="abrirEditarItem(${item.id})" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--text-muted);font-size:0.875rem;flex-shrink:0;line-height:1">✏️</button>
-              <button onclick="eliminarItem(${pres.id},${item.id})" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:#EF4444;font-size:0.875rem;flex-shrink:0;line-height:1">✕</button>
-            ` : ''}
-          </div>
-          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px; padding-left:${item.tipo==='repuesto'?'46':'40'}px">
-            ${item.tipo !== 'mano_obra' ? `x${item.cantidad} · ` : ''}${fmtMoney(item.precio_unitario)} c/u
-          </div>
-        </div>`).join('')}
-    </div>
-    <div class="presupuesto-totales">
-      <div class="presupuesto-total-row"><label>Subtotal</label><span>${fmtMoney(subtotal)}</span></div>
+    ${seccion('Repuestos', '#5B21B6', repuestos, subRep)}
+    ${repuestos.length && manoObra.length ? '<div style="height:8px"></div>' : ''}
+    ${seccion('Mano de obra', '#EA580C', manoObra, subMO)}
+    <div class="presupuesto-totales" style="margin-top:8px">
       ${pres.descuento > 0 ? `<div class="presupuesto-total-row"><label>Descuento (${pres.descuento}%)</label><span>-${fmtMoney(descMonto)}</span></div>` : ''}
       <div class="presupuesto-total-row grand-total"><label>Total</label><span>${fmtMoney(total)}</span></div>
     </div>
