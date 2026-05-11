@@ -288,20 +288,20 @@ function renderPresupuesto() {
   contenido.innerHTML = `
     <div class="presup-items">
       ${items.map(item => `
-        <div class="presup-item">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:5px">
-            <span style="font-size:0.6875rem; font-weight:700; padding:3px 8px; border-radius:99px;
+        <div class="presup-item" style="padding:7px 0">
+          <div style="display:flex; align-items:center; gap:8px">
+            <span style="font-size:0.625rem; font-weight:700; padding:2px 7px; border-radius:99px; flex-shrink:0;
               background:${item.tipo==='repuesto'?'#EDE9FE':'#FFF4EE'};
-              color:${item.tipo==='repuesto'?'#5B21B6':'#EA580C'}">${item.tipo==='repuesto'?'Repuesto':'M. de obra'}</span>
-            <span style="font-weight:700; font-size:0.9375rem">${fmtMoney(item.cantidad * item.precio_unitario)}</span>
+              color:${item.tipo==='repuesto'?'#5B21B6':'#EA580C'}">${item.tipo==='repuesto'?'Rep.':'M.O.'}</span>
+            <span style="font-size:0.875rem; font-weight:600; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${esc(item.descripcion)}</span>
+            <span style="font-weight:700; font-size:0.875rem; flex-shrink:0">${fmtMoney(item.cantidad * item.precio_unitario)}</span>
+            ${canEdit ? `
+              <button onclick="abrirEditarItem(${item.id})" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--text-muted);font-size:0.875rem;flex-shrink:0;line-height:1">✏️</button>
+              <button onclick="eliminarItem(${pres.id},${item.id})" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:#EF4444;font-size:0.875rem;flex-shrink:0;line-height:1">✕</button>
+            ` : ''}
           </div>
-          <div style="font-size:0.9375rem; margin-bottom:5px; color:var(--text)">${esc(item.descripcion)}</div>
-          <div style="display:flex; align-items:center; justify-content:space-between">
-            <span class="text-sm text-muted">${item.tipo !== 'mano_obra' ? `x${item.cantidad} · ` : ''}${fmtMoney(item.precio_unitario)} c/u</span>
-            ${canEdit ? `<div style="display:flex; gap:2px">
-              <button class="btn btn-sm" style="color:var(--primary);background:none;border:none;cursor:pointer;padding:4px 8px;height:32px" onclick="abrirEditarItem(${item.id})">✏️</button>
-              <button class="btn btn-sm" style="color:#EF4444;background:none;border:none;cursor:pointer;padding:4px 8px;height:32px" onclick="eliminarItem(${pres.id},${item.id})">✕</button>
-            </div>` : ''}
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px; padding-left:${item.tipo==='repuesto'?'46':'40'}px">
+            ${item.tipo !== 'mano_obra' ? `x${item.cantidad} · ` : ''}${fmtMoney(item.precio_unitario)} c/u
           </div>
         </div>`).join('')}
     </div>

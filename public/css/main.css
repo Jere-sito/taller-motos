@@ -900,7 +900,7 @@ tr:hover td { background: var(--bg-subtle); }
 /* ── Items de presupuesto y pagos ────────────────────────── */
 .presup-items { margin-bottom: 4px; }
 .presup-item {
-  padding: 12px 0;
+  padding: 7px 0;
   border-bottom: 1px solid var(--border);
 }
 .presup-item:last-child { border-bottom: none; }
