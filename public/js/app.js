@@ -231,6 +231,60 @@ document.addEventListener('input', e => {
   try { e.target.setSelectionRange(len, len); } catch {}
 });
 
+// ── Teclado móvil: ajustar modal para que el campo quede visible ──────────
+(function initKeyboardAware() {
+  if (!window.visualViewport) return;
+
+  let lastVVH = window.visualViewport.height;
+
+  function onVVResize() {
+    const vvh = window.visualViewport.height;
+    const vvTop = window.visualViewport.offsetTop;
+
+    // Ajustar todos los modales abiertos para que coincidan con el viewport visual
+    document.querySelectorAll('.modal:not(.hidden)').forEach(overlay => {
+      overlay.style.height  = vvh + 'px';
+      overlay.style.top     = vvTop + 'px';
+      overlay.style.bottom  = 'auto';
+    });
+
+    // Si el teclado apareció (viewport se achicó), hacer scroll al input enfocado
+    if (vvh < lastVVH - 50) {
+      const active = document.activeElement;
+      if (active && active.closest('.modal-box')) {
+        setTimeout(() => active.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      }
+    }
+
+    lastVVH = vvh;
+  }
+
+  window.visualViewport.addEventListener('resize', onVVResize);
+  window.visualViewport.addEventListener('scroll', onVVResize);
+})();
+
+// Cuando se enfoca un input dentro de un modal, traerlo a la vista
+document.addEventListener('focusin', e => {
+  const el = e.target;
+  if (!el.matches('input, textarea, select')) return;
+  if (!el.closest('.modal-box')) return;
+  setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+});
+
+// Cuando se cierra el modal, restaurar posición del overlay
+function _resetModalPosition(id) {
+  const m = document.getElementById(id);
+  if (!m) return;
+  m.style.height = '';
+  m.style.top    = '';
+  m.style.bottom = '';
+}
+const _origCloseModal = App.closeModal.bind(App);
+App.closeModal = function(id) {
+  _resetModalPosition(id);
+  _origCloseModal(id);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   // Aplicar auto-formato a todos los inputs tel de la página
   document.querySelectorAll('input[type="tel"]').forEach(input => {
