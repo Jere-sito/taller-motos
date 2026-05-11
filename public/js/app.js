@@ -213,7 +213,7 @@ document.addEventListener('input', e => {
   const el = e.target;
   if (el.classList.contains('input-precio')) return;
   const type = (el.getAttribute('type') || '').toLowerCase();
-  const skip = ['email','password','date','number','color','file','range','time','url'];
+  const skip = ['email','password','date','number','color','file','range','time','url','radio','checkbox'];
   if (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && !skip.includes(type))) {
     const pos = el.selectionStart;
     const upper = el.value.toUpperCase();

@@ -7,8 +7,8 @@ const NuevaOT = {
     this.motoId = null;
     this.clienteId = null;
     this.motoNueva = false;
-    ['inputPatente','newMotoMarca','newMotoModelo','newMotoAnio','newMotoColor',
-     'searchCliente','ncNombre','ncTelefono','otKm','otProblema','otObservaciones','otFechaPrometida']
+    ['inputPatente','newMotoMarca','newMotoModelo','newMotoColor',
+     'searchCliente','ncNombre','ncTelefono','otProblema','otObservaciones','otFechaPrometida']
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     document.querySelectorAll('input[name="otCedula"]').forEach(r => r.checked = false);
     document.querySelectorAll('input[name="otPrioridad"]').forEach(r => r.checked = false);
@@ -97,35 +97,20 @@ const NuevaOT = {
       this._goTo(2);
       setTimeout(() => document.getElementById('newMotoMarca')?.focus(), 100);
     } else {
-      await this._cargarMecanicos();
       this._goTo(4);
-      setTimeout(() => document.getElementById('otKm')?.focus(), 100);
+      setTimeout(() => document.getElementById('otProblema')?.focus(), 100);
     }
   },
 
   paso2Siguiente() {
-    const anio = document.getElementById('newMotoAnio').value;
-    if (anio && (Number(anio) < 1950 || Number(anio) > 2030)) {
-      return this._shake('newMotoAnio', 'Año inválido (1950–2030)');
-    }
     this._goTo(3);
     setTimeout(() => document.getElementById('searchCliente')?.focus(), 100);
   },
 
   async paso3Siguiente() {
     if (!this.clienteId) return this._shake('searchCliente', 'Seleccioná o creá el cliente');
-    await this._cargarMecanicos();
     this._goTo(4);
-    setTimeout(() => document.getElementById('otKm')?.focus(), 100);
-  },
-
-  async _cargarMecanicos() {
-    try {
-      const mecs = await API.get('/api/mecanicos');
-      const sel = document.getElementById('otMecanico');
-      sel.innerHTML = '<option value="">— Sin asignar —</option>' +
-        mecs.map(m => `<option value="${m.id}">${esc(m.nombre)}</option>`).join('');
-    } catch {}
+    setTimeout(() => document.getElementById('otProblema')?.focus(), 100);
   },
 
   async crearOT() {
@@ -145,7 +130,6 @@ const NuevaOT = {
           patente,
           marca: document.getElementById('newMotoMarca').value.trim(),
           modelo: document.getElementById('newMotoModelo').value.trim(),
-          anio: document.getElementById('newMotoAnio').value || null,
           color: document.getElementById('newMotoColor').value.trim(),
           cliente_id: this.clienteId
         });
@@ -162,8 +146,6 @@ const NuevaOT = {
     try {
       const ot = await API.post('/api/ordenes', {
         moto_id: this.motoId,
-        mecanico_id: document.getElementById('otMecanico').value || null,
-        km_ingreso: document.getElementById('otKm').value || 0,
         problema_declarado: problema,
         observaciones_internas: document.getElementById('otObservaciones').value.trim(),
         fecha_prometida: prioridad === 'fecha_especifica'

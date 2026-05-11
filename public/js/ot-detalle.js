@@ -63,9 +63,7 @@ function renderOT() {
           <div style="display:flex; gap:12px; flex-wrap:wrap; font-size:0.875rem; color:var(--text-2); align-items:center">
             <span>👤 ${esc(ot.cliente_nombre)}</span>
             ${ot.cliente_telefono ? `<a href="${waLink(ot.cliente_telefono)}" target="_blank" style="color:inherit; text-decoration:none">📞 ${esc(ot.cliente_telefono)}</a>` : ''}
-            ${ot.anio ? `<span>📅 ${ot.anio}</span>` : ''}
             ${ot.color ? `<span>🎨 ${esc(ot.color)}</span>` : ''}
-            <span>🔢 ${ot.km_ingreso || 0} km</span>
           </div>
         </div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
@@ -100,9 +98,6 @@ function renderOT() {
         <div style="display:flex; flex-direction:column; gap:6px">
           <div class="text-sm text-muted">Ingreso: <strong style="color:var(--text-2)">${fmtDateTime(ot.fecha_ingreso)}</strong></div>
           ${ot.fecha_prometida ? `<div class="text-sm text-muted">Prometida: <strong style="color:var(--text-2)">${fmtDate(ot.fecha_prometida)}</strong></div>` : ''}
-          ${ot.mecanico_nombre
-            ? `<div class="text-sm text-muted">🔧 <strong style="color:var(--text-2)">${esc(ot.mecanico_nombre)}</strong></div>`
-            : `<div class="text-sm text-muted">Sin mecánico asignado</div>`}
           ${ot.prioridad ? `<div class="text-sm text-muted">⏱ Apuro: <strong style="color:var(--text-2)">${fmtPrioridad(ot)}</strong></div>` : ''}
           ${ot.cedula ? `<div class="text-sm text-muted">${ot.cedula === 'fisica' ? '🪪' : '📱'} Cédula: <strong style="color:var(--text-2)">${ot.cedula === 'fisica' ? 'Física' : 'Digital'}</strong></div>` : ''}
         </div>
@@ -190,13 +185,6 @@ async function cambiarEstado(nuevoEstado) {
 
 // ── Editar OT ─────────────────────────────────────────────────────────────
 async function abrirEditarOT() {
-  try {
-    const mecs = await API.get('/api/mecanicos');
-    const sel = document.getElementById('editMecanico');
-    sel.innerHTML = '<option value="">— Sin asignar —</option>' +
-      mecs.map(m => `<option value="${m.id}" ${m.id === otActual.mecanico_id ? 'selected' : ''}>${esc(m.nombre)}</option>`).join('');
-  } catch {}
-  document.getElementById('editKm').value = otActual.km_ingreso || 0;
   document.getElementById('editPrioridad').value = otActual.prioridad || '';
   document.getElementById('editProblema').value = otActual.problema_declarado || '';
   document.getElementById('editObservaciones').value = otActual.observaciones_internas || '';
@@ -206,8 +194,6 @@ async function abrirEditarOT() {
   document.getElementById('btnGuardarEdicion').onclick = async () => {
     try {
       otActual = await API.patch(`/api/ordenes/${otId}`, {
-        mecanico_id:          document.getElementById('editMecanico').value || null,
-        km_ingreso:           document.getElementById('editKm').value || 0,
         prioridad:            document.getElementById('editPrioridad').value || null,
         problema_declarado:   document.getElementById('editProblema').value,
         observaciones_internas: document.getElementById('editObservaciones').value,
