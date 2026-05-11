@@ -21,25 +21,32 @@ async function cargarClientes() {
 }
 
 function renderClientes(clientes) {
-  const tbody = document.getElementById('tablaClientes');
+  const el = document.getElementById('listaClientes');
   if (!clientes.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Sin resultados</td></tr>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><p>Sin resultados</p></div>`;
     return;
   }
   const canEdit = App.canEdit();
   clientes.forEach(c => { _clientesData[c.id] = c; });
-  tbody.innerHTML = clientes.map(c => `
-    <tr>
-      <td><strong>${esc(c.nombre)}</strong></td>
-      <td>${esc(c.telefono || '—')}</td>
-      <td class="col-hide-mobile">${esc(c.email || '—')}</td>
-      <td class="col-hide-mobile">${c.cant_motos || 0}</td>
-      <td style="text-align:right; white-space:nowrap">
-        ${waLink(c.telefono) ? `<a href="${waLink(c.telefono)}" target="_blank" class="btn btn-sm" style="margin-right:4px; color:#25D366; border:1px solid #25D366; background:#fff; text-decoration:none">💬</a>` : ''}
-        ${canEdit ? `<button class="btn btn-secondary btn-sm" onclick="abrirModal(${c.id})">Editar</button>` : ''}
-        ${canEdit ? `<button class="btn btn-sm" style="margin-left:4px; color:#EF4444; border:1px solid #FCA5A5; background:#fff" onclick="eliminarCliente(${c.id})">✕</button>` : ''}
-      </td>
-    </tr>`).join('');
+  el.innerHTML = clientes.map(c => {
+    const wa = waLink(c.telefono);
+    return `
+    <div class="mecanico-card">
+      <div style="flex:1; min-width:0">
+        <div style="font-size:1rem; font-weight:700; color:var(--text)">${esc(c.nombre)}</div>
+        ${c.telefono ? `<div class="text-sm text-muted" style="margin-top:2px; white-space:nowrap">📞 ${esc(c.telefono)}</div>` : ''}
+        ${c.email    ? `<div class="text-sm text-muted" style="margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">✉️ ${esc(c.email)}</div>` : ''}
+        ${c.cant_motos ? `<div style="margin-top:4px; font-size:0.8125rem; font-weight:600; color:var(--primary)">${c.cant_motos} moto(s)</div>` : ''}
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0; align-items:flex-end">
+        ${wa ? `<a href="${wa}" target="_blank" class="btn btn-sm" style="color:#25D366; border:1px solid #25D366; background:#fff; text-decoration:none">💬 WhatsApp</a>` : ''}
+        ${canEdit ? `<div style="display:flex; gap:6px">
+          <button class="btn btn-secondary btn-sm" onclick="abrirModal(${c.id})">Editar</button>
+          <button class="btn btn-sm" style="color:#EF4444; border:1px solid #FCA5A5; background:#fff" onclick="eliminarCliente(${c.id})">✕</button>
+        </div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function abrirModal(id = null) {

@@ -34,23 +34,8 @@
   <div class="filter-bar">
     <input type="search" id="searchQ" placeholder="Buscar por nombre, teléfono o email...">
   </div>
-  <div class="card">
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Teléfono</th>
-            <th class="col-hide-mobile">Email</th>
-            <th class="col-hide-mobile">Motos</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="tablaClientes">
-          <tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:32px">Cargando...</td></tr>
-        </tbody>
-      </table>
-    </div>
+  <div id="listaClientes">
+    <div class="empty-state"><div class="empty-icon">👤</div><p>Cargando...</p></div>
   </div>
 </div>
 
