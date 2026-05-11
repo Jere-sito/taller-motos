@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Mecánicos — Taller Motos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
@@ -39,10 +42,19 @@
       <h2 class="modal-title" id="mecModalTitle">Nuevo mecánico</h2>
       <button class="modal-close" onclick="App.closeModal('modalMecanico')">✕</button>
     </div>
-    <div class="form-group"><label class="form-label required">Nombre</label><input type="text" id="mecNombre" placeholder="Nombre completo"></div>
+    <div class="form-group">
+      <label class="form-label required">Nombre</label>
+      <input type="text" id="mecNombre" placeholder="Nombre completo">
+    </div>
     <div class="grid-2">
-      <div class="form-group"><label class="form-label">Teléfono</label><input type="tel" id="mecTelefono" placeholder="11 2345-6789"></div>
-      <div class="form-group"><label class="form-label">Especialidad</label><input type="text" id="mecEspecialidad" placeholder="Eléctrico, Carburación..."></div>
+      <div class="form-group">
+        <label class="form-label">Teléfono</label>
+        <input type="tel" id="mecTelefono" placeholder="11 2345-6789">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Especialidad</label>
+        <input type="text" id="mecEspecialidad" placeholder="Eléctrico, Carburación...">
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="App.closeModal('modalMecanico')">Cancelar</button>

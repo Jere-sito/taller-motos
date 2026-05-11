@@ -4,109 +4,126 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Taller Motos — Ingresar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #F3F4F6;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #F7F8FB;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
+      -webkit-font-smoothing: antialiased;
     }
     .card {
       background: #fff;
-      border-radius: 14px;
-      padding: 36px 32px;
+      border-radius: 20px;
+      padding: 40px 36px;
       width: 100%;
-      max-width: 380px;
-      box-shadow: 0 4px 32px rgba(0,0,0,0.09);
+      max-width: 400px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+      border: 1px solid #E4E7EE;
     }
-    .logo { text-align: center; margin-bottom: 28px; }
-    .logo-icon { font-size: 2.4rem; margin-bottom: 8px; }
-    .logo h1 { font-size: 1.4rem; font-weight: 700; color: #111827; }
-    .logo p { font-size: 0.85rem; color: #6B7280; margin-top: 4px; }
+    .logo { text-align: center; margin-bottom: 32px; }
+    .logo-icon {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .logo h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #0F1117;
+      letter-spacing: -0.02em;
+    }
+    .logo p { font-size: 0.875rem; color: #9CA3AF; margin-top: 5px; }
     .setup-badge {
       display: none;
-      background: #FFF7ED;
-      color: #C2410C;
-      font-size: 0.78rem;
-      font-weight: 600;
-      padding: 4px 12px;
+      background: #FFF4EE;
+      color: #EA580C;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 14px;
       border-radius: 99px;
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
+      border: 1px solid #FED7AA;
     }
-    label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #4B5563;
+      margin-bottom: 6px;
+      letter-spacing: 0.01em;
+    }
     input[type="text"], input[type="password"] {
       display: block;
       width: 100%;
-      padding: 11px 14px;
-      border: 1.5px solid #D1D5DB;
-      border-radius: 8px;
+      padding: 0 14px;
+      height: 46px;
+      border: 1.5px solid #E4E7EE;
+      border-radius: 10px;
       font-size: 1rem;
-      color: #111827;
+      color: #0F1117;
       background: #fff;
       outline: none;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s;
       margin-bottom: 16px;
       -webkit-appearance: none;
       font-family: inherit;
     }
-    input:focus { border-color: #EA580C; }
+    input:focus {
+      border-color: #EA580C;
+      box-shadow: 0 0 0 3px rgba(234,88,12,0.12);
+    }
     .btn {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       width: 100%;
-      padding: 12px;
+      height: 48px;
       background: #EA580C;
       color: #fff;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 1rem;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       margin-top: 4px;
-      transition: background 0.15s;
+      transition: background 0.15s, transform 0.1s;
       font-family: inherit;
+      letter-spacing: -0.01em;
     }
     .btn:hover { background: #C2410C; }
+    .btn:active { transform: scale(0.98); }
     .btn:disabled { background: #FDBA74; cursor: not-allowed; }
     .msg {
       display: none;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 0.875rem;
-      margin-bottom: 16px;
-    }
-    .msg.error { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
-    .msg.success { background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
-    select {
-      display: block;
-      width: 100%;
+      border-radius: 10px;
       padding: 11px 14px;
-      border: 1.5px solid #D1D5DB;
-      border-radius: 8px;
-      font-size: 1rem;
-      color: #111827;
-      background: #fff;
-      outline: none;
-      margin-bottom: 16px;
-      -webkit-appearance: none;
-      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 18px;
     }
+    .msg.error   { background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
+    .msg.success { background: #F0FDF4; color: #065F46; border: 1px solid #A7F3D0; }
   </style>
 </head>
 <body>
 <div class="card">
   <div class="logo">
-    <div class="logo-icon">🏍️</div>
+    <span class="logo-icon">🏍️</span>
     <h1>Taller Motos</h1>
     <p id="subtitle">Ingresá con tu cuenta</p>
   </div>
 
   <div class="setup-badge" id="setupBadge">⚙️ Configuración inicial</div>
-  <div class="msg error" id="errorMsg"></div>
+  <div class="msg error"   id="errorMsg"></div>
   <div class="msg success" id="successMsg"></div>
 
   <div id="loginForm">
@@ -133,17 +150,9 @@
 <script>
   const $ = id => document.getElementById(id);
 
-  function showError(msg) {
-    $('errorMsg').textContent = msg; $('errorMsg').style.display = 'block';
-    $('successMsg').style.display = 'none';
-  }
-  function showSuccess(msg) {
-    $('successMsg').textContent = msg; $('successMsg').style.display = 'block';
-    $('errorMsg').style.display = 'none';
-  }
-  function clearMsg() {
-    $('errorMsg').style.display = 'none'; $('successMsg').style.display = 'none';
-  }
+  function showError(msg)   { $('errorMsg').textContent = msg; $('errorMsg').style.display = 'block'; $('successMsg').style.display = 'none'; }
+  function showSuccess(msg) { $('successMsg').textContent = msg; $('successMsg').style.display = 'block'; $('errorMsg').style.display = 'none'; }
+  function clearMsg()       { $('errorMsg').style.display = 'none'; $('successMsg').style.display = 'none'; }
 
   async function checkStatus() {
     try {
@@ -157,7 +166,7 @@
         $('subtitle').textContent = 'Creá tu primera cuenta de administrador';
         $('sUsername').focus();
       }
-    } catch { /* servidor no disponible */ }
+    } catch {}
   }
 
   async function doLogin() {
@@ -165,7 +174,6 @@
     const username = $('username').value.trim();
     const password = $('password').value;
     if (!username || !password) return showError('Completá usuario y contraseña.');
-
     const btn = $('btnLogin');
     btn.disabled = true; btn.textContent = 'Ingresando...';
     try {
@@ -182,15 +190,13 @@
 
   async function doSetup() {
     clearMsg();
-    const username = $('sUsername').value.trim();
-    const display = $('sDisplay').value.trim();
-    const password = $('sPassword').value;
+    const username  = $('sUsername').value.trim();
+    const display   = $('sDisplay').value.trim();
+    const password  = $('sPassword').value;
     const password2 = $('sPassword2').value;
-
     if (!username || !password) return showError('Completá todos los campos.');
     if (password !== password2) return showError('Las contraseñas no coinciden.');
     if (password.length < 6) return showError('La contraseña debe tener al menos 6 caracteres.');
-
     const btn = $('btnSetup');
     btn.disabled = true; btn.textContent = 'Creando cuenta...';
     try {
@@ -214,8 +220,7 @@
   $('btnSetup').addEventListener('click', doSetup);
   document.addEventListener('keydown', e => {
     if (e.key !== 'Enter') return;
-    if ($('setupForm').style.display !== 'none') doSetup();
-    else doLogin();
+    if ($('setupForm').style.display !== 'none') doSetup(); else doLogin();
   });
 
   checkStatus();

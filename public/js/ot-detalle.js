@@ -5,10 +5,10 @@ let pagosActuales = [];
 let editandoItemId = null;
 
 const PRIORIDAD_LABELS = {
-  en_el_dia:       '🔴 En el día',
-  manana:          '🟠 Mañana',
-  esta_semana:     '🟡 Esta semana',
-  sin_apuro:       '🟢 Sin apuro',
+  en_el_dia:        '🔴 En el día',
+  manana:           '🟠 Mañana',
+  esta_semana:      '🟡 Esta semana',
+  sin_apuro:        '🟢 Sin apuro',
   fecha_especifica: '📅'
 };
 
@@ -36,7 +36,8 @@ async function cargarOT() {
     renderOT();
     await Promise.all([cargarPresupuesto(), cargarPagos()]);
   } catch {
-    document.getElementById('paginaDetalle').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Orden no encontrada</p></div>`;
+    document.getElementById('paginaDetalle').innerHTML =
+      `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Orden no encontrada</p></div>`;
   }
 }
 
@@ -47,38 +48,40 @@ function renderOT() {
   document.title = `${ot.numero} — Taller Motos`;
 
   document.getElementById('paginaDetalle').innerHTML = `
-    <div style="margin-bottom:12px">
-      <a href="/ordenes" style="color:var(--text-muted); text-decoration:none; font-size:0.85rem">← Volver</a>
+    <div style="margin-bottom:14px">
+      <a href="/ordenes" style="color:var(--text-muted); text-decoration:none; font-size:0.875rem; font-weight:500; display:inline-flex; align-items:center; gap:4px">
+        ← Volver a órdenes
+      </a>
     </div>
 
     <!-- Encabezado OT -->
-    <div class="card" style="margin-bottom:16px">
+    <div class="card" style="margin-bottom:14px">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
         <div>
-          <div class="text-muted text-sm">${esc(ot.numero)}</div>
-          <h1 class="ot-detalle-title" style="font-size:1.4rem; font-weight:800; margin:4px 0">${esc(ot.patente)} — ${esc(ot.marca)} ${esc(ot.modelo)}</h1>
-          <div style="display:flex; gap:12px; flex-wrap:wrap; font-size:0.875rem; color:var(--text-muted)">
-            <span>👤 <a href="/clientes" style="color:inherit">${esc(ot.cliente_nombre)}</a></span>
-            <span>📞 ${esc(ot.cliente_telefono || '—')}</span>
+          <div class="text-muted text-xs" style="font-weight:600; letter-spacing:0.04em; margin-bottom:4px">${esc(ot.numero)}</div>
+          <h1 class="ot-detalle-title" style="font-size:1.375rem; font-weight:900; letter-spacing:-0.02em; margin-bottom:6px">${esc(ot.patente)} — ${esc(ot.marca)} ${esc(ot.modelo)}</h1>
+          <div style="display:flex; gap:12px; flex-wrap:wrap; font-size:0.875rem; color:var(--text-2); align-items:center">
+            <span>👤 ${esc(ot.cliente_nombre)}</span>
+            ${ot.cliente_telefono ? `<span>📞 ${esc(ot.cliente_telefono)}</span>` : ''}
             ${ot.anio ? `<span>📅 ${ot.anio}</span>` : ''}
-            ${ot.color ? `<span>🎨 ${ot.color}</span>` : ''}
+            ${ot.color ? `<span>🎨 ${esc(ot.color)}</span>` : ''}
             <span>🔢 ${ot.km_ingreso || 0} km</span>
           </div>
         </div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
-          <span class="estado-badge estado-${ot.estado}" style="font-size:0.85rem; padding:5px 14px">${esc(ESTADO_LABELS[ot.estado])}</span>
+          <span class="estado-badge estado-${ot.estado}" style="font-size:0.8125rem; padding:5px 12px">${esc(ESTADO_LABELS[ot.estado])}</span>
           ${App.canEdit() ? `<button class="btn btn-secondary btn-sm" id="btnEditarOT">Editar</button>` : ''}
           ${ot.transiciones_validas?.length ? `<button class="btn btn-primary btn-sm" id="btnCambiarEstado">Cambiar estado</button>` : ''}
         </div>
       </div>
 
       <!-- Barra de progreso -->
-      <div class="ot-progress mt-2" style="margin-top:16px">
+      <div class="ot-progress" style="margin-top:18px">
         ${FLUJO_PRINCIPAL.map((est, i) => {
           const idxActual = FLUJO_PRINCIPAL.indexOf(ot.estado);
-          const done = i < idxActual;
+          const done    = i < idxActual;
           const current = est === ot.estado || (ot.estado === 'esperando_repuesto' && est === 'en_reparacion');
-          const line = i < FLUJO_PRINCIPAL.length - 1 ? `<div class="ot-progress-line ${done ? 'done' : ''}"></div>` : '';
+          const line    = i < FLUJO_PRINCIPAL.length - 1 ? `<div class="ot-progress-line ${done ? 'done' : ''}"></div>` : '';
           return `
             <div class="ot-progress-step">
               <div class="ot-progress-dot ${done ? 'done' : current ? 'current' : ''}"></div>
@@ -87,40 +90,48 @@ function renderOT() {
         }).join('')}
       </div>
 
-      ${vencida ? `<div class="badge-vencida" style="margin-top:12px; display:inline-block">⚠️ Fecha prometida vencida</div>` : ''}
+      ${vencida ? `<div class="badge-vencida" style="display:inline-flex; align-items:center; gap:4px; margin-top:14px">⚠️ Fecha prometida vencida</div>` : ''}
     </div>
 
-    <div class="grid-2" style="gap:16px; margin-bottom:16px">
-      <!-- Info del ingreso -->
+    <div class="grid-2" style="gap:14px; margin-bottom:14px">
+      <!-- Datos del ingreso -->
       <div class="card">
-        <h3 style="font-weight:700; margin-bottom:12px">Datos del ingreso</h3>
-        <div class="text-sm text-muted mb-1">Ingreso: ${fmtDateTime(ot.fecha_ingreso)}</div>
-        ${ot.fecha_prometida ? `<div class="text-sm text-muted mb-1">Prometida: ${fmtDate(ot.fecha_prometida)}</div>` : ''}
-        ${ot.mecanico_nombre ? `<div class="text-sm text-muted mb-1">🔧 Mecánico: <strong>${esc(ot.mecanico_nombre)}</strong></div>` : '<div class="text-sm text-muted mb-1">Sin mecánico asignado</div>'}
-        ${ot.prioridad ? `<div class="text-sm text-muted mb-1">⏱ Apuro: <strong>${fmtPrioridad(ot)}</strong></div>` : ''}
-        ${ot.cedula ? `<div class="text-sm text-muted mb-1">${ot.cedula === 'fisica' ? '🪪' : '📱'} Cédula: <strong>${ot.cedula === 'fisica' ? 'Física' : 'Digital'}</strong></div>` : ''}
-        <div style="margin-top:12px">
-          <div class="text-sm fw-bold">Problema declarado:</div>
-          <div style="margin-top:4px; white-space:pre-wrap; font-size:0.9rem">${esc(ot.problema_declarado || '—')}</div>
+        <h3 style="font-weight:700; font-size:0.9375rem; margin-bottom:12px; color:var(--text)">Datos del ingreso</h3>
+        <div style="display:flex; flex-direction:column; gap:6px">
+          <div class="text-sm text-muted">Ingreso: <strong style="color:var(--text-2)">${fmtDateTime(ot.fecha_ingreso)}</strong></div>
+          ${ot.fecha_prometida ? `<div class="text-sm text-muted">Prometida: <strong style="color:var(--text-2)">${fmtDate(ot.fecha_prometida)}</strong></div>` : ''}
+          ${ot.mecanico_nombre
+            ? `<div class="text-sm text-muted">🔧 <strong style="color:var(--text-2)">${esc(ot.mecanico_nombre)}</strong></div>`
+            : `<div class="text-sm text-muted">Sin mecánico asignado</div>`}
+          ${ot.prioridad ? `<div class="text-sm text-muted">⏱ Apuro: <strong style="color:var(--text-2)">${fmtPrioridad(ot)}</strong></div>` : ''}
+          ${ot.cedula ? `<div class="text-sm text-muted">${ot.cedula === 'fisica' ? '🪪' : '📱'} Cédula: <strong style="color:var(--text-2)">${ot.cedula === 'fisica' ? 'Física' : 'Digital'}</strong></div>` : ''}
+        </div>
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border)">
+          <div class="text-xs text-muted" style="font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px">Problema declarado</div>
+          <div style="white-space:pre-wrap; font-size:0.9375rem; line-height:1.5; color:var(--text)">${esc(ot.problema_declarado || '—')}</div>
         </div>
         ${ot.observaciones_internas ? `
-        <div style="margin-top:12px; background:var(--bg); border-radius:8px; padding:10px">
-          <div class="text-sm fw-bold text-muted">Observaciones internas:</div>
-          <div style="margin-top:4px; white-space:pre-wrap; font-size:0.85rem; color:var(--text-muted)">${esc(ot.observaciones_internas)}</div>
+        <div style="margin-top:12px; background:var(--bg-subtle); border-radius:var(--radius-sm); padding:12px">
+          <div class="text-xs text-muted" style="font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px">Obs. internas</div>
+          <div style="white-space:pre-wrap; font-size:0.875rem; line-height:1.5; color:var(--text-2)">${esc(ot.observaciones_internas)}</div>
         </div>` : ''}
       </div>
 
       <!-- Historial de estados -->
       <div class="card">
-        <h3 style="font-weight:700; margin-bottom:12px">Historial</h3>
+        <h3 style="font-weight:700; font-size:0.9375rem; margin-bottom:12px; color:var(--text)">Historial</h3>
         <ul class="historial-list" id="historialList">
           ${(ot.historial || []).map(h => `
             <li class="historial-item">
               <div class="historial-dot"></div>
               <div>
-                <div>${h.estado_anterior ? `<span class="estado-badge estado-${h.estado_anterior}" style="font-size:0.68rem">${esc(ESTADO_LABELS[h.estado_anterior] || h.estado_anterior)}</span> → ` : ''}
-                <span class="estado-badge estado-${h.estado_nuevo}" style="font-size:0.68rem">${esc(ESTADO_LABELS[h.estado_nuevo] || h.estado_nuevo)}</span></div>
-                <div class="historial-meta">${esc(h.display_name || '—')} · ${fmtDateTime(h.created_at)}${h.notas ? `<br><em>${esc(h.notas)}</em>` : ''}</div>
+                <div style="line-height:1.4">
+                  ${h.estado_anterior
+                    ? `<span class="estado-badge estado-${h.estado_anterior}" style="font-size:0.6875rem">${esc(ESTADO_LABELS[h.estado_anterior] || h.estado_anterior)}</span> → `
+                    : ''}
+                  <span class="estado-badge estado-${h.estado_nuevo}" style="font-size:0.6875rem">${esc(ESTADO_LABELS[h.estado_nuevo] || h.estado_nuevo)}</span>
+                </div>
+                <div class="historial-meta">${esc(h.display_name || '—')} · ${fmtDateTime(h.created_at)}${h.notas ? `<br><em style="color:var(--text-2)">${esc(h.notas)}</em>` : ''}</div>
               </div>
             </li>`).join('')}
         </ul>
@@ -128,38 +139,37 @@ function renderOT() {
     </div>
 
     <!-- Presupuesto -->
-    <div class="card" id="seccionPresupuesto">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
-        <h3 style="font-weight:700">Presupuesto</h3>
+    <div class="card" id="seccionPresupuesto" style="margin-bottom:14px">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px">
+        <h3 style="font-weight:700; font-size:0.9375rem">Presupuesto</h3>
         <div style="display:flex; gap:8px; flex-wrap:wrap;" id="accionesPresupuesto"></div>
       </div>
       <div id="contenidoPresupuesto"><div class="text-muted text-sm">Sin presupuesto aún</div></div>
     </div>
 
     <!-- Pagos -->
-    <div class="card" id="seccionPagos" style="margin-top:16px">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
-        <h3 style="font-weight:700">Pagos</h3>
+    <div class="card" id="seccionPagos">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px">
+        <h3 style="font-weight:700; font-size:0.9375rem">Pagos</h3>
         ${App.canEdit() ? `<button class="btn btn-secondary btn-sm" id="btnRegistrarPago">+ Registrar pago</button>` : ''}
       </div>
       <div id="contenidoPagos"><div class="text-muted text-sm">Cargando...</div></div>
     </div>
   `;
 
-  // Eventos
   document.getElementById('btnCambiarEstado')?.addEventListener('click', abrirCambiarEstado);
   document.getElementById('btnEditarOT')?.addEventListener('click', abrirEditarOT);
   document.getElementById('btnRegistrarPago')?.addEventListener('click', abrirModalPago);
 }
 
-// ── Cambiar estado ─────────────────────────────────────────────────────────
+// ── Cambiar estado ────────────────────────────────────────────────────────
 function abrirCambiarEstado() {
   const transiciones = otActual.transiciones_validas || [];
   document.getElementById('notasEstado').value = '';
   document.getElementById('listaBotonesEstado').innerHTML = transiciones.map(est =>
-    `<button class="btn btn-secondary" style="width:100%; margin-bottom:8px; justify-content:flex-start"
+    `<button class="btn btn-secondary" style="width:100%; justify-content:flex-start; gap:10px"
              onclick="cambiarEstado('${est}')">
-       <span class="estado-badge estado-${est}" style="font-size:0.75rem">${esc(ESTADO_LABELS[est])}</span>
+       <span class="estado-badge estado-${est}" style="font-size:0.8125rem">${esc(ESTADO_LABELS[est])}</span>
      </button>`
   ).join('');
   App.openModal('modalCambiarEstado');
@@ -170,7 +180,7 @@ async function cambiarEstado(nuevoEstado) {
   try {
     otActual = await API.patch(`/api/ordenes/${otId}/estado`, { estado: nuevoEstado, notas });
     App.closeModal('modalCambiarEstado');
-    App.toast(`Estado actualizado: ${ESTADO_LABELS[nuevoEstado]}`, 'success');
+    App.toast(`Estado: ${ESTADO_LABELS[nuevoEstado]}`, 'success');
     renderOT();
     await cargarPresupuesto();
   } catch (e) {
@@ -180,7 +190,6 @@ async function cambiarEstado(nuevoEstado) {
 
 // ── Editar OT ─────────────────────────────────────────────────────────────
 async function abrirEditarOT() {
-  // Cargar mecánicos
   try {
     const mecs = await API.get('/api/mecanicos');
     const sel = document.getElementById('editMecanico');
@@ -197,12 +206,12 @@ async function abrirEditarOT() {
   document.getElementById('btnGuardarEdicion').onclick = async () => {
     try {
       otActual = await API.patch(`/api/ordenes/${otId}`, {
-        mecanico_id: document.getElementById('editMecanico').value || null,
-        km_ingreso: document.getElementById('editKm').value || 0,
-        prioridad: document.getElementById('editPrioridad').value || null,
-        problema_declarado: document.getElementById('editProblema').value,
+        mecanico_id:          document.getElementById('editMecanico').value || null,
+        km_ingreso:           document.getElementById('editKm').value || 0,
+        prioridad:            document.getElementById('editPrioridad').value || null,
+        problema_declarado:   document.getElementById('editProblema').value,
         observaciones_internas: document.getElementById('editObservaciones').value,
-        fecha_prometida: document.getElementById('editFechaPrometida').value || null
+        fecha_prometida:      document.getElementById('editFechaPrometida').value || null
       });
       App.closeModal('modalEditarOT');
       App.toast('Orden actualizada', 'success');
@@ -219,7 +228,6 @@ async function cargarPresupuesto() {
     presupuestoActual = await API.get(`/api/ordenes/${otId}/presupuesto`);
     renderPresupuesto();
   } catch {
-    // No existe aún
     const acciones = document.getElementById('accionesPresupuesto');
     if (acciones && App.canEdit() && !['entregada','cancelada'].includes(otActual.estado)) {
       acciones.innerHTML = `<button class="btn btn-secondary btn-sm" id="btnCrearPresupuesto">Crear presupuesto</button>`;
@@ -238,29 +246,29 @@ async function crearPresupuesto() {
   }
 }
 
-const PRES_ESTADO_LABELS = { borrador: 'Borrador', presentado: 'Presentado', aprobado: 'Aprobado ✓', rechazado: 'Rechazado' };
-const PRES_ESTADO_COLORS = { borrador: '#6B7280', presentado: '#3B82F6', aprobado: '#059669', rechazado: '#EF4444' };
+const PRES_ESTADO_LABELS  = { borrador: 'Borrador', presentado: 'Presentado', aprobado: 'Aprobado ✓', rechazado: 'Rechazado' };
+const PRES_ESTADO_COLORS  = { borrador: 'var(--text-muted)', presentado: '#1D4ED8', aprobado: '#065F46', rechazado: '#EF4444' };
 
 function renderPresupuesto() {
-  const pres = presupuestoActual;
-  const items = pres.items || [];
+  const pres    = presupuestoActual;
+  const items   = pres.items || [];
   const canEdit = App.canEdit();
 
-  const subtotal = items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
+  const subtotal  = items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
   const descMonto = (subtotal * (pres.descuento || 0)) / 100;
-  const total = subtotal - descMonto;
+  const total     = subtotal - descMonto;
 
   const acciones = document.getElementById('accionesPresupuesto');
   if (acciones) {
-    let btns = `<span style="font-size:0.8rem; font-weight:600; color:${PRES_ESTADO_COLORS[pres.estado]}">${esc(PRES_ESTADO_LABELS[pres.estado])}</span>`;
+    let btns = `<span style="font-size:0.8125rem; font-weight:700; color:${PRES_ESTADO_COLORS[pres.estado]}">${esc(PRES_ESTADO_LABELS[pres.estado])}</span>`;
     if (canEdit) {
       btns += ` <button class="btn btn-secondary btn-sm" id="btnAgregarItem">+ Ítem</button>`;
       btns += ` <button class="btn btn-secondary btn-sm" id="btnWA">📱 WhatsApp</button>`;
-      if (pres.estado === 'borrador') btns += ` <button class="btn btn-secondary btn-sm" id="btnPresentar">Presentar</button>`;
-      if (pres.estado === 'presentado') btns += ` <button class="btn btn-secondary btn-sm" id="btnVolvBorrador">← Borrador</button>`;
-      if (pres.estado === 'presentado') btns += ` <button class="btn btn-success btn-sm" id="btnAprobar">Aprobar</button>`;
+      if (pres.estado === 'borrador')    btns += ` <button class="btn btn-secondary btn-sm" id="btnPresentar">Presentar</button>`;
+      if (pres.estado === 'presentado')  btns += ` <button class="btn btn-secondary btn-sm" id="btnVolvBorrador">← Borrador</button>`;
+      if (pres.estado === 'presentado')  btns += ` <button class="btn btn-success btn-sm" id="btnAprobar">✓ Aprobar</button>`;
     }
-    if (otActual.estado === 'lista' || otActual.estado === 'entregada') {
+    if (['lista','entregada'].includes(otActual.estado)) {
       btns += ` <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ Imprimir</button>`;
     }
     acciones.innerHTML = btns;
@@ -281,16 +289,18 @@ function renderPresupuesto() {
     <div class="presup-items">
       ${items.map(item => `
         <div class="presup-item">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px">
-            <span style="font-size:0.72rem; font-weight:600; padding:2px 8px; border-radius:99px; background:${item.tipo==='repuesto'?'#EDE9FE':'#FFF7ED'}; color:${item.tipo==='repuesto'?'#5B21B6':'#C2410C'}">${item.tipo==='repuesto'?'Repuesto':'M. de obra'}</span>
-            <span style="font-weight:700">${fmtMoney(item.cantidad * item.precio_unitario)}</span>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:5px">
+            <span style="font-size:0.6875rem; font-weight:700; padding:3px 8px; border-radius:99px;
+              background:${item.tipo==='repuesto'?'#EDE9FE':'#FFF4EE'};
+              color:${item.tipo==='repuesto'?'#5B21B6':'#EA580C'}">${item.tipo==='repuesto'?'Repuesto':'M. de obra'}</span>
+            <span style="font-weight:700; font-size:0.9375rem">${fmtMoney(item.cantidad * item.precio_unitario)}</span>
           </div>
-          <div style="font-size:0.9rem; margin-bottom:4px">${esc(item.descripcion)}</div>
+          <div style="font-size:0.9375rem; margin-bottom:5px; color:var(--text)">${esc(item.descripcion)}</div>
           <div style="display:flex; align-items:center; justify-content:space-between">
             <span class="text-sm text-muted">${item.tipo !== 'mano_obra' ? `x${item.cantidad} · ` : ''}${fmtMoney(item.precio_unitario)} c/u</span>
             ${canEdit ? `<div style="display:flex; gap:2px">
-              <button class="btn btn-sm" style="color:var(--primary);background:none;border:none;cursor:pointer;padding:4px 8px" onclick="abrirEditarItem(${item.id})">✏️</button>
-              <button class="btn btn-sm" style="color:#EF4444;background:none;border:none;cursor:pointer;padding:4px 8px" onclick="eliminarItem(${pres.id},${item.id})">✕</button>
+              <button class="btn btn-sm" style="color:var(--primary);background:none;border:none;cursor:pointer;padding:4px 8px;height:32px" onclick="abrirEditarItem(${item.id})">✏️</button>
+              <button class="btn btn-sm" style="color:#EF4444;background:none;border:none;cursor:pointer;padding:4px 8px;height:32px" onclick="eliminarItem(${pres.id},${item.id})">✕</button>
             </div>` : ''}
           </div>
         </div>`).join('')}
@@ -300,7 +310,7 @@ function renderPresupuesto() {
       ${pres.descuento > 0 ? `<div class="presupuesto-total-row"><label>Descuento (${pres.descuento}%)</label><span>-${fmtMoney(descMonto)}</span></div>` : ''}
       <div class="presupuesto-total-row grand-total"><label>Total</label><span>${fmtMoney(total)}</span></div>
     </div>
-    ${pres.aprobado_por ? `<div class="text-sm text-muted mt-2">Aprobado por: ${esc(pres.aprobado_por)} el ${fmtDate(pres.aprobado_at)}</div>` : ''}
+    ${pres.aprobado_por ? `<div class="text-sm text-muted mt-2">✓ Aprobado por: <strong>${esc(pres.aprobado_por)}</strong> el ${fmtDate(pres.aprobado_at)}</div>` : ''}
   `;
 }
 
@@ -402,7 +412,7 @@ function renderPagos() {
   let saldo = null;
   if (presupuestoActual) {
     const items = presupuestoActual.items || [];
-    const subtotal = items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
+    const subtotal  = items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
     const descMonto = (subtotal * (presupuestoActual.descuento || 0)) / 100;
     saldo = (subtotal - descMonto) - totalPagado;
   }
@@ -414,29 +424,28 @@ function renderPagos() {
           <div class="presup-item">
             <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:8px">
               <div>
-                <div style="font-weight:600; font-size:0.9rem">${esc(MEDIO_LABELS[p.medio] || p.medio)}</div>
+                <div style="font-weight:600; font-size:0.9375rem">${esc(MEDIO_LABELS[p.medio] || p.medio)}</div>
                 ${p.proveedor ? `<div class="text-sm text-muted">${esc(p.proveedor)}</div>` : ''}
                 ${p.notas ? `<div class="text-sm text-muted">${esc(p.notas)}</div>` : ''}
               </div>
               <div style="display:flex; align-items:center; gap:6px; flex-shrink:0">
-                <span style="font-weight:700">${fmtMoney(p.monto)}</span>
-                ${App.canEdit() ? `<button class="btn btn-sm" style="color:#EF4444;background:none;border:none;cursor:pointer;padding:4px 6px" onclick="eliminarPago(${p.id})">✕</button>` : ''}
+                <span style="font-weight:700; font-size:0.9375rem">${fmtMoney(p.monto)}</span>
+                ${App.canEdit() ? `<button class="btn btn-sm" style="color:#EF4444;background:none;border:none;cursor:pointer;padding:4px 6px;height:32px" onclick="eliminarPago(${p.id})">✕</button>` : ''}
               </div>
             </div>
           </div>`).join('')}
-      </div>
-    ` : '<div class="text-muted text-sm">Sin pagos registrados.</div>'}
-    <div style="margin-top:12px; border-top:2px solid var(--border); padding-top:12px; display:flex; justify-content:flex-end; gap:24px; font-size:0.9rem">
+      </div>` : `<div class="text-muted text-sm">Sin pagos registrados.</div>`}
+    <div style="margin-top:14px; border-top:2px solid var(--border); padding-top:12px; display:flex; justify-content:flex-end; gap:24px; font-size:0.9375rem">
       <span style="color:var(--text-muted)">Total pagado:</span>
       <span style="font-weight:700; min-width:100px; text-align:right">${fmtMoney(totalPagado)}</span>
     </div>
     ${saldo !== null && saldo > 0 ? `
-    <div style="display:flex; justify-content:flex-end; gap:24px; font-size:0.9rem; margin-top:4px">
+    <div style="display:flex; justify-content:flex-end; gap:24px; font-size:0.9375rem; margin-top:4px">
       <span style="color:var(--text-muted)">Saldo pendiente:</span>
-      <span style="font-weight:700; color:#EF4444; min-width:100px; text-align:right">${fmtMoney(saldo)}</span>
+      <span style="font-weight:700; color:#991B1B; min-width:100px; text-align:right">${fmtMoney(saldo)}</span>
     </div>` : saldo !== null && saldo <= 0 && totalPagado > 0 ? `
-    <div style="display:flex; justify-content:flex-end; font-size:0.9rem; margin-top:4px">
-      <span style="color:#059669; font-weight:600">✓ Pago completo</span>
+    <div style="display:flex; justify-content:flex-end; font-size:0.875rem; margin-top:6px">
+      <span style="color:var(--state-lista-fg); font-weight:700">✓ Pago completo</span>
     </div>` : ''}
   `;
 }
@@ -460,13 +469,13 @@ function abrirModalPago() {
 }
 
 async function guardarPago() {
-  const medio = document.getElementById('pagoMedio').value;
+  const medio     = document.getElementById('pagoMedio').value;
   const proveedor = document.getElementById('pagoProveedor').value.trim();
-  const monto = parseInt(document.getElementById('pagoMonto').value.replace(/\./g, '').replace(/[^0-9]/g, '')) || 0;
-  const notas = document.getElementById('pagoNotas').value.trim();
+  const monto     = parseInt(document.getElementById('pagoMonto').value.replace(/\./g, '').replace(/[^0-9]/g, '')) || 0;
+  const notas     = document.getElementById('pagoNotas').value.trim();
 
   if (medio === 'puente' && !proveedor) return App.toast('Ingresá el proveedor destino', 'error');
-  if (!monto || monto <= 0) return App.toast('Ingresá un monto válido', 'error');
+  if (!monto || monto <= 0)             return App.toast('Ingresá un monto válido', 'error');
 
   const btn = document.getElementById('btnGuardarPago');
   btn.disabled = true;
@@ -482,28 +491,10 @@ async function guardarPago() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('itemTipo')?.addEventListener('change', e => {
-    _actualizarCamposCantidad(e.target.value);
-  });
-  document.getElementById('btnGuardarItem')?.addEventListener('click', guardarItem);
-
-  document.getElementById('pagoMedio')?.addEventListener('change', e => {
-    const grupoProveedor = document.getElementById('grupoProveedor');
-    if (e.target.value === 'puente') {
-      grupoProveedor.classList.remove('hidden');
-    } else {
-      grupoProveedor.classList.add('hidden');
-      document.getElementById('pagoProveedor').value = '';
-    }
-  });
-  document.getElementById('btnGuardarPago')?.addEventListener('click', guardarPago);
-});
-
 async function guardarItem() {
-  const tipo = document.getElementById('itemTipo').value;
-  const descripcion = document.getElementById('itemDescripcion').value.trim();
-  const cantidad = parseFloat(document.getElementById('itemCantidad').value) || 1;
+  const tipo            = document.getElementById('itemTipo').value;
+  const descripcion     = document.getElementById('itemDescripcion').value.trim();
+  const cantidad        = parseFloat(document.getElementById('itemCantidad').value) || 1;
   const precio_unitario = parseInt(document.getElementById('itemPrecio').value.replace(/\./g, '').replace(/[^0-9]/g, '')) || 0;
 
   if (!descripcion) return App.toast('La descripción es requerida', 'error');
@@ -531,3 +522,19 @@ async function guardarItem() {
     btn.disabled = false;
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('itemTipo')?.addEventListener('change', e => _actualizarCamposCantidad(e.target.value));
+  document.getElementById('btnGuardarItem')?.addEventListener('click', guardarItem);
+
+  document.getElementById('pagoMedio')?.addEventListener('change', e => {
+    const grupoProveedor = document.getElementById('grupoProveedor');
+    if (e.target.value === 'puente') {
+      grupoProveedor.classList.remove('hidden');
+    } else {
+      grupoProveedor.classList.add('hidden');
+      document.getElementById('pagoProveedor').value = '';
+    }
+  });
+  document.getElementById('btnGuardarPago')?.addEventListener('click', guardarPago);
+});

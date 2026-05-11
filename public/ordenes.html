@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Órdenes — Taller Motos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
@@ -33,7 +36,6 @@
     <button class="btn btn-primary" id="btnNuevaOT" data-require-role="admin,recepcion">+ Nueva Orden</button>
   </div>
 
-  <!-- Filtros por estado -->
   <div class="chips" id="chipsEstado">
     <button class="chip active" data-estado="">Todas</button>
     <button class="chip" data-estado="ingresada">Ingresadas</button>
@@ -46,9 +48,8 @@
     <button class="chip" data-estado="entregada">Entregadas</button>
   </div>
 
-  <!-- Filtros de búsqueda -->
   <div class="filter-bar">
-    <input type="text" id="searchQ" placeholder="Buscar patente, cliente, número de orden...">
+    <input type="search" id="searchQ" placeholder="Buscar patente, cliente, número...">
     <select id="filtroMecanico" data-require-role="admin,recepcion">
       <option value="">Todos los mecánicos</option>
     </select>
@@ -59,7 +60,10 @@
   </div>
 </div>
 
-<!-- Modal Nueva OT (wizard 4 pasos) -->
+<!-- FAB móvil -->
+<button class="fab" id="btnNuevaOTFab" aria-label="Nueva Orden" data-require-role="admin,recepcion">+</button>
+
+<!-- Modal Nueva OT (wizard) -->
 <div class="modal hidden" id="modalNuevaOT">
   <div class="modal-box">
     <div class="modal-header">
@@ -75,18 +79,18 @@
         <label class="form-label required">Patente</label>
         <input type="text" id="inputPatente" class="input-uppercase"
                placeholder="Ej: ABC123"
-               style="font-size:1.2rem; text-align:center; letter-spacing:4px; font-weight:700">
-        <div class="text-muted mt-1" id="patenteStatus"></div>
+               style="font-size:1.25rem; text-align:center; letter-spacing:6px; font-weight:800; height:56px">
+        <div class="text-muted mt-1" id="patenteStatus" style="font-size:0.8125rem"></div>
       </div>
       <div id="motoEncontrada" class="hidden">
-        <div class="card" style="padding:12px; background: #F0FDF4; border-color: #BBF7D0;">
-          <div style="font-weight:700" id="motoEncontradaTitle"></div>
-          <div class="text-muted text-sm" id="motoEncontradaMeta"></div>
+        <div style="padding:14px 16px; background:#F0FDF4; border:1.5px solid #A7F3D0; border-radius:12px">
+          <div style="font-weight:700; font-size:0.9375rem" id="motoEncontradaTitle"></div>
+          <div class="text-muted text-sm" style="margin-top:3px" id="motoEncontradaMeta"></div>
         </div>
       </div>
       <div id="motoNuevaAlert" class="hidden">
-        <div style="background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 8px; padding: 12px; font-size: 0.85rem; color: #92400E;">
-          Moto nueva — completá los datos en los siguientes pasos
+        <div style="background:#FFF4EE; border:1.5px solid #FED7AA; border-radius:12px; padding:14px 16px; font-size:0.875rem; color:#92400E; font-weight:500">
+          🏍️ Moto nueva — completá los datos en los siguientes pasos
         </div>
       </div>
       <div class="modal-footer">
@@ -129,11 +133,11 @@
           <input type="text" id="searchCliente" placeholder="Buscar por nombre o teléfono...">
           <button class="btn btn-secondary btn-sm" id="btnNuevoCliente">+ Nuevo</button>
         </div>
-        <div id="clienteResults" class="hidden" style="border: 1.5px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; background: #fff; max-height: 160px; overflow-y: auto;"></div>
-        <div id="clienteSeleccionado" class="hidden" style="margin-top: 8px; padding: 8px 12px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; font-size: 0.875rem; font-weight: 600;"></div>
+        <div id="clienteResults" class="hidden" style="border:1.5px solid var(--border); border-top:none; border-radius:0 0 10px 10px; background:#fff; max-height:160px; overflow-y:auto; box-shadow:var(--shadow-sm)"></div>
+        <div id="clienteSeleccionado" class="hidden" style="margin-top:8px; padding:10px 14px; background:#F0FDF4; border:1.5px solid #A7F3D0; border-radius:10px; font-size:0.875rem; font-weight:600; color:#065F46"></div>
       </div>
-      <div id="formNuevoCliente" class="hidden" style="border: 1.5px solid var(--border); border-radius: 8px; padding: 14px; margin-top: 8px;">
-        <div class="fw-bold text-sm mb-1">Nuevo cliente</div>
+      <div id="formNuevoCliente" class="hidden" style="border:1.5px solid var(--border); border-radius:12px; padding:16px; margin-top:8px; background:var(--bg-subtle)">
+        <div style="font-weight:700; font-size:0.875rem; margin-bottom:12px; color:var(--text-2)">Nuevo cliente</div>
         <div class="grid-2">
           <div class="form-group">
             <label class="form-label required">Nombre</label>
@@ -170,30 +174,25 @@
       </div>
       <div class="form-group">
         <label class="form-label">Observaciones internas</label>
-        <textarea id="otObservaciones" placeholder="Notas que el cliente no verá..."></textarea>
+        <textarea id="otObservaciones" placeholder="Notas que el cliente no verá..." style="min-height:64px"></textarea>
       </div>
       <div class="form-group">
         <label class="form-label required">Apuro del cliente</label>
         <div class="cedula-opciones" style="flex-wrap:wrap; gap:8px">
           <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
-            <input type="radio" name="otPrioridad" value="en_el_dia">
-            <span>🔴 En el día</span>
+            <input type="radio" name="otPrioridad" value="en_el_dia"><span>🔴 En el día</span>
           </label>
           <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
-            <input type="radio" name="otPrioridad" value="manana">
-            <span>🟠 Mañana</span>
+            <input type="radio" name="otPrioridad" value="manana"><span>🟠 Mañana</span>
           </label>
           <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
-            <input type="radio" name="otPrioridad" value="esta_semana">
-            <span>🟡 Esta semana</span>
+            <input type="radio" name="otPrioridad" value="esta_semana"><span>🟡 Esta semana</span>
           </label>
           <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
-            <input type="radio" name="otPrioridad" value="sin_apuro">
-            <span>🟢 Sin apuro</span>
+            <input type="radio" name="otPrioridad" value="sin_apuro"><span>🟢 Sin apuro</span>
           </label>
           <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
-            <input type="radio" name="otPrioridad" value="fecha_especifica">
-            <span>📅 Fecha específica</span>
+            <input type="radio" name="otPrioridad" value="fecha_especifica"><span>📅 Fecha específica</span>
           </label>
         </div>
         <div id="grupoPrioridadFecha" class="hidden" style="margin-top:10px">
@@ -229,5 +228,8 @@
 <script src="/js/app.js"></script>
 <script src="/js/nueva-ot.js"></script>
 <script src="/js/ordenes.js"></script>
+<script>
+  document.getElementById('btnNuevaOTFab')?.addEventListener('click', () => NuevaOT.abrir());
+</script>
 </body>
 </html>

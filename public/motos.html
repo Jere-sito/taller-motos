@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Motos — Taller Motos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
@@ -28,13 +31,23 @@
     <h1 class="page-title">Motos</h1>
   </div>
   <div class="filter-bar">
-    <input type="text" id="searchQ" placeholder="Buscar por patente, marca, modelo o cliente...">
+    <input type="search" id="searchQ" placeholder="Buscar por patente, marca, modelo o cliente...">
   </div>
   <div class="card">
     <div class="table-wrapper">
       <table>
-        <thead><tr><th>Patente</th><th>Moto</th><th>Cliente</th><th class="col-hide-mobile">Órdenes</th><th></th></tr></thead>
-        <tbody id="tablaMotos"><tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Cargando...</td></tr></tbody>
+        <thead>
+          <tr>
+            <th>Patente</th>
+            <th>Moto</th>
+            <th>Cliente</th>
+            <th class="col-hide-mobile">Órdenes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tablaMotos">
+          <tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:32px">Cargando...</td></tr>
+        </tbody>
       </table>
     </div>
   </div>
@@ -46,14 +59,20 @@
       <h2 class="modal-title" id="motoModalTitle">Editar moto</h2>
       <button class="modal-close" onclick="App.closeModal('modalMoto')">✕</button>
     </div>
-    <div class="form-group"><label class="form-label">Patente</label><input type="text" id="mPatente" readonly style="font-weight:700; letter-spacing:3px;"></div>
+    <div class="form-group">
+      <label class="form-label">Patente</label>
+      <input type="text" id="mPatente" readonly style="font-weight:800; letter-spacing:4px; text-align:center;">
+    </div>
     <div class="grid-2">
       <div class="form-group"><label class="form-label">Marca</label><input type="text" id="mMarca" placeholder="Honda"></div>
       <div class="form-group"><label class="form-label">Modelo</label><input type="text" id="mModelo" placeholder="CB300"></div>
       <div class="form-group"><label class="form-label">Año</label><input type="number" id="mAnio" placeholder="2020"></div>
       <div class="form-group"><label class="form-label">Color</label><input type="text" id="mColor" placeholder="Rojo"></div>
     </div>
-    <div class="form-group"><label class="form-label">Notas</label><textarea id="mNotas" placeholder="Notas sobre la moto..."></textarea></div>
+    <div class="form-group">
+      <label class="form-label">Notas</label>
+      <textarea id="mNotas" placeholder="Notas sobre la moto..."></textarea>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="App.closeModal('modalMoto')">Cancelar</button>
       <button class="btn btn-primary" id="btnGuardarMoto">Guardar</button>

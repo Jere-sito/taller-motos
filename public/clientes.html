@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Clientes — Taller Motos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
@@ -29,13 +32,23 @@
     <button class="btn btn-primary" id="btnNuevoCliente" data-require-role="admin,recepcion">+ Nuevo cliente</button>
   </div>
   <div class="filter-bar">
-    <input type="text" id="searchQ" placeholder="Buscar por nombre, teléfono o email...">
+    <input type="search" id="searchQ" placeholder="Buscar por nombre, teléfono o email...">
   </div>
   <div class="card">
     <div class="table-wrapper">
       <table>
-        <thead><tr><th>Nombre</th><th>Teléfono</th><th class="col-hide-mobile">Email</th><th class="col-hide-mobile">Motos</th><th></th></tr></thead>
-        <tbody id="tablaClientes"><tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Cargando...</td></tr></tbody>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th class="col-hide-mobile">Email</th>
+            <th class="col-hide-mobile">Motos</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tablaClientes">
+          <tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:32px">Cargando...</td></tr>
+        </tbody>
       </table>
     </div>
   </div>
@@ -47,13 +60,28 @@
       <h2 class="modal-title" id="clienteModalTitle">Nuevo cliente</h2>
       <button class="modal-close" onclick="App.closeModal('modalCliente')">✕</button>
     </div>
-    <div class="form-group"><label class="form-label required">Nombre</label><input type="text" id="cNombre" placeholder="Juan García"></div>
-    <div class="grid-2">
-      <div class="form-group"><label class="form-label">Teléfono</label><input type="tel" id="cTelefono" placeholder="11 2345-6789"></div>
-      <div class="form-group"><label class="form-label">Email</label><input type="email" id="cEmail" placeholder="juan@mail.com"></div>
+    <div class="form-group">
+      <label class="form-label required">Nombre</label>
+      <input type="text" id="cNombre" placeholder="Juan García">
     </div>
-    <div class="form-group"><label class="form-label">Dirección</label><input type="text" id="cDireccion" placeholder="Av. Siempreviva 742"></div>
-    <div class="form-group"><label class="form-label">Notas</label><textarea id="cNotas" placeholder="Notas sobre el cliente..."></textarea></div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Teléfono</label>
+        <input type="tel" id="cTelefono" placeholder="11 2345-6789">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="cEmail" placeholder="juan@mail.com">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Dirección</label>
+      <input type="text" id="cDireccion" placeholder="Av. Siempreviva 742">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notas</label>
+      <textarea id="cNotas" placeholder="Notas sobre el cliente..."></textarea>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="App.closeModal('modalCliente')">Cancelar</button>
       <button class="btn btn-primary" id="btnGuardarCliente">Guardar</button>
