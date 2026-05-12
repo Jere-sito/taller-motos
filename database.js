@@ -148,6 +148,18 @@ function initSchema() {
     db.exec(`UPDATE ordenes_trabajo SET estado = 'entregada'     WHERE estado = 'cancelada'`);
   } catch (_) {}
 
+  // Migración de números de orden: OT-YYYYMMDD-NNN → ORDEN#NNN
+  try {
+    const viejas = db.prepare("SELECT id, numero FROM ordenes_trabajo WHERE numero NOT LIKE 'ORDEN#%'").all();
+    if (viejas.length) {
+      const upd = db.prepare("UPDATE ordenes_trabajo SET numero = ? WHERE id = ?");
+      for (const row of viejas) {
+        const n = parseInt(row.numero.split('-').at(-1)) || 0;
+        upd.run(`ORDEN#${String(n).padStart(3, '0')}`, row.id);
+      }
+    }
+  } catch (_) {}
+
   // Tabla de pagos
   db.exec(`
     CREATE TABLE IF NOT EXISTS pagos (
