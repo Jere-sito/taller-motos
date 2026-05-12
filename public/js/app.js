@@ -312,5 +312,23 @@ document.addEventListener('DOMContentLoaded', () => {
       if (input.value.length === prev.length) input.setSelectionRange(pos, pos);
     });
   });
+
+  // Textareas modo lista: Enter inserta nuevo ítem con guión
+  function initListTextarea(el) {
+    if (el.dataset.listInit) return;
+    el.dataset.listInit = '1';
+    el.addEventListener('focus', () => {
+      if (!el.value.trim()) { el.value = '- '; el.selectionStart = el.selectionEnd = 2; }
+    });
+    el.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const pos = el.selectionStart;
+      el.value = el.value.slice(0, pos) + '\n- ' + el.value.slice(el.selectionEnd);
+      el.selectionStart = el.selectionEnd = pos + 3;
+    });
+  }
+  document.querySelectorAll('textarea.textarea-list').forEach(initListTextarea);
+
   App.init();
 });

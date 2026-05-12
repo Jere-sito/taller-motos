@@ -52,7 +52,7 @@ function renderOrdenes(ordenes) {
   el.innerHTML = ordenes.map(ot => {
     const sColor = getComputedStyle(document.documentElement).getPropertyValue(`--state-${ot.estado}`).trim();
     const vencida = ot.fecha_prometida && new Date(ot.fecha_prometida) < new Date() && ot.estado !== 'entregada';
-    const pronto  = !vencida && ot.fecha_prometida && (new Date(ot.fecha_prometida) - new Date()) < 86400000;
+    const pronto  = !vencida && ot.estado !== 'entregada' && ot.fecha_prometida && (new Date(ot.fecha_prometida) - new Date()) < 86400000;
 
     let fechaBadge = '';
     if (vencida)                  fechaBadge = `<span class="badge-vencida">Vencida</span>`;
