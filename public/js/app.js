@@ -43,11 +43,10 @@ const App = {
     const path = window.location.pathname;
     const role = this.currentUser?.role;
     const items = [
-      { href: '/',          icon: '📊', label: 'Inicio' },
-      { href: '/ordenes',   icon: '📋', label: 'Órdenes' },
-      { href: '/clientes',  icon: '👤', label: 'Clientes' },
-      { href: '/motos',     icon: '🏍️', label: 'Motos' },
-      { href: '/mecanicos', icon: '🔧', label: 'Mecánicos', roles: ['admin', 'recepcion'] },
+      { href: '/',         icon: '📊', label: 'Inicio' },
+      { href: '/ordenes',  icon: '📋', label: 'Órdenes' },
+      { href: '/clientes', icon: '👤', label: 'Clientes' },
+      { href: '/motos',    icon: '🏍️', label: 'Motos' },
     ];
     const nav = document.createElement('nav');
     nav.className = 'bottom-nav';
@@ -132,12 +131,19 @@ const App = {
 
   openModal(id) {
     const m = document.getElementById(id);
-    if (m) { m.classList.remove('hidden'); m.querySelector('input,textarea,select')?.focus(); }
+    if (m) {
+      m.classList.remove('hidden');
+      document.body.classList.add('modal-open');
+      m.querySelector('input,textarea,select')?.focus();
+    }
   },
 
   closeModal(id) {
     const m = document.getElementById(id);
     if (m) m.classList.add('hidden');
+    if (!document.querySelector('.modal:not(.hidden)')) {
+      document.body.classList.remove('modal-open');
+    }
   },
 
   isAdmin() { return this.currentUser?.role === 'admin'; },

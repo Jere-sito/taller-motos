@@ -1,5 +1,4 @@
 let filtroEstado = new URLSearchParams(window.location.search).get('estado') || '';
-let filtroMecanico = '';
 let timerBusqueda;
 
 const PRIORIDAD_LABELS = {
@@ -17,34 +16,22 @@ function fmtPrioridad(ot) {
 }
 
 const ESTADO_LABELS = {
-  ingresada: 'Ingresada', en_diagnostico: 'En diagnóstico', presupuestada: 'Presupuestada',
-  aprobada: 'Aprobada', en_reparacion: 'En reparación', esperando_repuesto: 'Esperando repuesto',
-  lista: 'Lista ✓', entregada: 'Entregada', cancelada: 'Cancelada'
+  recibida:      'Recibida',
+  en_reparacion: 'En reparación',
+  entregada:     'Entregada'
 };
 
 async function onAppReady() {
-  await cargarMecanicos();
   await cargarOrdenes();
   initFiltros();
   document.getElementById('btnNuevaOT')?.addEventListener('click', () => NuevaOT.abrir());
 }
 
-async function cargarMecanicos() {
-  if (!App.canEdit()) return;
-  try {
-    const mecs = await API.get('/api/mecanicos');
-    const sel = document.getElementById('filtroMecanico');
-    sel.innerHTML = '<option value="">Todos los mecánicos</option>' +
-      mecs.map(m => `<option value="${m.id}">${esc(m.nombre)}</option>`).join('');
-  } catch {}
-}
-
 async function cargarOrdenes() {
   const q = document.getElementById('searchQ').value.trim();
   let url = `/api/ordenes?`;
-  if (filtroEstado)   url += `estado=${filtroEstado}&`;
-  if (filtroMecanico) url += `mecanico_id=${filtroMecanico}&`;
-  if (q)              url += `q=${encodeURIComponent(q)}`;
+  if (filtroEstado) url += `estado=${filtroEstado}&`;
+  if (q)            url += `q=${encodeURIComponent(q)}`;
 
   try {
     const ordenes = await API.get(url);
@@ -64,13 +51,13 @@ function renderOrdenes(ordenes) {
 
   el.innerHTML = ordenes.map(ot => {
     const sColor = getComputedStyle(document.documentElement).getPropertyValue(`--state-${ot.estado}`).trim();
-    const vencida = ot.fecha_prometida && new Date(ot.fecha_prometida) < new Date() && !['entregada','cancelada'].includes(ot.estado);
+    const vencida = ot.fecha_prometida && new Date(ot.fecha_prometida) < new Date() && ot.estado !== 'entregada';
     const pronto  = !vencida && ot.fecha_prometida && (new Date(ot.fecha_prometida) - new Date()) < 86400000;
 
     let fechaBadge = '';
-    if (vencida)              fechaBadge = `<span class="badge-vencida">Vencida</span>`;
-    else if (pronto)          fechaBadge = `<span class="badge-pronto">Vence hoy</span>`;
-    else if (ot.fecha_prometida) fechaBadge = `<span class="text-muted text-xs">Entrega: ${fmtDate(ot.fecha_prometida)}</span>`;
+    if (vencida)                  fechaBadge = `<span class="badge-vencida">Vencida</span>`;
+    else if (pronto)              fechaBadge = `<span class="badge-pronto">Vence hoy</span>`;
+    else if (ot.fecha_prometida)  fechaBadge = `<span class="text-muted text-xs">Entrega: ${fmtDate(ot.fecha_prometida)}</span>`;
 
     return `<a href="/ot-detalle?id=${ot.id}" class="ot-card ${vencida ? 'alert-vencida' : ''}">
       <div class="ot-card-state-bar" style="background:${sColor}"></div>
@@ -79,7 +66,6 @@ function renderOrdenes(ordenes) {
         <div class="ot-card-title">${esc(ot.patente)} — ${esc(ot.marca)} ${esc(ot.modelo)}</div>
         <div class="ot-card-meta">
           <span>👤 ${esc(ot.cliente_nombre)}</span>
-          ${ot.mecanico_nombre ? `<span>🔧 ${esc(ot.mecanico_nombre)}</span>` : ''}
           ${ot.prioridad ? `<span>${fmtPrioridad(ot)}</span>` : ''}
           <span>${fmtDate(ot.fecha_ingreso)}</span>
         </div>
@@ -101,11 +87,6 @@ function initFiltros() {
       chip.classList.add('active');
       cargarOrdenes();
     });
-  });
-
-  document.getElementById('filtroMecanico')?.addEventListener('change', e => {
-    filtroMecanico = e.target.value;
-    cargarOrdenes();
   });
 
   document.getElementById('searchQ')?.addEventListener('input', () => {

@@ -32,7 +32,6 @@ app.get('/ordenes',   (_req, res) => res.sendFile(path.join(__dirname, 'public',
 app.get('/ot-detalle',(_req, res) => res.sendFile(path.join(__dirname, 'public', 'ot-detalle.html')));
 app.get('/clientes',  (_req, res) => res.sendFile(path.join(__dirname, 'public', 'clientes.html')));
 app.get('/motos',     (_req, res) => res.sendFile(path.join(__dirname, 'public', 'motos.html')));
-app.get('/mecanicos', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'mecanicos.html')));
 app.get('/usuarios',  (_req, res) => res.sendFile(path.join(__dirname, 'public', 'usuarios.html')));
 app.get('/login',     (_req, res) => res.redirect('/'));
 
@@ -68,7 +67,6 @@ app.post('/api/auth/logout', (_req, res) => res.json({ ok: true }));
 // Rutas API
 app.use('/api/clientes',  require('./routes/clientes'));
 app.use('/api/motos',     require('./routes/motos'));
-app.use('/api/mecanicos', require('./routes/mecanicos'));
 app.use('/api',           require('./routes/ordenes'));
 app.use('/api',           require('./routes/presupuestos'));
 app.use('/api',           require('./routes/pagos'));

@@ -8,12 +8,17 @@ const NuevaOT = {
     this.clienteId = null;
     this.motoNueva = false;
     ['inputPatente','newMotoMarca','newMotoModelo','newMotoColor',
-     'searchCliente','ncNombre','ncTelefono','otProblema','otObservaciones','otFechaPrometida']
+     'searchCliente','ncNombre','ncTelefono','otProblema','otObservaciones',
+     'otFechaIngreso','otHoraIngreso']
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     document.querySelectorAll('input[name="otCedula"]').forEach(r => r.checked = false);
     document.querySelectorAll('input[name="otPrioridad"]').forEach(r => r.checked = false);
+    const chkManual = document.getElementById('otFechaManual');
+    if (chkManual) chkManual.checked = false;
+    document.getElementById('grupoFechaManual')?.classList.add('hidden');
     document.getElementById('grupoPrioridadFecha')?.classList.add('hidden');
-    document.getElementById('otFechaPrioridad') && (document.getElementById('otFechaPrioridad').value = '');
+    const elFP = document.getElementById('otFechaPrioridad');
+    if (elFP) elFP.value = '';
     document.getElementById('patenteStatus').textContent = '';
     document.getElementById('motoEncontrada').classList.add('hidden');
     document.getElementById('motoNuevaAlert').classList.add('hidden');
@@ -52,7 +57,7 @@ const NuevaOT = {
 
   async buscarPatente(patente) {
     const p = patente.toUpperCase().replace(/\s+/g, '');
-    if (p.length < 4) return;
+    if (p.length < 2) return;
     document.getElementById('patenteStatus').textContent = 'Buscando...';
     try {
       const moto = await API.get(`/api/motos/patente/${encodeURIComponent(p)}`);
@@ -88,7 +93,7 @@ const NuevaOT = {
     const patente = document.getElementById('inputPatente').value.trim().toUpperCase().replace(/\s+/g, '');
     if (!patente || patente.length < 3) return this._shake('inputPatente', 'Ingresá la patente');
 
-    if (!this.motoId && !this.motoNueva && patente.length >= 4) {
+    if (!this.motoId && !this.motoNueva && patente.length >= 2) {
       await this.buscarPatente(patente);
     }
     if (!this.motoId && !this.motoNueva) return this._shake('inputPatente', 'Esperá el resultado de la búsqueda');
@@ -123,6 +128,13 @@ const NuevaOT = {
     const cedula = document.querySelector('input[name="otCedula"]:checked')?.value;
     if (!cedula) return App.toast('Indicá si la cédula es física o digital', 'error');
 
+    const usaFechaManual = document.getElementById('otFechaManual')?.checked;
+    const fechaIngreso = usaFechaManual
+      ? (document.getElementById('otFechaIngreso')?.value && document.getElementById('otHoraIngreso')?.value
+          ? `${document.getElementById('otFechaIngreso').value}T${document.getElementById('otHoraIngreso').value}`
+          : null)
+      : null;
+
     if (this.motoNueva) {
       const patente = document.getElementById('inputPatente').value.trim().toUpperCase().replace(/\s+/g, '');
       try {
@@ -148,9 +160,8 @@ const NuevaOT = {
         moto_id: this.motoId,
         problema_declarado: problema,
         observaciones_internas: document.getElementById('otObservaciones').value.trim(),
-        fecha_prometida: prioridad === 'fecha_especifica'
-          ? fechaPrioridad
-          : (document.getElementById('otFechaPrometida').value || null),
+        fecha_prometida: prioridad === 'fecha_especifica' ? fechaPrioridad : null,
+        fecha_ingreso: fechaIngreso,
         prioridad,
         cedula
       });
@@ -229,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('motoNuevaAlert').classList.add('hidden');
     document.getElementById('patenteStatus').textContent = '';
     const v = e.target.value;
-    if (v.replace(/\s/g,'').length >= 4) {
+    if (v.replace(/\s/g,'').length >= 2) {
       document.getElementById('patenteStatus').textContent = 'Buscando...';
       timer = setTimeout(() => NuevaOT.buscarPatente(v), 400);
     }
@@ -259,6 +270,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('formNuevoCliente').classList.toggle('hidden');
   });
   document.getElementById('btnGuardarNuevoCliente')?.addEventListener('click', () => NuevaOT.guardarNuevoCliente());
+
+  // Mostrar/ocultar campos de fecha manual
+  document.getElementById('otFechaManual')?.addEventListener('change', e => {
+    const grupo = document.getElementById('grupoFechaManual');
+    if (grupo) grupo.classList.toggle('hidden', !e.target.checked);
+  });
 
   // Mostrar/ocultar date picker según prioridad seleccionada
   document.querySelectorAll('input[name="otPrioridad"]').forEach(r => {

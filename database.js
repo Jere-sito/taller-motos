@@ -69,10 +69,7 @@ function initSchema() {
       numero TEXT NOT NULL UNIQUE,
       moto_id INTEGER NOT NULL,
       mecanico_id INTEGER,
-      estado TEXT DEFAULT 'ingresada' CHECK(estado IN (
-        'ingresada','en_diagnostico','presupuestada','aprobada',
-        'en_reparacion','esperando_repuesto','lista','entregada','cancelada'
-      )),
+      estado TEXT DEFAULT 'recibida' CHECK(estado IN ('recibida','en_reparacion','entregada')),
       fecha_ingreso TEXT DEFAULT (datetime('now')),
       km_ingreso INTEGER DEFAULT 0,
       problema_declarado TEXT DEFAULT '',
@@ -140,9 +137,16 @@ function initSchema() {
     );
   `);
 
-  // Migraciones
+  // Migraciones de columnas
   try { db.exec(`ALTER TABLE ordenes_trabajo ADD COLUMN cedula TEXT`); } catch (_) {}
-  try { db.exec(`ALTER TABLE ordenes_trabajo ADD COLUMN prioridad TEXT CHECK(prioridad IN ('en_el_dia','manana','esta_semana','sin_apuro','fecha_especifica'))`); } catch (_) {}
+  try { db.exec(`ALTER TABLE ordenes_trabajo ADD COLUMN prioridad TEXT`); } catch (_) {}
+
+  // Migración de estados al nuevo esquema simplificado
+  try {
+    db.exec(`UPDATE ordenes_trabajo SET estado = 'recibida'      WHERE estado IN ('ingresada','en_diagnostico','presupuestada','aprobada')`);
+    db.exec(`UPDATE ordenes_trabajo SET estado = 'en_reparacion' WHERE estado IN ('esperando_repuesto','lista')`);
+    db.exec(`UPDATE ordenes_trabajo SET estado = 'entregada'     WHERE estado = 'cancelada'`);
+  } catch (_) {}
 
   // Tabla de pagos
   db.exec(`

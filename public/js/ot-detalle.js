@@ -19,11 +19,11 @@ function fmtPrioridad(ot) {
 }
 
 const ESTADO_LABELS = {
-  ingresada: 'Ingresada', en_diagnostico: 'En diagnóstico', presupuestada: 'Presupuestada',
-  aprobada: 'Aprobada', en_reparacion: 'En reparación', esperando_repuesto: 'Esperando repuesto',
-  lista: 'Lista', entregada: 'Entregada', cancelada: 'Cancelada'
+  recibida:      'Recibida',
+  en_reparacion: 'En reparación',
+  entregada:     'Entregada'
 };
-const FLUJO_PRINCIPAL = ['ingresada','en_diagnostico','presupuestada','aprobada','en_reparacion','lista','entregada'];
+const FLUJO_PRINCIPAL = ['recibida', 'en_reparacion', 'entregada'];
 
 async function onAppReady() {
   if (!otId) { window.location.href = '/ordenes'; return; }
@@ -43,7 +43,7 @@ async function cargarOT() {
 
 function renderOT() {
   const ot = otActual;
-  const vencida = ot.fecha_prometida && new Date(ot.fecha_prometida) < new Date() && !['entregada','cancelada'].includes(ot.estado);
+  const vencida = ot.fecha_prometida && new Date(ot.fecha_prometida) < new Date() && ot.estado !== 'entregada';
 
   document.title = `${ot.numero} — Taller Motos`;
 
@@ -78,7 +78,7 @@ function renderOT() {
         ${FLUJO_PRINCIPAL.map((est, i) => {
           const idxActual = FLUJO_PRINCIPAL.indexOf(ot.estado);
           const done    = i < idxActual;
-          const current = est === ot.estado || (ot.estado === 'esperando_repuesto' && est === 'en_reparacion');
+          const current = est === ot.estado;
           const line    = i < FLUJO_PRINCIPAL.length - 1 ? `<div class="ot-progress-line ${done ? 'done' : ''}"></div>` : '';
           return `
             <div class="ot-progress-step">
@@ -91,46 +91,24 @@ function renderOT() {
       ${vencida ? `<div class="badge-vencida" style="display:inline-flex; align-items:center; gap:4px; margin-top:14px">⚠️ Fecha prometida vencida</div>` : ''}
     </div>
 
-    <div class="grid-2" style="gap:14px; margin-bottom:14px">
-      <!-- Datos del ingreso -->
-      <div class="card">
-        <h3 style="font-weight:700; font-size:0.9375rem; margin-bottom:12px; color:var(--text)">Datos del ingreso</h3>
-        <div style="display:flex; flex-direction:column; gap:6px">
-          <div class="text-sm text-muted">Ingreso: <strong style="color:var(--text-2)">${fmtDateTime(ot.fecha_ingreso)}</strong></div>
-          ${ot.fecha_prometida ? `<div class="text-sm text-muted">Prometida: <strong style="color:var(--text-2)">${fmtDate(ot.fecha_prometida)}</strong></div>` : ''}
-          ${ot.prioridad ? `<div class="text-sm text-muted">⏱ Apuro: <strong style="color:var(--text-2)">${fmtPrioridad(ot)}</strong></div>` : ''}
-          ${ot.cedula ? `<div class="text-sm text-muted">${ot.cedula === 'fisica' ? '🪪' : '📱'} Cédula: <strong style="color:var(--text-2)">${ot.cedula === 'fisica' ? 'Física' : 'Digital'}</strong></div>` : ''}
-        </div>
-        <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border)">
-          <div class="text-xs text-muted" style="font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px">Problema declarado</div>
-          <div style="white-space:pre-wrap; font-size:0.9375rem; line-height:1.5; color:var(--text)">${esc(ot.problema_declarado || '—')}</div>
-        </div>
-        ${ot.observaciones_internas ? `
-        <div style="margin-top:12px; background:var(--bg-subtle); border-radius:var(--radius-sm); padding:12px">
-          <div class="text-xs text-muted" style="font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px">Obs. internas</div>
-          <div style="white-space:pre-wrap; font-size:0.875rem; line-height:1.5; color:var(--text-2)">${esc(ot.observaciones_internas)}</div>
-        </div>` : ''}
+    <!-- Datos del ingreso -->
+    <div class="card" style="margin-bottom:14px">
+      <h3 style="font-weight:700; font-size:0.9375rem; margin-bottom:12px; color:var(--text)">Datos del ingreso</h3>
+      <div style="display:flex; flex-direction:column; gap:6px">
+        <div class="text-sm text-muted">Ingreso: <strong style="color:var(--text-2)">${fmtDateTime(ot.fecha_ingreso)}</strong></div>
+        ${ot.fecha_prometida ? `<div class="text-sm text-muted">Prometida: <strong style="color:var(--text-2)">${fmtDate(ot.fecha_prometida)}</strong></div>` : ''}
+        ${ot.prioridad ? `<div class="text-sm text-muted">⏱ Apuro: <strong style="color:var(--text-2)">${fmtPrioridad(ot)}</strong></div>` : ''}
+        ${ot.cedula ? `<div class="text-sm text-muted">${ot.cedula === 'fisica' ? '🪪' : '📱'} Cédula: <strong style="color:var(--text-2)">${ot.cedula === 'fisica' ? 'Física' : 'Digital'}</strong></div>` : ''}
       </div>
-
-      <!-- Historial de estados -->
-      <div class="card">
-        <h3 style="font-weight:700; font-size:0.9375rem; margin-bottom:12px; color:var(--text)">Historial</h3>
-        <ul class="historial-list" id="historialList">
-          ${(ot.historial || []).map(h => `
-            <li class="historial-item">
-              <div class="historial-dot"></div>
-              <div>
-                <div style="line-height:1.4">
-                  ${h.estado_anterior
-                    ? `<span class="estado-badge estado-${h.estado_anterior}" style="font-size:0.6875rem">${esc(ESTADO_LABELS[h.estado_anterior] || h.estado_anterior)}</span> → `
-                    : ''}
-                  <span class="estado-badge estado-${h.estado_nuevo}" style="font-size:0.6875rem">${esc(ESTADO_LABELS[h.estado_nuevo] || h.estado_nuevo)}</span>
-                </div>
-                <div class="historial-meta">${esc(h.display_name || '—')} · ${fmtDateTime(h.created_at)}${h.notas ? `<br><em style="color:var(--text-2)">${esc(h.notas)}</em>` : ''}</div>
-              </div>
-            </li>`).join('')}
-        </ul>
+      <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border)">
+        <div class="text-xs text-muted" style="font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px">Problema declarado</div>
+        <div style="white-space:pre-wrap; font-size:0.9375rem; line-height:1.5; color:var(--text)">${esc(ot.problema_declarado || '—')}</div>
       </div>
+      ${ot.observaciones_internas ? `
+      <div style="margin-top:12px; background:var(--bg-subtle); border-radius:var(--radius-sm); padding:12px">
+        <div class="text-xs text-muted" style="font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px">Obs. internas</div>
+        <div style="white-space:pre-wrap; font-size:0.875rem; line-height:1.5; color:var(--text-2)">${esc(ot.observaciones_internas)}</div>
+      </div>` : ''}
     </div>
 
     <!-- Presupuesto -->
@@ -194,10 +172,10 @@ async function abrirEditarOT() {
   document.getElementById('btnGuardarEdicion').onclick = async () => {
     try {
       otActual = await API.patch(`/api/ordenes/${otId}`, {
-        prioridad:            document.getElementById('editPrioridad').value || null,
-        problema_declarado:   document.getElementById('editProblema').value,
+        prioridad:              document.getElementById('editPrioridad').value || null,
+        problema_declarado:     document.getElementById('editProblema').value,
         observaciones_internas: document.getElementById('editObservaciones').value,
-        fecha_prometida:      document.getElementById('editFechaPrometida').value || null
+        fecha_prometida:        document.getElementById('editFechaPrometida').value || null
       });
       App.closeModal('modalEditarOT');
       App.toast('Orden actualizada', 'success');
@@ -215,7 +193,7 @@ async function cargarPresupuesto() {
     renderPresupuesto();
   } catch {
     const acciones = document.getElementById('accionesPresupuesto');
-    if (acciones && App.canEdit() && !['entregada','cancelada'].includes(otActual.estado)) {
+    if (acciones && App.canEdit() && otActual.estado !== 'entregada') {
       acciones.innerHTML = `<button class="btn btn-secondary btn-sm" id="btnCrearPresupuesto">Crear presupuesto</button>`;
       document.getElementById('btnCrearPresupuesto')?.addEventListener('click', crearPresupuesto);
     }
@@ -232,9 +210,6 @@ async function crearPresupuesto() {
   }
 }
 
-const PRES_ESTADO_LABELS  = { borrador: 'Borrador', presentado: 'Presentado', aprobado: 'Aprobado ✓', rechazado: 'Rechazado' };
-const PRES_ESTADO_COLORS  = { borrador: 'var(--text-muted)', presentado: '#1D4ED8', aprobado: '#065F46', rechazado: '#EF4444' };
-
 function renderPresupuesto() {
   const pres    = presupuestoActual;
   const items   = pres.items || [];
@@ -246,23 +221,17 @@ function renderPresupuesto() {
 
   const acciones = document.getElementById('accionesPresupuesto');
   if (acciones) {
-    let btns = `<span style="font-size:0.8125rem; font-weight:700; color:${PRES_ESTADO_COLORS[pres.estado]}">${esc(PRES_ESTADO_LABELS[pres.estado])}</span>`;
+    let btns = '';
     if (canEdit) {
-      btns += ` <button class="btn btn-secondary btn-sm" id="btnAgregarItem">+ Ítem</button>`;
+      btns += `<button class="btn btn-secondary btn-sm" id="btnAgregarItem">+ Ítem</button>`;
       btns += ` <button class="btn btn-secondary btn-sm" id="btnWA">📱 WhatsApp</button>`;
-      if (pres.estado === 'borrador')    btns += ` <button class="btn btn-secondary btn-sm" id="btnPresentar">Presentar</button>`;
-      if (pres.estado === 'presentado')  btns += ` <button class="btn btn-secondary btn-sm" id="btnVolvBorrador">← Borrador</button>`;
-      if (pres.estado === 'presentado')  btns += ` <button class="btn btn-success btn-sm" id="btnAprobar">✓ Aprobar</button>`;
     }
-    if (['lista','entregada'].includes(otActual.estado)) {
+    if (otActual.estado === 'entregada') {
       btns += ` <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ Imprimir</button>`;
     }
     acciones.innerHTML = btns;
     document.getElementById('btnAgregarItem')?.addEventListener('click', abrirModalItem);
     document.getElementById('btnWA')?.addEventListener('click', compartirWhatsApp);
-    document.getElementById('btnPresentar')?.addEventListener('click', () => cambiarEstadoPres('presentado'));
-    document.getElementById('btnVolvBorrador')?.addEventListener('click', () => cambiarEstadoPres('borrador'));
-    document.getElementById('btnAprobar')?.addEventListener('click', aprobarPresupuesto);
   }
 
   const contenido = document.getElementById('contenidoPresupuesto');
@@ -316,7 +285,6 @@ function renderPresupuesto() {
       ${pres.descuento > 0 ? `<div class="presupuesto-total-row"><label>Descuento (${pres.descuento}%)</label><span>-${fmtMoney(descMonto)}</span></div>` : ''}
       <div class="presupuesto-total-row grand-total"><label>Total</label><span>${fmtMoney(total)}</span></div>
     </div>
-    ${pres.aprobado_por ? `<div class="text-sm text-muted mt-2">✓ Aprobado por: <strong>${esc(pres.aprobado_por)}</strong> el ${fmtDate(pres.aprobado_at)}</div>` : ''}
   `;
 }
 
@@ -327,23 +295,6 @@ async function eliminarItem(presId, itemId) {
     presupuestoActual = await API.get(`/api/ordenes/${otId}/presupuesto`);
     renderPresupuesto();
     App.toast('Ítem eliminado', 'success');
-  } catch (e) { App.toast(e.message || 'Error', 'error'); }
-}
-
-async function cambiarEstadoPres(estado) {
-  try {
-    presupuestoActual = await API.patch(`/api/presupuestos/${presupuestoActual.id}`, { estado });
-    renderPresupuesto();
-  } catch (e) { App.toast(e.message || 'Error', 'error'); }
-}
-
-async function aprobarPresupuesto() {
-  const quien = prompt('Nombre de quien aprueba el presupuesto:');
-  if (!quien) return;
-  try {
-    presupuestoActual = await API.patch(`/api/presupuestos/${presupuestoActual.id}`, { estado: 'aprobado', aprobado_por: quien });
-    renderPresupuesto();
-    App.toast('Presupuesto aprobado', 'success');
   } catch (e) { App.toast(e.message || 'Error', 'error'); }
 }
 
@@ -452,7 +403,7 @@ function renderPagos() {
       <span style="font-weight:700; color:#991B1B; min-width:100px; text-align:right">${fmtMoney(saldo)}</span>
     </div>` : saldo !== null && saldo <= 0 && totalPagado > 0 ? `
     <div style="display:flex; justify-content:flex-end; font-size:0.875rem; margin-top:6px">
-      <span style="color:var(--state-lista-fg); font-weight:700">✓ Pago completo</span>
+      <span style="color:var(--state-entregada-fg); font-weight:700">✓ Pago completo</span>
     </div>` : ''}
   `;
 }

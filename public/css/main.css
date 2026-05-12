@@ -62,35 +62,17 @@
   --t-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Estados OT — bg y fg */
-  --state-ingresada-bg:          #EEF2FF;
-  --state-ingresada-fg:          #4338CA;
-  --state-en_diagnostico-bg:     #FFFBEB;
-  --state-en_diagnostico-fg:     #B45309;
-  --state-presupuestada-bg:      #EFF6FF;
-  --state-presupuestada-fg:      #1D4ED8;
-  --state-aprobada-bg:           #ECFDF5;
-  --state-aprobada-fg:           #065F46;
-  --state-en_reparacion-bg:      #F5F3FF;
-  --state-en_reparacion-fg:      #5B21B6;
-  --state-esperando_repuesto-bg: #FEF2F2;
-  --state-esperando_repuesto-fg: #991B1B;
-  --state-lista-bg:              #D1FAE5;
-  --state-lista-fg:              #064E3B;
-  --state-entregada-bg:          #F3F4F6;
-  --state-entregada-fg:          #374151;
-  --state-cancelada-bg:          #1F2937;
-  --state-cancelada-fg:          #F9FAFB;
+  --state-recibida-bg:      #EEF2FF;
+  --state-recibida-fg:      #4338CA;
+  --state-en_reparacion-bg: #FFF7ED;
+  --state-en_reparacion-fg: #C2410C;
+  --state-entregada-bg:     #F0FDF4;
+  --state-entregada-fg:     #166534;
 
-  /* Colores sólidos por estado (para barra lateral) */
-  --state-ingresada:          #6366F1;
-  --state-en_diagnostico:     #F59E0B;
-  --state-presupuestada:      #3B82F6;
-  --state-aprobada:           #10B981;
-  --state-en_reparacion:      #8B5CF6;
-  --state-esperando_repuesto: #EF4444;
-  --state-lista:              #059669;
-  --state-entregada:          #9CA3AF;
-  --state-cancelada:          #374151;
+  /* Colores sólidos por estado (para barra lateral y dashboard) */
+  --state-recibida:      #6366F1;
+  --state-en_reparacion: #EA580C;
+  --state-entregada:     #16A34A;
 
   /* Compatibilidad con CSS antiguo */
   --primary-light: var(--primary-soft);
@@ -361,6 +343,11 @@ input[readonly] { background: var(--bg-subtle); color: var(--text-muted); cursor
 .input-group input, .input-group select { flex: 1; }
 
 /* ── Badges de estado ────────────────────────────────────── */
+/* Fix: bloquear interacción con el fondo cuando hay un modal abierto */
+body.modal-open { overflow: hidden; touch-action: none; }
+.modal { pointer-events: all; }
+.modal.hidden { pointer-events: none; }
+
 .estado-badge {
   display: inline-flex;
   align-items: center;
@@ -372,15 +359,9 @@ input[readonly] { background: var(--bg-subtle); color: var(--text-muted); cursor
   letter-spacing: 0.01em;
 }
 
-.estado-ingresada          { background: var(--state-ingresada-bg);          color: var(--state-ingresada-fg); }
-.estado-en_diagnostico     { background: var(--state-en_diagnostico-bg);     color: var(--state-en_diagnostico-fg); }
-.estado-presupuestada      { background: var(--state-presupuestada-bg);      color: var(--state-presupuestada-fg); }
-.estado-aprobada           { background: var(--state-aprobada-bg);           color: var(--state-aprobada-fg); }
-.estado-en_reparacion      { background: var(--state-en_reparacion-bg);      color: var(--state-en_reparacion-fg); }
-.estado-esperando_repuesto { background: var(--state-esperando_repuesto-bg); color: var(--state-esperando_repuesto-fg); }
-.estado-lista              { background: var(--state-lista-bg);              color: var(--state-lista-fg); }
-.estado-entregada          { background: var(--state-entregada-bg);          color: var(--state-entregada-fg); }
-.estado-cancelada          { background: var(--state-cancelada-bg);          color: var(--state-cancelada-fg); }
+.estado-recibida      { background: var(--state-recibida-bg);      color: var(--state-recibida-fg); }
+.estado-en_reparacion { background: var(--state-en_reparacion-bg); color: var(--state-en_reparacion-fg); }
+.estado-entregada     { background: var(--state-entregada-bg);     color: var(--state-entregada-fg); }
 
 /* ── Tabla ───────────────────────────────────────────────── */
 .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }

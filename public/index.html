@@ -21,7 +21,6 @@
     <a href="/ordenes" class="nav-link">Órdenes</a>
     <a href="/clientes" class="nav-link">Clientes</a>
     <a href="/motos" class="nav-link">Motos</a>
-    <a href="/mecanicos" class="nav-link" data-require-role="admin,recepcion">Mecánicos</a>
     <a href="/usuarios" class="nav-link" data-require-role="admin">Usuarios</a>
   </nav>
   <div class="header-right">
@@ -43,25 +42,6 @@
     <div style="grid-column:1/-1; text-align:center; padding:24px; color:var(--text-muted); font-size:0.875rem">Cargando...</div>
   </div>
 
-  <div class="dashboard-alerts">
-    <div class="card">
-      <h3 style="font-size:0.9375rem; font-weight:700; margin-bottom:14px; color:#991B1B; display:flex; align-items:center; gap:6px">
-        ⚠️ Fecha prometida vencida
-      </h3>
-      <div id="listVencidas">
-        <div class="text-muted text-sm">Cargando...</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 style="font-size:0.9375rem; font-weight:700; margin-bottom:14px; color:var(--state-lista-fg); display:flex; align-items:center; gap:6px">
-        ✅ Listas para retirar
-      </h3>
-      <div id="listListas">
-        <div class="text-muted text-sm">Cargando...</div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- FAB móvil -->
@@ -167,7 +147,7 @@
         <textarea id="otObservaciones" placeholder="Notas que el cliente no verá..." style="min-height:64px"></textarea>
       </div>
       <div class="form-group">
-        <label class="form-label required">Apuro del cliente</label>
+        <label class="form-label required">Urgencia / Fecha prometida</label>
         <div class="cedula-opciones" style="flex-wrap:wrap; gap:8px">
           <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
             <input type="radio" name="otPrioridad" value="en_el_dia">
@@ -195,8 +175,14 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Fecha prometida de entrega</label>
-        <input type="date" id="otFechaPrometida">
+        <label class="cedula-opcion" style="display:inline-flex; width:auto">
+          <input type="checkbox" id="otFechaManual">
+          <span>📅 Ingresar fecha y hora de ingreso manualmente</span>
+        </label>
+        <div id="grupoFechaManual" class="hidden" style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
+          <input type="date" id="otFechaIngreso" style="flex:1; min-width:130px">
+          <input type="time" id="otHoraIngreso" style="flex:1; min-width:100px">
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label required">Cédula presentada</label>
