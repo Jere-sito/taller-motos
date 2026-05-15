@@ -80,15 +80,31 @@ function renderOT() {
           const current   = est === ot.estado;
           const clickable = App.canEdit() && ot.transiciones_validas?.includes(est);
           const line      = i < FLUJO_PRINCIPAL.length - 1 ? `<div class="ot-progress-line ${done ? 'done' : ''}"></div>` : '';
+          // Usar <button> para estados clickeables — los div no disparan clicks confiablemente en iOS Safari
+          if (clickable) {
+            return `
+              <button class="ot-progress-step ot-progress-step--clickable"
+                      onclick="cambiarEstado('${est}')"
+                      style="background:none;border:none;padding:0;font-family:inherit;cursor:pointer">
+                <div class="ot-progress-dot ${done ? 'done' : current ? 'current' : ''}"></div>
+                <div class="ot-progress-label">${esc(ESTADO_LABELS[est])}</div>
+              </button>${line}`;
+          }
           return `
-            <div class="ot-progress-step${clickable ? ' ot-progress-step--clickable' : ''}"
-                 ${clickable ? `onclick="cambiarEstado('${est}')" title="Pasar a ${ESTADO_LABELS[est]}"` : ''}>
+            <div class="ot-progress-step">
               <div class="ot-progress-dot ${done ? 'done' : current ? 'current' : ''}"></div>
               <div class="ot-progress-label ${current ? 'active' : ''}">${esc(ESTADO_LABELS[est])}</div>
             </div>${line}`;
         }).join('')}
       </div>
 
+      ${ot.transiciones_validas?.length && App.canEdit() ? `
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px">
+        ${ot.transiciones_validas.map(est => `
+          <button class="btn btn-primary btn-sm" onclick="cambiarEstado('${est}')">
+            → ${esc(ESTADO_LABELS[est])}
+          </button>`).join('')}
+      </div>` : ''}
       ${vencida ? `<div class="badge-vencida" style="display:inline-flex; align-items:center; gap:4px; margin-top:14px">⚠️ Fecha prometida vencida</div>` : ''}
     </div>
 
