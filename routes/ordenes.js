@@ -4,15 +4,15 @@ const { getDb, generateOTNumber } = require('../database');
 
 const ALL_ESTADOS = ['recibida', 'en_reparacion', 'entregada'];
 const TRANSICIONES = {
-  recibida:     ['en_reparacion'],
-  en_reparacion: ['entregada'],
-  entregada:    []
+  recibida:      ['en_reparacion'],
+  en_reparacion: ['entregada', 'recibida'],
+  entregada:     ['en_reparacion']
 };
 
-// GET /api/ordenes?estado=&mecanico_id=&q=&fecha_desde=&fecha_hasta=
+// GET /api/ordenes
 router.get('/ordenes', (req, res) => {
   const db = getDb();
-  const { estado, mecanico_id, q, fecha_desde, fecha_hasta } = req.query;
+  const { estado, q, fecha_desde, fecha_hasta } = req.query;
 
   let where = [];
   let params = [];
@@ -29,7 +29,8 @@ router.get('/ordenes', (req, res) => {
   const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
 
   const ordenes = db.prepare(`
-    SELECT ot.*, m.patente, m.marca, m.modelo, m.color,
+    SELECT ot.id, ot.numero, ot.estado, ot.fecha_ingreso, ot.fecha_prometida, ot.prioridad,
+           m.patente, m.marca, m.modelo,
            c.nombre as cliente_nombre, c.telefono as cliente_telefono
     FROM ordenes_trabajo ot
     JOIN motos m ON m.id = ot.moto_id
@@ -76,6 +77,8 @@ router.post('/ordenes', (req, res) => {
       VALUES (?, ?, ?, ?, ?)
     `).run(ordenId, '', 'recibida', req.session.userId, req.session.displayName);
 
+    db.prepare(`INSERT INTO presupuestos (orden_id) VALUES (?)`).run(ordenId);
+
     db.exec('COMMIT');
   } catch (err) {
     try { db.exec('ROLLBACK'); } catch (_) {}
@@ -91,8 +94,7 @@ router.post('/ordenes', (req, res) => {
 router.get('/ordenes/dashboard', (req, res) => {
   const db = getDb();
   const porEstado = db.prepare(`
-    SELECT estado, COUNT(*) as count FROM ordenes_trabajo
-    GROUP BY estado
+    SELECT estado, COUNT(*) as count FROM ordenes_trabajo GROUP BY estado
   `).all();
   res.json({ por_estado: porEstado });
 });
@@ -105,52 +107,56 @@ router.get('/ordenes/:id', (req, res) => {
   res.json(ot);
 });
 
-// PATCH /api/ordenes/:id — editar campos generales
+// PATCH /api/ordenes/:id
 router.patch('/ordenes/:id', (req, res) => {
   const db = getDb();
+  const id = Number(req.params.id);
   const { fecha_prometida, problema_declarado, observaciones_internas, prioridad } = req.body;
+
   db.prepare(`
     UPDATE ordenes_trabajo SET
-      fecha_prometida = COALESCE(?, fecha_prometida),
-      problema_declarado = COALESCE(?, problema_declarado),
-      observaciones_internas = COALESCE(?, observaciones_internas),
-      prioridad = COALESCE(?, prioridad),
+      fecha_prometida = ?,
+      problema_declarado = ?,
+      observaciones_internas = ?,
+      prioridad = ?,
       updated_at = datetime('now')
     WHERE id = ?
-  `).run(fecha_prometida ?? null, problema_declarado ?? null,
-         observaciones_internas ?? null, prioridad ?? null, Number(req.params.id));
+  `).run(
+    fecha_prometida || null,
+    problema_declarado ?? '',
+    observaciones_internas ?? '',
+    prioridad || null,
+    id
+  );
 
-  const ot = _getOTCompleta(db, Number(req.params.id));
-  req.app.locals.broadcast('ot_updated', ot);
+  const ot = _getOTCompleta(db, id);
+  try { req.app.locals.broadcast('ot_updated', ot); } catch (_) {}
   res.json(ot);
 });
 
 // PATCH /api/ordenes/:id/estado
 router.patch('/ordenes/:id/estado', (req, res) => {
   const db = getDb();
-  const { estado, notas = '' } = req.body;
+  const { estado } = req.body;
   const id = Number(req.params.id);
 
   const ot = db.prepare('SELECT * FROM ordenes_trabajo WHERE id = ?').get(id);
   if (!ot) return res.status(404).json({ error: 'Orden no encontrada.' });
+  if (!ALL_ESTADOS.includes(estado)) return res.status(400).json({ error: 'Estado inválido.' });
 
-  if (!ALL_ESTADOS.includes(estado)) {
-    return res.status(400).json({ error: 'Estado inválido.' });
-  }
-
-  const posiblesTransiciones = TRANSICIONES[ot.estado] || [];
-  if (!posiblesTransiciones.includes(estado)) {
+  const posibles = TRANSICIONES[ot.estado] || [];
+  if (!posibles.includes(estado)) {
     return res.status(400).json({ error: `No se puede pasar de "${ot.estado}" a "${estado}".` });
   }
 
   try {
     db.exec('BEGIN');
-    const extra = estado === 'entregada' ? ', fecha_entrega_real = datetime(\'now\')' : '';
+    const extra = estado === 'entregada' ? `, fecha_entrega_real = datetime('now')` : '';
     db.prepare(`UPDATE ordenes_trabajo SET estado = ?, updated_at = datetime('now')${extra} WHERE id = ?`).run(estado, id);
     db.prepare(`
-      INSERT INTO ot_estado_historial (orden_id, estado_anterior, estado_nuevo, cambiado_por, display_name, notas)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(id, ot.estado, estado, req.session.userId, req.session.displayName, notas);
+      INSERT INTO ot_estado_historial (orden_id, estado_anterior, estado_nuevo, cambiado_por, display_name)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(id, ot.estado, estado, req.session.userId, req.session.displayName);
     db.exec('COMMIT');
   } catch (err) {
     try { db.exec('ROLLBACK'); } catch (_) {}
@@ -165,7 +171,7 @@ router.patch('/ordenes/:id/estado', (req, res) => {
 function _getOTCompleta(db, id) {
   const ot = db.prepare(`
     SELECT ot.*,
-           m.patente, m.marca, m.modelo, m.color, m.anio,
+           m.patente, m.marca, m.modelo, m.color,
            c.id as cliente_id, c.nombre as cliente_nombre,
            c.telefono as cliente_telefono, c.email as cliente_email
     FROM ordenes_trabajo ot
@@ -176,7 +182,6 @@ function _getOTCompleta(db, id) {
   if (!ot) return null;
 
   ot.transiciones_validas = TRANSICIONES[ot.estado] || [];
-
   return ot;
 }
 

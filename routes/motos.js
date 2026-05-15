@@ -91,6 +91,20 @@ router.post('/', (req, res) => {
   res.json(moto);
 });
 
+// GET /api/motos/sugerencias?q=AB — prefijo para dropdown de patente
+router.get('/sugerencias', (req, res) => {
+  const { q } = req.query;
+  if (!q || q.length < 2) return res.json([]);
+  const db = getDb();
+  const motos = db.prepare(`
+    SELECT m.id, m.patente, m.marca, m.modelo, c.nombre as cliente_nombre
+    FROM motos m JOIN clientes c ON c.id = m.cliente_id
+    WHERE m.patente LIKE ?
+    LIMIT 8
+  `).all(`${q.toUpperCase()}%`);
+  res.json(motos);
+});
+
 // GET /api/motos/:id
 router.get('/:id', (req, res) => {
   const db = getDb();

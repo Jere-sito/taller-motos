@@ -96,7 +96,7 @@ function abrirModal(id = null) {
   editandoId = id;
   document.getElementById('clienteModalTitle').textContent = id ? 'Editar cliente' : 'Nuevo cliente';
   if (!id) {
-    ['cNombre','cTelefono','cEmail','cDireccion','cNotas'].forEach(f => document.getElementById(f).value = '');
+    ['cNombre','cTelefono','cEmail','cNotas'].forEach(f => { const el = document.getElementById(f); if (el) el.value = ''; });
   }
   App.openModal('modalCliente');
   if (id) cargarDatosCliente(id);
@@ -108,7 +108,6 @@ async function cargarDatosCliente(id) {
     document.getElementById('cNombre').value = c.nombre || '';
     setPhone('cTelefono', c.telefono);
     document.getElementById('cEmail').value = c.email || '';
-    document.getElementById('cDireccion').value = c.direccion || '';
     document.getElementById('cNotas').value = c.notas || '';
   } catch {}
 }
@@ -118,7 +117,6 @@ async function guardarCliente() {
     nombre: document.getElementById('cNombre').value.trim(),
     telefono: document.getElementById('cTelefono').value.trim(),
     email: document.getElementById('cEmail').value.trim(),
-    direccion: document.getElementById('cDireccion').value.trim(),
     notas: document.getElementById('cNotas').value.trim()
   };
   if (!body.nombre) return App.toast('El nombre es requerido', 'error');

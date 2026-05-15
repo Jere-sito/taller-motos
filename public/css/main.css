@@ -343,8 +343,8 @@ input[readonly] { background: var(--bg-subtle); color: var(--text-muted); cursor
 .input-group input, .input-group select { flex: 1; }
 
 /* ── Badges de estado ────────────────────────────────────── */
-/* Fix: bloquear interacción con el fondo cuando hay un modal abierto */
-body.modal-open { overflow: hidden; touch-action: none; }
+/* Bloquear scroll del fondo cuando hay modal abierto (position:fixed se aplica via JS) */
+body.modal-open { overflow: hidden; }
 .modal { pointer-events: all; }
 .modal.hidden { pointer-events: none; }
 
@@ -487,6 +487,21 @@ tr:hover td { background: var(--bg-subtle); }
   gap: var(--space-2);
   flex-shrink: 0;
 }
+
+/* Botones de cambio de estado debajo de la card */
+.ot-card-actions {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: 8px 14px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-bottom: var(--space-3);
+}
+.ot-card-wrap { margin-bottom: 0; }
+.ot-card-wrap > .ot-card { border-radius: var(--radius-lg) var(--radius-lg) 0 0; margin-bottom: 0; }
 
 .alert-vencida { background: #FEF2F2; border-color: #FECACA; }
 
@@ -634,6 +649,9 @@ tr:hover td { background: var(--bg-subtle); }
 .ot-progress-line.done   { background: var(--primary); }
 .ot-progress-label { font-size: 0.625rem; color: var(--text-muted); text-align: center; white-space: nowrap; font-weight: 500; }
 .ot-progress-label.active { color: var(--primary); font-weight: 700; }
+.ot-progress-step--clickable { cursor: pointer; }
+.ot-progress-step--clickable:hover .ot-progress-dot { border-color: var(--primary); background: var(--primary-soft); }
+.ot-progress-step--clickable:hover .ot-progress-label { color: var(--primary); }
 
 /* ── Toast ───────────────────────────────────────────────── */
 #toastContainer {
@@ -699,8 +717,8 @@ tr:hover td { background: var(--bg-subtle); }
 
 /* ── Dashboard cards ─────────────────────────────────────── */
 .stat-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: var(--space-3);
   margin-bottom: var(--space-6);
 }
@@ -708,29 +726,30 @@ tr:hover td { background: var(--bg-subtle); }
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: var(--space-4);
+  padding: var(--space-5) var(--space-6);
   cursor: pointer;
   transition: box-shadow var(--t-fast), transform var(--t-fast);
   text-decoration: none;
   color: var(--text);
-  display: block;
-  box-shadow: var(--shadow-xs);
-}
-.stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
-.stat-card:active { transform: scale(0.97); }
-.stat-card-count { font-size: 2rem; font-weight: 900; line-height: 1; letter-spacing: -0.02em; }
-.stat-card-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 5px;
-  font-weight: 500;
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-5);
+  box-shadow: var(--shadow-xs);
+}
+.stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.stat-card:active { transform: scale(0.99); }
+.stat-card-count { font-size: 3.5rem; font-weight: 900; line-height: 1; letter-spacing: -0.03em; flex-shrink: 0; }
+.stat-card-label {
+  font-size: 1rem;
+  color: var(--text-2);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 .stat-card-dot {
-  width: 7px;
-  height: 7px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
@@ -971,10 +990,9 @@ tr:hover td { background: var(--bg-subtle); }
   /* FAB visible en móvil */
   .fab { display: flex; }
 
-  /* Dashboard: una columna */
+  /* Dashboard: columna única */
   .dashboard-alerts { grid-template-columns: 1fr; }
-  .stat-cards { grid-template-columns: repeat(2, 1fr); gap: var(--space-2); }
-  .stat-card-count { font-size: 1.75rem; }
+  .stat-card-count { font-size: 2.75rem; }
 
   /* Modales como sheet desde abajo */
   .modal { align-items: flex-end; padding: 0; }

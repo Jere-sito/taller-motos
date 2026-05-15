@@ -22,6 +22,7 @@ const NuevaOT = {
     document.getElementById('patenteStatus').textContent = '';
     document.getElementById('motoEncontrada').classList.add('hidden');
     document.getElementById('motoNuevaAlert').classList.add('hidden');
+    this._ocultarSugerencias();
     document.getElementById('clienteSeleccionado').classList.add('hidden');
     document.getElementById('formNuevoCliente').classList.add('hidden');
     document.getElementById('clienteResults').classList.add('hidden');
@@ -66,7 +67,7 @@ const NuevaOT = {
       this.motoNueva = false;
       document.getElementById('motoEncontrada').classList.remove('hidden');
       document.getElementById('motoNuevaAlert').classList.add('hidden');
-      document.getElementById('motoEncontradaTitle').textContent = `${moto.patente} — ${moto.marca} ${moto.modelo} ${moto.anio || ''}`.trim();
+      document.getElementById('motoEncontradaTitle').textContent = `${moto.patente} — ${moto.marca} ${moto.modelo}`.trim();
       document.getElementById('motoEncontradaMeta').textContent = `Cliente: ${moto.cliente_nombre}${moto.ots_recientes?.length ? ` · ${moto.ots_recientes.length} visita(s) anterior(es)` : ''}`;
       document.getElementById('patenteStatus').textContent = '';
       this._renderDots(1);
@@ -175,6 +176,41 @@ const NuevaOT = {
     }
   },
 
+  async _buscarSugerencias(q) {
+    clearTimeout(this._timerSug);
+    this._timerSug = setTimeout(async () => {
+      const p = q.toUpperCase().replace(/\s+/g, '');
+      if (p.length < 2) { this._ocultarSugerencias(); return; }
+      try {
+        const motos = await API.get(`/api/motos/sugerencias?q=${encodeURIComponent(p)}`);
+        const container = document.getElementById('patenteSugerencias');
+        if (!container) return;
+        if (!motos.length) { this._ocultarSugerencias(); return; }
+        container.innerHTML = motos.map(m =>
+          `<div style="padding:10px 14px; cursor:pointer; border-bottom:1px solid var(--border); font-size:0.875rem"
+                onmousedown="NuevaOT._elegirSugerencia('${esc(m.patente)}')">
+            <span style="font-weight:800; letter-spacing:2px">${esc(m.patente)}</span>
+            <span style="color:var(--text-muted); font-size:0.8125rem; margin-left:10px">${esc(m.marca || '')} ${esc(m.modelo || '')}${m.cliente_nombre ? ` — ${esc(m.cliente_nombre)}` : ''}</span>
+          </div>`
+        ).join('');
+        container.classList.remove('hidden');
+      } catch {}
+    }, 200);
+  },
+
+  _ocultarSugerencias() {
+    clearTimeout(this._timerSug);
+    document.getElementById('patenteSugerencias')?.classList.add('hidden');
+  },
+
+  async _elegirSugerencia(patente) {
+    const input = document.getElementById('inputPatente');
+    if (input) input.value = patente;
+    this._ocultarSugerencias();
+    document.getElementById('patenteStatus').textContent = 'Buscando...';
+    await this.buscarPatente(patente);
+  },
+
   async buscarCliente(q) {
     if (q.trim().length < 2) {
       document.getElementById('clienteResults').classList.add('hidden');
@@ -230,6 +266,22 @@ document.addEventListener('DOMContentLoaded', () => {
     el.addEventListener('input', () => el.classList.remove('input-error'));
   });
 
+  // Crear dropdown de sugerencias de patente dinámicamente
+  const patenteInput = document.getElementById('inputPatente');
+  if (patenteInput) {
+    const patenteGroup = patenteInput.closest('.form-group') || patenteInput.parentElement;
+    patenteGroup.style.position = 'relative';
+    const dropdown = document.createElement('div');
+    dropdown.id = 'patenteSugerencias';
+    dropdown.className = 'hidden';
+    dropdown.style.cssText = 'position:absolute;left:0;right:0;top:100%;z-index:500;background:#fff;border:1.5px solid var(--border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);max-height:200px;overflow-y:auto;box-shadow:var(--shadow-md)';
+    patenteGroup.appendChild(dropdown);
+
+    patenteInput.addEventListener('blur', () => {
+      setTimeout(() => NuevaOT._ocultarSugerencias(), 150);
+    });
+  }
+
   // Patente con debounce
   let timer;
   document.getElementById('inputPatente')?.addEventListener('input', e => {
@@ -241,8 +293,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('patenteStatus').textContent = '';
     const v = e.target.value;
     if (v.replace(/\s/g,'').length >= 2) {
+      NuevaOT._buscarSugerencias(v);
       document.getElementById('patenteStatus').textContent = 'Buscando...';
-      timer = setTimeout(() => NuevaOT.buscarPatente(v), 400);
+      timer = setTimeout(() => NuevaOT.buscarPatente(v), 500);
+    } else {
+      NuevaOT._ocultarSugerencias();
     }
   });
 

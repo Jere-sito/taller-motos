@@ -19,7 +19,7 @@ function fmtPrioridad(ot) {
 }
 
 const ESTADO_LABELS = {
-  recibida:      'Recibida',
+  recibida:      'Ingresada',
   en_reparacion: 'En reparación',
   entregada:     'Entregada'
 };
@@ -69,19 +69,20 @@ function renderOT() {
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
           <span class="estado-badge estado-${ot.estado}" style="font-size:0.8125rem; padding:5px 12px">${esc(ESTADO_LABELS[ot.estado])}</span>
           ${App.canEdit() ? `<button class="btn btn-secondary btn-sm" id="btnEditarOT">Editar</button>` : ''}
-          ${ot.transiciones_validas?.length ? `<button class="btn btn-primary btn-sm" id="btnCambiarEstado">Cambiar estado</button>` : ''}
         </div>
       </div>
 
-      <!-- Barra de progreso -->
+      <!-- Barra de progreso (clickeable para cambiar estado) -->
       <div class="ot-progress" style="margin-top:18px">
         ${FLUJO_PRINCIPAL.map((est, i) => {
           const idxActual = FLUJO_PRINCIPAL.indexOf(ot.estado);
-          const done    = i < idxActual;
-          const current = est === ot.estado;
-          const line    = i < FLUJO_PRINCIPAL.length - 1 ? `<div class="ot-progress-line ${done ? 'done' : ''}"></div>` : '';
+          const done      = i < idxActual;
+          const current   = est === ot.estado;
+          const clickable = App.canEdit() && ot.transiciones_validas?.includes(est);
+          const line      = i < FLUJO_PRINCIPAL.length - 1 ? `<div class="ot-progress-line ${done ? 'done' : ''}"></div>` : '';
           return `
-            <div class="ot-progress-step">
+            <div class="ot-progress-step${clickable ? ' ot-progress-step--clickable' : ''}"
+                 ${clickable ? `onclick="cambiarEstado('${est}')" title="Pasar a ${ESTADO_LABELS[est]}"` : ''}>
               <div class="ot-progress-dot ${done ? 'done' : current ? 'current' : ''}"></div>
               <div class="ot-progress-label ${current ? 'active' : ''}">${esc(ESTADO_LABELS[est])}</div>
             </div>${line}`;
@@ -130,30 +131,15 @@ function renderOT() {
     </div>
   `;
 
-  document.getElementById('btnCambiarEstado')?.addEventListener('click', abrirCambiarEstado);
   document.getElementById('btnEditarOT')?.addEventListener('click', abrirEditarOT);
   document.getElementById('btnRegistrarPago')?.addEventListener('click', abrirModalPago);
 }
 
-// ── Cambiar estado ────────────────────────────────────────────────────────
-function abrirCambiarEstado() {
-  const transiciones = otActual.transiciones_validas || [];
-  document.getElementById('notasEstado').value = '';
-  document.getElementById('listaBotonesEstado').innerHTML = transiciones.map(est =>
-    `<button class="btn btn-secondary" style="width:100%; justify-content:flex-start; gap:10px"
-             onclick="cambiarEstado('${est}')">
-       <span class="estado-badge estado-${est}" style="font-size:0.8125rem">${esc(ESTADO_LABELS[est])}</span>
-     </button>`
-  ).join('');
-  App.openModal('modalCambiarEstado');
-}
-
+// ── Cambiar estado (desde barra de progreso clickeable) ───────────────────
 async function cambiarEstado(nuevoEstado) {
-  const notas = document.getElementById('notasEstado').value.trim();
   try {
-    otActual = await API.patch(`/api/ordenes/${otId}/estado`, { estado: nuevoEstado, notas });
-    App.closeModal('modalCambiarEstado');
-    App.toast(`Estado: ${ESTADO_LABELS[nuevoEstado]}`, 'success');
+    otActual = await API.patch(`/api/ordenes/${otId}/estado`, { estado: nuevoEstado });
+    App.toast(`${ESTADO_LABELS[nuevoEstado]}`, 'success');
     renderOT();
     await cargarPresupuesto();
   } catch (e) {
@@ -192,21 +178,8 @@ async function cargarPresupuesto() {
     presupuestoActual = await API.get(`/api/ordenes/${otId}/presupuesto`);
     renderPresupuesto();
   } catch {
-    const acciones = document.getElementById('accionesPresupuesto');
-    if (acciones && App.canEdit() && otActual.estado !== 'entregada') {
-      acciones.innerHTML = `<button class="btn btn-secondary btn-sm" id="btnCrearPresupuesto">Crear presupuesto</button>`;
-      document.getElementById('btnCrearPresupuesto')?.addEventListener('click', crearPresupuesto);
-    }
-  }
-}
-
-async function crearPresupuesto() {
-  try {
-    presupuestoActual = await API.post(`/api/ordenes/${otId}/presupuesto`, {});
-    renderPresupuesto();
-    App.toast('Presupuesto creado', 'success');
-  } catch (e) {
-    App.toast(e.message || 'Error', 'error');
+    const contenido = document.getElementById('contenidoPresupuesto');
+    if (contenido) contenido.innerHTML = `<div class="text-muted text-sm">Sin ítems aún.</div>`;
   }
 }
 

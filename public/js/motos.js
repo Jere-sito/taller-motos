@@ -30,7 +30,7 @@ function renderMotos(motos) {
   tbody.innerHTML = motos.map(m => `
     <tr>
       <td><strong style="letter-spacing:2px">${esc(m.patente)}</strong></td>
-      <td>${esc(m.marca)} ${esc(m.modelo)} ${m.anio ? `(${m.anio})` : ''}</td>
+      <td>${esc(m.marca)} ${esc(m.modelo)}</td>
       <td>${esc(m.cliente_nombre)}</td>
       <td class="col-hide-mobile">${m.cant_ot || 0}</td>
       <td style="text-align:right; white-space:nowrap">
@@ -52,7 +52,6 @@ async function cargarDatosMoto(id) {
     document.getElementById('mPatente').value = m.patente || '';
     document.getElementById('mMarca').value = m.marca || '';
     document.getElementById('mModelo').value = m.modelo || '';
-    document.getElementById('mAnio').value = m.anio || '';
     document.getElementById('mColor').value = m.color || '';
     document.getElementById('mNotas').value = m.notas || '';
   } catch {}
@@ -61,7 +60,7 @@ async function cargarDatosMoto(id) {
 function eliminarMoto(id) {
   const m = _motosData[id];
   if (!m) return;
-  const desc = [m.marca, m.modelo, m.anio ? `(${m.anio})` : ''].filter(Boolean).join(' ');
+  const desc = [m.marca, m.modelo].filter(Boolean).join(' ');
   const tieneOTs = (m.cant_ot || 0) > 0;
   App.confirmarDoble(
     'Eliminar moto',
@@ -84,7 +83,6 @@ async function guardarMoto() {
   const body = {
     marca: document.getElementById('mMarca').value.trim(),
     modelo: document.getElementById('mModelo').value.trim(),
-    anio: document.getElementById('mAnio').value || null,
     color: document.getElementById('mColor').value.trim(),
     notas: document.getElementById('mNotas').value.trim()
   };

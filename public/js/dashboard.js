@@ -1,7 +1,7 @@
 const ESTADO_LABELS = {
-  recibida:      'Recibidas',
+  recibida:      'Ingresadas',
   en_reparacion: 'En reparación',
-  entregada:     'Entregadas hoy'
+  entregada:     'Entregadas'
 };
 
 async function onAppReady() {

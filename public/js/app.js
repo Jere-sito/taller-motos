@@ -131,18 +131,31 @@ const App = {
 
   openModal(id) {
     const m = document.getElementById(id);
-    if (m) {
-      m.classList.remove('hidden');
-      document.body.classList.add('modal-open');
-      m.querySelector('input,textarea,select')?.focus();
+    if (!m) return;
+    // Fijar cuerpo para que el fondo no se desplace al abrir el teclado
+    if (!document.body.dataset.scrollLock) {
+      const sy = window.scrollY;
+      document.body.dataset.scrollLock = sy;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${sy}px`;
+      document.body.style.width = '100%';
     }
+    document.body.classList.add('modal-open');
+    m.classList.remove('hidden');
+    m.querySelector('input,textarea,select')?.focus();
   },
 
   closeModal(id) {
     const m = document.getElementById(id);
     if (m) m.classList.add('hidden');
     if (!document.querySelector('.modal:not(.hidden)')) {
+      const sy = parseInt(document.body.dataset.scrollLock || '0');
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      delete document.body.dataset.scrollLock;
       document.body.classList.remove('modal-open');
+      window.scrollTo(0, sy);
     }
   },
 
