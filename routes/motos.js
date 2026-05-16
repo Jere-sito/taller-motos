@@ -161,6 +161,7 @@ router.delete('/:id', (req, res) => {
     db.prepare('DELETE FROM motos WHERE id = ?').run(id);
     db.exec('COMMIT');
   } catch (e) {
+    console.error('[motos] eliminar moto:', e);
     try { db.exec('ROLLBACK'); } catch (_) {}
     return res.status(500).json({ error: 'Error al eliminar.' });
   }
