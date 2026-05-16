@@ -141,12 +141,60 @@ function initSchema() {
   try { db.exec(`ALTER TABLE ordenes_trabajo ADD COLUMN cedula TEXT`); } catch (_) {}
   try { db.exec(`ALTER TABLE ordenes_trabajo ADD COLUMN prioridad TEXT`); } catch (_) {}
 
-  // Migración de estados al nuevo esquema simplificado
+  // Migración de estados: reconstruir tabla si hay estados del esquema viejo
+  // (el CHECK constraint viejo no incluye 'recibida', así que el UPDATE falla silenciosamente)
   try {
-    db.exec(`UPDATE ordenes_trabajo SET estado = 'recibida'      WHERE estado IN ('ingresada','en_diagnostico','presupuestada','aprobada')`);
-    db.exec(`UPDATE ordenes_trabajo SET estado = 'en_reparacion' WHERE estado IN ('esperando_repuesto','lista')`);
-    db.exec(`UPDATE ordenes_trabajo SET estado = 'entregada'     WHERE estado = 'cancelada'`);
-  } catch (_) {}
+    const hasOld = db.prepare(
+      "SELECT COUNT(*) as n FROM ordenes_trabajo WHERE estado NOT IN ('recibida','en_reparacion','entregada')"
+    ).get();
+    if (hasOld.n > 0) {
+      db.exec('PRAGMA foreign_keys = OFF');
+      db.exec('DROP TABLE IF EXISTS ordenes_trabajo_v2');
+      db.exec(`
+        CREATE TABLE ordenes_trabajo_v2 (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          numero TEXT NOT NULL UNIQUE,
+          moto_id INTEGER NOT NULL,
+          mecanico_id INTEGER,
+          estado TEXT DEFAULT 'recibida' CHECK(estado IN ('recibida','en_reparacion','entregada')),
+          fecha_ingreso TEXT DEFAULT (datetime('now')),
+          km_ingreso INTEGER DEFAULT 0,
+          problema_declarado TEXT DEFAULT '',
+          observaciones_internas TEXT DEFAULT '',
+          fecha_prometida TEXT,
+          fecha_entrega_real TEXT,
+          cedula TEXT,
+          prioridad TEXT,
+          created_by INTEGER,
+          updated_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (moto_id) REFERENCES motos(id) ON DELETE RESTRICT,
+          FOREIGN KEY (mecanico_id) REFERENCES mecanicos(id) ON DELETE SET NULL,
+          FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+        );
+        INSERT INTO ordenes_trabajo_v2
+          (id, numero, moto_id, mecanico_id, estado, fecha_ingreso, km_ingreso,
+           problema_declarado, observaciones_internas, fecha_prometida, fecha_entrega_real,
+           cedula, prioridad, created_by, updated_at)
+        SELECT id, numero, moto_id, mecanico_id,
+          CASE estado
+            WHEN 'ingresada'          THEN 'recibida'
+            WHEN 'en_diagnostico'     THEN 'recibida'
+            WHEN 'presupuestada'      THEN 'recibida'
+            WHEN 'aprobada'           THEN 'recibida'
+            WHEN 'esperando_repuesto' THEN 'en_reparacion'
+            WHEN 'lista'              THEN 'en_reparacion'
+            WHEN 'cancelada'          THEN 'entregada'
+            ELSE estado
+          END,
+          fecha_ingreso, km_ingreso, problema_declarado, observaciones_internas,
+          fecha_prometida, fecha_entrega_real, cedula, prioridad, created_by, updated_at
+        FROM ordenes_trabajo;
+        DROP TABLE ordenes_trabajo;
+        ALTER TABLE ordenes_trabajo_v2 RENAME TO ordenes_trabajo;
+      `);
+      db.exec('PRAGMA foreign_keys = ON');
+    }
+  } catch (e) { console.error('Migration rebuild error:', e.message); }
 
   // Migración de números de orden: OT-YYYYMMDD-NNN → ORDEN#NNN
   try {
