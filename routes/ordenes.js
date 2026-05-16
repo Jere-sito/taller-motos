@@ -59,15 +59,14 @@ router.post('/ordenes', (req, res) => {
   let ordenId;
   try {
     db.exec('BEGIN');
-    const fechaIngresoSql = fecha_ingreso ? `'${fecha_ingreso}'` : `datetime('now')`;
     const result = db.prepare(`
       INSERT INTO ordenes_trabajo
         (numero, moto_id, problema_declarado, observaciones_internas, fecha_ingreso, fecha_prometida, cedula, prioridad, created_by)
-      VALUES (?, ?, ?, ?, ${fechaIngresoSql}, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, COALESCE(?, datetime('now')), ?, ?, ?, ?)
     `).run(
       numero, Number(moto_id),
       problema_declarado, observaciones_internas,
-      fecha_prometida || null, cedula.toLowerCase(), prioridad.toLowerCase(), req.session.userId
+      fecha_ingreso || null, fecha_prometida || null, cedula.toLowerCase(), prioridad.toLowerCase(), req.session.userId
     );
 
     ordenId = result.lastInsertRowid;
@@ -81,6 +80,7 @@ router.post('/ordenes', (req, res) => {
 
     db.exec('COMMIT');
   } catch (err) {
+    console.error('[ordenes] crear orden:', err);
     try { db.exec('ROLLBACK'); } catch (_) {}
     return res.status(500).json({ error: 'Error al crear la orden.' });
   }
@@ -159,6 +159,7 @@ router.patch('/ordenes/:id/estado', (req, res) => {
     `).run(id, ot.estado, estado, req.session.userId, req.session.displayName);
     db.exec('COMMIT');
   } catch (err) {
+    console.error('[ordenes] cambiar estado:', err);
     try { db.exec('ROLLBACK'); } catch (_) {}
     return res.status(500).json({ error: 'Error al cambiar el estado.' });
   }
