@@ -187,14 +187,10 @@ function initSchema() {
 }
 
 function generateOTNumber(db) {
-  const rows = db.prepare("SELECT numero FROM ordenes_trabajo").all();
-  const maxN = rows.reduce((max, row) => {
-    // soporta ORDEN#NNN (nuevo) y OT-... / OT-FECHA-NNN (legado)
-    const n = row.numero.includes('#')
-      ? parseInt(row.numero.split('#')[1]) || 0
-      : parseInt(row.numero.split('-').at(-1)) || 0;
-    return Math.max(max, n);
-  }, 0);
+  const row = db.prepare(
+    "SELECT MAX(CAST(SUBSTR(numero, 7) AS INTEGER)) as maxN FROM ordenes_trabajo WHERE numero LIKE 'ORDEN#%'"
+  ).get();
+  const maxN = row?.maxN || 0;
   return `ORDEN#${String(maxN + 1).padStart(3, '0')}`;
 }
 
