@@ -61,8 +61,8 @@ router.post('/ordenes', (req, res) => {
     db.exec('BEGIN');
     const result = db.prepare(`
       INSERT INTO ordenes_trabajo
-        (numero, moto_id, problema_declarado, observaciones_internas, fecha_ingreso, fecha_prometida, cedula, prioridad, created_by)
-      VALUES (?, ?, ?, ?, COALESCE(?, datetime('now')), ?, ?, ?, ?)
+        (numero, moto_id, estado, problema_declarado, observaciones_internas, fecha_ingreso, fecha_prometida, cedula, prioridad, created_by)
+      VALUES (?, ?, 'recibida', ?, ?, COALESCE(?, datetime('now')), ?, ?, ?, ?)
     `).run(
       numero, Number(moto_id),
       problema_declarado, observaciones_internas,
