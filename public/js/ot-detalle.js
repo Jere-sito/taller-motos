@@ -44,6 +44,11 @@ async function cargarOT() {
 function renderOT() {
   const ot = otActual;
   const vencida = ot.fecha_prometida && new Date(ot.fecha_prometida) < new Date() && ot.estado !== 'entregada';
+  const idxActual    = FLUJO_PRINCIPAL.indexOf(ot.estado);
+  const prevEstado   = idxActual > 0 ? FLUJO_PRINCIPAL[idxActual - 1] : null;
+  const nextEstado   = idxActual < FLUJO_PRINCIPAL.length - 1 ? FLUJO_PRINCIPAL[idxActual + 1] : null;
+  const puedeAtras   = App.canEdit() && prevEstado && ot.transiciones_validas?.includes(prevEstado);
+  const puedeAdelan  = App.canEdit() && nextEstado && ot.transiciones_validas?.includes(nextEstado);
 
   document.title = `${ot.numero} — Taller Motos`;
 
@@ -98,12 +103,10 @@ function renderOT() {
         }).join('')}
       </div>
 
-      ${ot.transiciones_validas?.length && App.canEdit() ? `
-      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px">
-        ${ot.transiciones_validas.map(est => `
-          <button class="btn btn-primary btn-sm" onclick="cambiarEstado('${est}')">
-            → ${esc(ESTADO_LABELS[est])}
-          </button>`).join('')}
+      ${(puedeAtras || puedeAdelan) ? `
+      <div class="estado-nav">
+        ${puedeAtras  ? `<button class="btn-estado btn-estado-back"    onclick="cambiarEstado('${prevEstado}')">← ${esc(ESTADO_LABELS[prevEstado])}</button>` : `<div style="flex:1"></div>`}
+        ${puedeAdelan ? `<button class="btn-estado btn-estado-forward" onclick="cambiarEstado('${nextEstado}')">${esc(ESTADO_LABELS[nextEstado])} →</button>` : `<div style="flex:1"></div>`}
       </div>` : ''}
       ${vencida ? `<div class="badge-vencida" style="display:inline-flex; align-items:center; gap:4px; margin-top:14px">⚠️ Fecha prometida vencida</div>` : ''}
     </div>
@@ -151,14 +154,32 @@ function renderOT() {
   document.getElementById('btnRegistrarPago')?.addEventListener('click', abrirModalPago);
 }
 
-// ── Cambiar estado (desde barra de progreso clickeable) ───────────────────
+// ── Animación inmediata del progreso (optimista) ──────────────────────────
+function animarProgresoDom(nuevoIdx) {
+  document.querySelectorAll('.ot-progress-dot').forEach((dot, i) => {
+    dot.className = 'ot-progress-dot' + (i < nuevoIdx ? ' done' : i === nuevoIdx ? ' current' : '');
+  });
+  document.querySelectorAll('.ot-progress-line').forEach((line, i) => {
+    line.className = 'ot-progress-line' + (i < nuevoIdx ? ' done' : '');
+  });
+}
+
+// ── Cambiar estado ────────────────────────────────────────────────────────
 async function cambiarEstado(nuevoEstado) {
+  const idxViejo = FLUJO_PRINCIPAL.indexOf(otActual.estado);
+  const idxNuevo = FLUJO_PRINCIPAL.indexOf(nuevoEstado);
+  // Animar inmediatamente — la API confirma después
+  animarProgresoDom(idxNuevo);
+  document.querySelectorAll('.btn-estado').forEach(b => { b.disabled = true; });
   try {
     otActual = await API.patch(`/api/ordenes/${otId}/estado`, { estado: nuevoEstado });
-    App.toast(`${ESTADO_LABELS[nuevoEstado]}`, 'success');
+    App.toast(ESTADO_LABELS[nuevoEstado], 'success');
     renderOT();
     await cargarPresupuesto();
   } catch (e) {
+    // Revertir si falla
+    animarProgresoDom(idxViejo);
+    document.querySelectorAll('.btn-estado').forEach(b => { b.disabled = false; });
     App.toast(e.message || 'Error al cambiar estado', 'error');
   }
 }
