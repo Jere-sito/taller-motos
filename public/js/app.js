@@ -226,18 +226,22 @@ document.addEventListener('click', async e => {
 });
 
 // ── Mayúsculas globales ───────────────────────────────────────────────────
+// setTimeout(0): difiere la conversión para que iOS pueda completar la selección
+// de sugerencias del autocorrector antes de que modifiquemos el valor.
 document.addEventListener('input', e => {
   const el = e.target;
   if (el.classList.contains('input-precio')) return;
   const type = (el.getAttribute('type') || '').toLowerCase();
   const skip = ['email','password','date','number','color','file','range','time','url','radio','checkbox'];
   if (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && !skip.includes(type))) {
-    const pos = el.selectionStart;
-    const upper = el.value.toUpperCase();
-    if (upper !== el.value) {
-      el.value = upper;
-      try { el.setSelectionRange(pos, pos); } catch {}
-    }
+    setTimeout(() => {
+      const pos = el.selectionStart;
+      const upper = el.value.toUpperCase();
+      if (upper !== el.value) {
+        el.value = upper;
+        try { el.setSelectionRange(pos, pos); } catch {}
+      }
+    }, 0);
   }
 });
 
