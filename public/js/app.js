@@ -226,22 +226,16 @@ document.addEventListener('click', async e => {
 });
 
 // ── Mayúsculas globales ───────────────────────────────────────────────────
-// setTimeout(0): difiere la conversión para que iOS pueda completar la selección
-// de sugerencias del autocorrector antes de que modifiquemos el valor.
-document.addEventListener('input', e => {
+// NO se modifica el valor durante el tipeo (rompería el autocorrector de iOS).
+// CSS text-transform:uppercase muestra mayúsculas visualmente.
+// La conversión real del valor ocurre en focusout (al salir del campo).
+document.addEventListener('focusout', e => {
   const el = e.target;
   if (el.classList.contains('input-precio')) return;
   const type = (el.getAttribute('type') || '').toLowerCase();
   const skip = ['email','password','date','number','color','file','range','time','url','radio','checkbox'];
   if (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && !skip.includes(type))) {
-    setTimeout(() => {
-      const pos = el.selectionStart;
-      const upper = el.value.toUpperCase();
-      if (upper !== el.value) {
-        el.value = upper;
-        try { el.setSelectionRange(pos, pos); } catch {}
-      }
-    }, 0);
+    el.value = el.value.toUpperCase();
   }
 });
 
