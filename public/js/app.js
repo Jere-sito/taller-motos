@@ -129,16 +129,18 @@ const App = {
     document.getElementById(`${uid}_ok`).onclick = () => { close(); callback(); };
   },
 
+  // Bloquea touchmove fuera del modal (previene scroll del fondo en iOS)
+  _blockScroll(e) {
+    if (e.target.closest('.modal')) return;
+    e.preventDefault();
+  },
+
   openModal(id) {
     const m = document.getElementById(id);
     if (!m) return;
-    // Fijar cuerpo para que el fondo no se desplace al abrir el teclado
     if (!document.body.dataset.scrollLock) {
-      const sy = window.scrollY;
-      document.body.dataset.scrollLock = sy;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${sy}px`;
-      document.body.style.width = '100%';
+      document.body.dataset.scrollLock = '1';
+      document.addEventListener('touchmove', App._blockScroll, { passive: false });
     }
     document.body.classList.add('modal-open');
     m.classList.remove('hidden');
@@ -149,13 +151,9 @@ const App = {
     const m = document.getElementById(id);
     if (m) m.classList.add('hidden');
     if (!document.querySelector('.modal:not(.hidden)')) {
-      const sy = parseInt(document.body.dataset.scrollLock || '0');
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
+      document.removeEventListener('touchmove', App._blockScroll);
       delete document.body.dataset.scrollLock;
       document.body.classList.remove('modal-open');
-      window.scrollTo(0, sy);
     }
   },
 
@@ -261,59 +259,6 @@ document.addEventListener('input', e => {
   try { e.target.setSelectionRange(len, len); } catch {}
 });
 
-// ── Teclado móvil: ajustar modal para que el campo quede visible ──────────
-(function initKeyboardAware() {
-  if (!window.visualViewport) return;
-
-  let lastVVH = window.visualViewport.height;
-
-  function onVVResize() {
-    const vvh = window.visualViewport.height;
-    const vvTop = window.visualViewport.offsetTop;
-
-    // Ajustar todos los modales abiertos para que coincidan con el viewport visual
-    document.querySelectorAll('.modal:not(.hidden)').forEach(overlay => {
-      overlay.style.height  = vvh + 'px';
-      overlay.style.top     = vvTop + 'px';
-      overlay.style.bottom  = 'auto';
-    });
-
-    // Si el teclado apareció (viewport se achicó), hacer scroll al input enfocado
-    if (vvh < lastVVH - 50) {
-      const active = document.activeElement;
-      if (active && active.closest('.modal-box')) {
-        setTimeout(() => active.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
-      }
-    }
-
-    lastVVH = vvh;
-  }
-
-  window.visualViewport.addEventListener('resize', onVVResize);
-  window.visualViewport.addEventListener('scroll', onVVResize);
-})();
-
-// Cuando se enfoca un input dentro de un modal, traerlo a la vista
-document.addEventListener('focusin', e => {
-  const el = e.target;
-  if (!el.matches('input, textarea, select')) return;
-  if (!el.closest('.modal-box')) return;
-  setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
-});
-
-// Cuando se cierra el modal, restaurar posición del overlay
-function _resetModalPosition(id) {
-  const m = document.getElementById(id);
-  if (!m) return;
-  m.style.height = '';
-  m.style.top    = '';
-  m.style.bottom = '';
-}
-const _origCloseModal = App.closeModal.bind(App);
-App.closeModal = function(id) {
-  _resetModalPosition(id);
-  _origCloseModal(id);
-};
 
 document.addEventListener('DOMContentLoaded', () => {
   // Aplicar auto-formato a todos los inputs tel de la página
