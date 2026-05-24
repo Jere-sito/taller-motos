@@ -324,20 +324,6 @@ textarea {
   font-family: inherit;
 }
 
-/* Mayúsculas visuales durante el tipeo — la conversión real ocurre en focusout (JS).
-   Excluye campos donde las mayúsculas no aplican. */
-input[type="text"]:not(.input-precio),
-input[type="tel"],
-input[type="search"],
-textarea:not(.input-precio) {
-  text-transform: uppercase;
-}
-input[type="text"]:not(.input-precio)::placeholder,
-input[type="tel"]::placeholder,
-input[type="search"]::placeholder,
-textarea:not(.input-precio)::placeholder {
-  text-transform: none;
-}
 
 textarea {
   height: auto;
