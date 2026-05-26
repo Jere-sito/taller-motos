@@ -312,7 +312,11 @@ async function compartirWhatsApp() {
   try {
     const { texto } = await API.get(`/api/presupuestos/${presupuestoActual.id}/whatsapp`);
     const base = waLink(otActual?.cliente_telefono) || 'https://wa.me/';
-    window.open(`${base}?text=${encodeURIComponent(texto)}`, '_blank');
+    // iOS Safari convierte %2B → + antes de pasar la URL a WhatsApp,
+    // y WhatsApp interpreta + como espacio (form-encoding). Usamos ＋ (U+FF0B)
+    // que es visualmente idéntico pero no tiene significado especial en URLs.
+    const textoWA = texto.replace(/\+/g, '＋');
+    window.open(`${base}?text=${encodeURIComponent(textoWA)}`, '_blank');
   } catch (e) { App.toast('Error al generar el mensaje', 'error'); }
 }
 
