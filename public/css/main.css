@@ -1864,3 +1864,28 @@ tr:hover td { background: var(--bg-subtle); }
 #modalNuevaOT .cedula-row { display: flex; gap: 10px; }
 #modalNuevaOT .cedula-btn { flex: 1; min-height: 52px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--bg-subtle); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500; color: #64748B; }
 #modalNuevaOT .cedula-btn.selected { background: #FFF7ED; border-color: var(--primary); color: var(--primary); font-weight: 600; }
+
+/* ══ Motos (estilo mockup 11-motos) ════════════════════════ */
+.chip .chip-dot { width: 7px; height: 7px; border-radius: 50%; background: #EF4444; display: inline-block; margin-right: 5px; flex-shrink: 0; }
+
+#listaMotos { display: flex; flex-direction: column; gap: 10px; }
+#listaMotos .moto-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 13px 14px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 12px; cursor: pointer; transition: box-shadow var(--t-fast), transform var(--t-fast); text-decoration: none; color: var(--text); }
+#listaMotos .moto-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+#listaMotos .moto-card:active { box-shadow: 0 0 0 2px #EA580C33; }
+#listaMotos .moto-thumb { width: 46px; height: 46px; border-radius: 12px; background: #FFF7ED; display: flex; align-items: center; justify-content: center; color: var(--primary); flex-shrink: 0; }
+#listaMotos .moto-thumb.in-shop { background: #FFFBEB; color: #D97706; }
+#listaMotos .moto-body { flex: 1; min-width: 0; }
+#listaMotos .moto-top { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+#listaMotos .moto-patente { font-size: 16px; font-weight: 800; color: var(--text-1); letter-spacing: 1.5px; font-variant-numeric: tabular-nums; }
+#listaMotos .badge-shop { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; color: #D97706; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 20px; padding: 1px 8px; }
+#listaMotos .badge-shop .pulse { width: 5px; height: 5px; border-radius: 50%; background: #D97706; }
+#listaMotos .moto-model { font-size: 12px; color: #64748B; font-weight: 500; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#listaMotos .color-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.12); }
+#listaMotos .moto-bottom { display: flex; align-items: center; gap: 6px; }
+#listaMotos .owner-icon { color: #94A3B8; flex-shrink: 0; }
+#listaMotos .owner-name { font-size: 12px; color: #94A3B8; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
+#listaMotos .ot-chip { font-size: 10px; font-weight: 600; color: #2563EB; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 20px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
+#listaMotos .ot-chip.zero { color: #94A3B8; background: #F1F5F9; border-color: var(--border); }
+#listaMotos .moto-chevron { color: #CBD5E1; flex-shrink: 0; }
+#listaMotos .moto-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+#listaMotos .moto-actions button { background: none; border: none; cursor: pointer; padding: 4px; border-radius: 6px; line-height: 1; display: flex; }

@@ -63,26 +63,16 @@
   <div class="page-header">
     <h1 class="page-title">Motos</h1>
   </div>
-  <div class="filter-bar">
-    <input type="search" id="searchQ" placeholder="Buscar por patente, marca, modelo o cliente...">
+  <div class="search-bar">
+    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input class="search-input" type="search" id="searchQ" placeholder="Buscar por patente, marca o dueño...">
   </div>
-  <div class="card">
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Patente</th>
-            <th>Moto</th>
-            <th>Cliente</th>
-            <th class="col-hide-mobile">Órdenes</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="tablaMotos">
-          <tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:32px">Cargando...</td></tr>
-        </tbody>
-      </table>
-    </div>
+  <div class="chips" id="chipsMoto"></div>
+  <p class="results-label" id="resultsLabelMotos"></p>
+  <div id="listaMotos">
+    <div class="empty-state"><div class="empty-icon">🔄</div><p>Cargando...</p></div>
   </div>
 </div>
 

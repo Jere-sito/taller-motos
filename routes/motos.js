@@ -10,7 +10,8 @@ router.get('/', (req, res) => {
   if (cliente_id) {
     motos = db.prepare(`
       SELECT m.*, c.nombre as cliente_nombre, c.telefono as cliente_telefono,
-             COUNT(ot.id) as cant_ot
+             COUNT(ot.id) as cant_ot,
+             SUM(CASE WHEN ot.estado != 'entregada' THEN 1 ELSE 0 END) as ot_activas
       FROM motos m
       JOIN clientes c ON c.id = m.cliente_id
       LEFT JOIN ordenes_trabajo ot ON ot.moto_id = m.id
@@ -22,7 +23,8 @@ router.get('/', (req, res) => {
     const term = `%${q.trim().toUpperCase()}%`;
     motos = db.prepare(`
       SELECT m.*, c.nombre as cliente_nombre, c.telefono as cliente_telefono,
-             COUNT(ot.id) as cant_ot
+             COUNT(ot.id) as cant_ot,
+             SUM(CASE WHEN ot.estado != 'entregada' THEN 1 ELSE 0 END) as ot_activas
       FROM motos m
       JOIN clientes c ON c.id = m.cliente_id
       LEFT JOIN ordenes_trabajo ot ON ot.moto_id = m.id
@@ -35,7 +37,8 @@ router.get('/', (req, res) => {
   } else {
     motos = db.prepare(`
       SELECT m.*, c.nombre as cliente_nombre, c.telefono as cliente_telefono,
-             COUNT(ot.id) as cant_ot
+             COUNT(ot.id) as cant_ot,
+             SUM(CASE WHEN ot.estado != 'entregada' THEN 1 ELSE 0 END) as ot_activas
       FROM motos m
       JOIN clientes c ON c.id = m.cliente_id
       LEFT JOIN ordenes_trabajo ot ON ot.moto_id = m.id
