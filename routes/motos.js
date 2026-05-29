@@ -144,7 +144,15 @@ router.patch('/:id', (req, res) => {
       cliente_id = COALESCE(?, cliente_id),
       updated_at = datetime('now')
     WHERE id = ?
-  `).run(marca, modelo, anio, color, notas, cliente_id, Number(req.params.id));
+  `).run(
+    marca ?? null,
+    modelo ?? null,
+    anio ?? null,
+    color ?? null,
+    notas ?? null,
+    cliente_id ?? null,
+    Number(req.params.id)
+  );
 
   res.json(db.prepare(`
     SELECT m.*, c.nombre as cliente_nombre FROM motos m

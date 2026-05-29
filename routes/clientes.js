@@ -75,7 +75,14 @@ router.patch('/:id', (req, res) => {
       notas = COALESCE(?, notas),
       updated_at = datetime('now')
     WHERE id = ?
-  `).run(nombre, telefono, email, direccion, notas, Number(req.params.id));
+  `).run(
+    nombre ?? null,
+    telefono ?? null,
+    email ?? null,
+    direccion ?? null,
+    notas ?? null,
+    Number(req.params.id)
+  );
 
   res.json(db.prepare('SELECT * FROM clientes WHERE id = ?').get(Number(req.params.id)));
 });
