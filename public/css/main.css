@@ -1025,83 +1025,75 @@ tr:hover td { background: var(--bg-subtle); }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3); }
 
-/* ── Dashboard stat cards ────────────────────────────────── */
+/* ── Dashboard stat cards (estilo mockup) ────────────────── */
 .stat-cards {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin-bottom: var(--space-6);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 4px;
 }
 
 .stat-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 20px 22px;
+  border-radius: 16px;
+  padding: 14px 12px;
   cursor: pointer;
   transition: box-shadow var(--t-fast), transform var(--t-fast);
   text-decoration: none;
   color: var(--text);
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow-xs);
-  border-top: 3px solid transparent;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
 }
 .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
 .stat-card:active { transform: scale(0.99); }
 
-/* Estado color en borde superior */
-.stat-card.recibida      { border-top-color: #2563EB; }
-.stat-card.en_reparacion { border-top-color: #D97706; }
-.stat-card.entregada     { border-top-color: #059669; }
-
-.stat-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 14px;
+/* Barra de color a la izquierda */
+.stat-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
 }
+.stat-card.recibida::before      { background: var(--state-recibida); }
+.stat-card.en_reparacion::before { background: var(--state-en_reparacion); }
+.stat-card.entregada::before     { background: var(--state-entregada); }
 
-.stat-card-icon {
-  width: 36px;
-  height: 36px;
+.stat-icon {
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 10px;
   flex-shrink: 0;
 }
-.stat-card-icon svg { width: 18px; height: 18px; }
+.stat-icon svg { width: 16px; height: 16px; }
 
-.stat-card-icon.recibida      { background: #EFF6FF; color: #2563EB; }
-.stat-card-icon.en_reparacion { background: #FFFBEB; color: #D97706; }
-.stat-card-icon.entregada     { background: #ECFDF5; color: #059669; }
+.stat-icon.recibida      { background: #EFF6FF; color: #2563EB; }
+.stat-icon.en_reparacion { background: #FFFBEB; color: #D97706; }
+.stat-icon.entregada     { background: #ECFDF5; color: #059669; }
 
-.stat-card-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #94A3B8;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-card-count {
-  font-size: 2.4rem;
+.stat-number {
+  font-size: 26px;
   font-weight: 800;
   line-height: 1;
+  margin-bottom: 4px;
   letter-spacing: -1px;
-  margin-bottom: 8px;
 }
+.stat-number.recibida      { color: #2563EB; }
+.stat-number.en_reparacion { color: #D97706; }
+.stat-number.entregada     { color: #059669; }
 
-.stat-card-footer {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.stat-card-footer-text {
-  font-size: 12px;
+.stat-label {
+  font-size: 10px;
+  font-weight: 500;
   color: #94A3B8;
+  line-height: 1.3;
 }
 
 /* Compatibilidad con .stat-card-dot del sistema anterior */
@@ -1531,12 +1523,12 @@ tr:hover td { background: var(--bg-subtle); }
     /* compensar header fijo */
     padding-top: calc(var(--top-nav) + 28px);
   }
-  .stat-cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-  }
-  .stat-card { flex: unset; }
+  .stat-cards { gap: 16px; }
+  .stat-card { padding: 20px 22px; }
+  .stat-icon { width: 36px; height: 36px; margin-bottom: 14px; }
+  .stat-icon svg { width: 18px; height: 18px; }
+  .stat-number { font-size: 2.2rem; }
+  .stat-label { font-size: 12px; }
   .grid-2 { grid-template-columns: 1fr 1fr; }
 }
 
@@ -1584,7 +1576,6 @@ tr:hover td { background: var(--bg-subtle); }
 
   /* Dashboard: columna única */
   .dashboard-alerts { grid-template-columns: 1fr; }
-  .stat-card-count { font-size: 2.2rem; }
 
   /* Modales como sheet desde abajo */
   .modal { align-items: flex-end; padding: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }

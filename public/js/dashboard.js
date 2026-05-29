@@ -98,15 +98,10 @@ function renderEstados(porEstado) {
   const estados = ['recibida', 'en_reparacion', 'entregada'];
   container.innerHTML = estados.map(est => {
     const n = counts[est] || 0;
-    return `<a href="/ordenes?estado=${est}" class="stat-card ${est}" style="text-decoration:none;color:inherit;">
-      <div class="stat-card-header">
-        <div class="stat-card-label">${esc(LABELS[est])}</div>
-        <div class="stat-card-icon ${est}">${ICONS[est]}</div>
-      </div>
-      <div class="stat-card-count">${n}</div>
-      <div class="stat-card-footer">
-        <span class="stat-card-footer-text">órdenes activas</span>
-      </div>
+    return `<a href="/ordenes?estado=${est}" class="stat-card ${est}">
+      <div class="stat-icon ${est}">${ICONS[est]}</div>
+      <div class="stat-number ${est}">${n}</div>
+      <div class="stat-label">${esc(LABELS[est])}</div>
     </a>`;
   }).join('');
 }
