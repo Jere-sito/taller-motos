@@ -18,10 +18,14 @@ function fmtPrioridad(ot) {
 }
 
 const ESTADO_LABELS = {
-  recibida:      'Ingresada',
+  recibida:      'Recibida',
   en_reparacion: 'En reparación',
   entregada:     'Entregada'
 };
+
+const PERSON_SVG  = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+const CAL_SVG     = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+const CHEVRON_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
 
 // Transiciones permitidas desde la lista
 const AVANZAR = {
@@ -41,8 +45,29 @@ const RETROCEDER_LABEL = {
 
 async function onAppReady() {
   await cargarOrdenes();
+  cargarConteos();
   initFiltros();
   document.getElementById('btnNuevaOT')?.addEventListener('click', () => NuevaOT.abrir());
+}
+
+const CHIP_BASE = { '': 'Todas', recibida: 'Recibidas', en_reparacion: 'En reparación', entregada: 'Entregadas' };
+
+async function cargarConteos() {
+  try {
+    const data = await API.get('/api/ordenes/dashboard');
+    const c = {};
+    for (const r of data.por_estado) c[r.estado] = r.count;
+    const total = (c.recibida || 0) + (c.en_reparacion || 0) + (c.entregada || 0);
+    setChipCount('', total);
+    setChipCount('recibida', c.recibida || 0);
+    setChipCount('en_reparacion', c.en_reparacion || 0);
+    setChipCount('entregada', c.entregada || 0);
+  } catch {}
+}
+
+function setChipCount(estado, n) {
+  const chip = document.querySelector(`#chipsEstado .chip[data-estado="${estado}"]`);
+  if (chip) chip.textContent = `${CHIP_BASE[estado]} (${n})`;
 }
 
 async function cargarOrdenes() {
@@ -62,47 +87,42 @@ async function cargarOrdenes() {
 
 function renderCard(ot) {
   const sColor = getComputedStyle(document.documentElement).getPropertyValue(`--state-${ot.estado}`).trim();
-  const vencida = ot.fecha_prometida && new Date(ot.fecha_prometida) < new Date() && ot.estado !== 'entregada';
-  const pronto  = !vencida && ot.estado !== 'entregada' && ot.fecha_prometida && (new Date(ot.fecha_prometida) - new Date()) < 86400000;
+  const moto = [ot.marca, ot.modelo].filter(Boolean).join(' ').toUpperCase();
+  const prio = ot.prioridad ? fmtPrioridad(ot) : '';
 
-  let fechaBadge = '';
-  if (vencida)                  fechaBadge = `<span class="badge-vencida">Vencida</span>`;
-  else if (pronto)              fechaBadge = `<span class="badge-pronto">Vence hoy</span>`;
-  else if (ot.fecha_prometida)  fechaBadge = `<span class="text-muted text-xs">Entrega: ${fmtDate(ot.fecha_prometida)}</span>`;
-
-  const tieneAcciones = ot.estado !== 'entregada' && App.canEdit();
-  const btnAtras  = tieneAcciones && RETROCEDER[ot.estado]
-    ? `<button class="btn btn-secondary btn-sm" onclick="avanzarEstado(event,${ot.id},'${RETROCEDER[ot.estado]}')">${RETROCEDER_LABEL[ot.estado]}</button>`
-    : '';
-  const btnAdelan = tieneAcciones && AVANZAR[ot.estado]
-    ? `<button class="btn btn-primary btn-sm" onclick="avanzarEstado(event,${ot.id},'${AVANZAR[ot.estado]}')">${AVANZAR_LABEL[ot.estado]}</button>`
-    : '';
-
-  const wrapClass = tieneAcciones ? 'ot-card-wrap' : '';
-
-  return `<div class="${wrapClass}">
-    <a href="/ot-detalle?id=${ot.id}" class="ot-card ${vencida ? 'alert-vencida' : ''}">
-      <div class="ot-card-state-bar" style="background:${sColor}"></div>
-      <div class="ot-card-body">
-        <div class="ot-card-numero">${esc(ot.numero)}</div>
-        <div class="ot-card-title">${esc(ot.patente)} — ${esc(ot.marca)} ${esc(ot.modelo)}</div>
-        <div class="ot-card-meta">
-          <span>${esc(ot.cliente_nombre)}</span>
-          ${ot.prioridad ? fmtPrioridad(ot) : ''}
-          <span>${fmtDate(ot.fecha_ingreso)}</span>
-        </div>
+  return `<a href="/ot-detalle?id=${ot.id}" class="ot-card">
+    <div class="ot-card-state-bar" style="background:${sColor}"></div>
+    <div class="ot-card-body">
+      <div class="otrow-1">
+        <span class="ot-card-numero">${esc(ot.numero)}</span>
+        <span class="badge ${ot.estado}">${esc(ESTADO_LABELS[ot.estado] || ot.estado)}</span>
       </div>
-      <div class="ot-card-right">
-        <span class="estado-badge estado-${ot.estado}">${esc(ESTADO_LABELS[ot.estado] || ot.estado)}</span>
-        ${fechaBadge}
+      <div class="otrow-2">
+        <div class="ot-plate">${esc(ot.patente)}</div>
+        ${moto ? `<div class="ot-model">${esc(moto)}</div>` : ''}
       </div>
-    </a>
-    ${tieneAcciones ? `<div class="ot-card-actions">${btnAtras}${btnAdelan}</div>` : ''}
-  </div>`;
+      <div class="otrow-3">
+        <div class="ot-client">${PERSON_SVG}<span class="ot-client-name">${esc(ot.cliente_nombre || '')}</span></div>
+        ${prio}
+      </div>
+      <div class="otrow-4">
+        ${CAL_SVG}<span class="ot-date">Ingreso: ${esc(fmtDate(ot.fecha_ingreso))}</span>
+      </div>
+    </div>
+    <div class="ot-chevron">${CHEVRON_SVG}</div>
+  </a>`;
 }
 
 function renderOrdenes(ordenes) {
   const el = document.getElementById('listaOrdenes');
+
+  const label = document.getElementById('resultsLabel');
+  if (label) {
+    label.textContent = ordenes.length === 1
+      ? '1 orden encontrada'
+      : `${ordenes.length} órdenes encontradas`;
+  }
+
   if (!ordenes.length) {
     el.innerHTML = `<div class="empty-state"><p>Sin resultados</p></div>`;
     return;

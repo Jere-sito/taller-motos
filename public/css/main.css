@@ -658,78 +658,79 @@ tr:hover td { background: var(--bg-subtle); }
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 13px 14px 13px 0;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   overflow: hidden;
   cursor: pointer;
   transition: box-shadow var(--t-fast), transform var(--t-fast);
   text-decoration: none;
   color: var(--text);
+  box-shadow: var(--shadow-sm);
 }
 .ot-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
-.ot-card:active { transform: scale(0.99); }
-.ot-card + .ot-card { margin-top: var(--space-3); }
+.ot-card:active { box-shadow: 0 0 0 2px #EA580C33; }
+.ot-card + .ot-card { margin-top: 9px; }
 
 .ot-card-state-bar {
   width: 3px;
-  border-radius: 0 2px 2px 0;
   align-self: stretch;
   flex-shrink: 0;
-  min-height: 40px;
-  margin-right: 12px;
 }
-.ot-card-body { flex: 1; min-width: 0; }
+.ot-card-body {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 0 12px 12px;
+}
 .ot-card-numero {
   font-size: 11px;
   font-weight: 700;
   color: #94A3B8;
   letter-spacing: 0.4px;
 }
-.ot-card-title {
+
+/* Filas del card de orden (estilo mockup 02-lista-ordenes) */
+.otrow-1 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 8px; }
+.otrow-2 { margin-bottom: 5px; }
+.otrow-3 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 8px; }
+.otrow-4 { display: flex; align-items: center; gap: 5px; }
+
+.ot-plate {
   font-size: 17px;
   font-weight: 800;
+  color: var(--text-1);
   letter-spacing: 2px;
   font-variant-numeric: tabular-nums;
-  margin: 3px 0 4px;
+  line-height: 1.1;
 }
-.ot-card-subtitle {
+.ot-model {
   font-size: 11px;
-  font-weight: 500;
   color: #64748B;
-  margin-bottom: 4px;
+  font-weight: 500;
+  margin-top: 1px;
 }
-.ot-card-meta {
-  font-size: 12px;
-  color: var(--text-2);
+.ot-client {
   display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
   align-items: center;
+  gap: 5px;
+  min-width: 0;
 }
-.ot-card-right {
+.ot-client svg { flex-shrink: 0; }
+.ot-client-name {
+  font-size: 12px;
+  color: #64748B;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ot-date { font-size: 11px; color: #94A3B8; font-weight: 400; }
+.ot-chevron {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
+  align-items: center;
+  padding: 0 12px 0 8px;
+  color: #CBD5E1;
   flex-shrink: 0;
-  padding-right: 2px;
 }
-
-/* Botones de cambio de estado debajo de la card */
-.ot-card-actions {
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  border-top: none;
-  border-radius: 0 0 14px 14px;
-  padding: 8px 14px;
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-bottom: var(--space-3);
-}
-.ot-card-wrap { margin-bottom: 0; }
-.ot-card-wrap > .ot-card { border-radius: 14px 14px 0 0; margin-bottom: 0; }
 
 .alert-vencida { background: #FEF2F2; border-color: #FECACA; }
 
@@ -787,6 +788,41 @@ tr:hover td { background: var(--bg-subtle); }
   border-radius: var(--radius-full);
   font-size: 0.6875rem;
   font-weight: 700;
+}
+
+/* ── Search bar (estilo mockup) ──────────────────────────── */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 0 14px;
+  height: 44px;
+  margin-bottom: 12px;
+  transition: border-color var(--t-fast);
+}
+.search-bar:focus-within { border-color: var(--primary); }
+.search-bar .search-icon { color: #94A3B8; flex-shrink: 0; }
+.search-bar .search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-1);
+  background: transparent;
+  min-width: 0;
+  height: 100%;
+}
+.search-bar .search-input::placeholder { color: #94A3B8; }
+
+.results-label {
+  font-size: 12px;
+  color: #94A3B8;
+  font-weight: 500;
+  margin-bottom: 10px;
 }
 
 /* ── Filtros ─────────────────────────────────────────────── */

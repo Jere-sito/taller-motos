@@ -65,16 +65,21 @@
     <button class="btn btn-primary" id="btnNuevaOT" data-require-role="admin,recepcion">+ Nueva Orden</button>
   </div>
 
+  <div class="search-bar">
+    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input class="search-input" type="search" id="searchQ" placeholder="Buscar patente, cliente, número...">
+  </div>
+
   <div class="chips" id="chipsEstado">
     <button class="chip active" data-estado="">Todas</button>
-    <button class="chip" data-estado="recibida">Ingresadas</button>
+    <button class="chip" data-estado="recibida">Recibidas</button>
     <button class="chip" data-estado="en_reparacion">En reparación</button>
     <button class="chip" data-estado="entregada">Entregadas</button>
   </div>
 
-  <div class="filter-bar">
-    <input type="search" id="searchQ" placeholder="Buscar patente, cliente, número...">
-  </div>
+  <p class="results-label" id="resultsLabel"></p>
 
   <div id="listaOrdenes">
     <div class="empty-state"><div class="empty-icon">🔄</div><p>Cargando...</p></div>
