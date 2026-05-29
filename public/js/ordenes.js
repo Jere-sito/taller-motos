@@ -2,16 +2,16 @@ let filtroEstado = new URLSearchParams(window.location.search).get('estado') || 
 let timerBusqueda;
 
 const PRIORIDAD_LABELS = {
-  en_el_dia:        '🔴 En el día',
-  manana:           '🟠 Mañana',
-  esta_semana:      '🟡 Esta semana',
-  sin_apuro:        '🟢 Sin apuro',
-  fecha_especifica: '📅'
+  en_el_dia:        '<i class="pdot pdot-red"></i> En el día',
+  manana:           '<i class="pdot pdot-orange"></i> Mañana',
+  esta_semana:      '<i class="pdot pdot-yellow"></i> Esta semana',
+  sin_apuro:        '<i class="pdot pdot-green"></i> Sin apuro',
+  fecha_especifica: '<i class="pdot pdot-blue"></i>'
 };
 
 function fmtPrioridad(ot) {
   if (!ot.prioridad) return null;
-  if (ot.prioridad === 'fecha_especifica') return `📅 ${fmtDate(ot.fecha_prometida)}`;
+  if (ot.prioridad === 'fecha_especifica') return `<i class="pdot pdot-blue"></i> ${fmtDate(ot.fecha_prometida)}`;
   return PRIORIDAD_LABELS[ot.prioridad] || ot.prioridad;
 }
 
@@ -54,7 +54,7 @@ async function cargarOrdenes() {
     renderOrdenes(ordenes);
   } catch (e) {
     document.getElementById('listaOrdenes').innerHTML =
-      `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Error al cargar</p></div>`;
+      `<div class="empty-state"><p>Error al cargar</p></div>`;
   }
 }
 
@@ -85,7 +85,7 @@ function renderCard(ot) {
         <div class="ot-card-numero">${esc(ot.numero)}</div>
         <div class="ot-card-title">${esc(ot.patente)} — ${esc(ot.marca)} ${esc(ot.modelo)}</div>
         <div class="ot-card-meta">
-          <span>👤 ${esc(ot.cliente_nombre)}</span>
+          <span>${esc(ot.cliente_nombre)}</span>
           ${ot.prioridad ? `<span>${fmtPrioridad(ot)}</span>` : ''}
           <span>${fmtDate(ot.fecha_ingreso)}</span>
         </div>
@@ -102,7 +102,7 @@ function renderCard(ot) {
 function renderOrdenes(ordenes) {
   const el = document.getElementById('listaOrdenes');
   if (!ordenes.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><p>Sin resultados</p></div>`;
+    el.innerHTML = `<div class="empty-state"><p>Sin resultados</p></div>`;
     return;
   }
 
@@ -135,7 +135,7 @@ function renderOrdenes(ordenes) {
   }
 
   if (!activas.length && !entregadas.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><p>Sin resultados</p></div>`;
+    el.innerHTML = `<div class="empty-state"><p>Sin resultados</p></div>`;
     return;
   }
 

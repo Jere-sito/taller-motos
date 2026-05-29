@@ -47,12 +47,19 @@ const NuevaOT = {
 
   _renderDots(activeStep) {
     const flow = this.motoNueva ? [1,2,3,4] : [1,4];
+    const STEP_LABELS = { 1: 'Patente', 2: 'Moto', 3: 'Titular', 4: 'Ingreso' };
     const pos = flow.indexOf(activeStep);
     const el = document.getElementById('wizardDots');
     if (!el) return;
+    const checkSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
     el.innerHTML = flow.map((s, i) => {
-      const cls = i < pos ? 'wdot done' : i === pos ? 'wdot active' : 'wdot';
-      return `<div class="${cls}"></div>${i < flow.length - 1 ? '<div class="wdot-line"></div>' : ''}`;
+      const done    = i < pos;
+      const current = i === pos;
+      const cls     = done ? 'wstep done' : current ? 'wstep current' : 'wstep';
+      const inner   = done ? checkSvg : (i + 1);
+      const labelCls = current ? 'wstep-label active' : 'wstep-label';
+      const line    = i < flow.length - 1 ? `<div class="wdot-line${done ? ' done' : ''}"></div>` : '';
+      return `<div class="wstep-wrap"><div class="${cls}">${inner}</div><div class="${labelCls}">${STEP_LABELS[s]}</div></div>${line}`;
     }).join('');
   },
 

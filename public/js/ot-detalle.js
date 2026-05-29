@@ -1,20 +1,23 @@
 const otId = Number(new URLSearchParams(window.location.search).get('id'));
+
+const SVG_EDIT = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+const SVG_CLOSE = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 let otActual = null;
 let presupuestoActual = null;
 let pagosActuales = [];
 let editandoItemId = null;
 
 const PRIORIDAD_LABELS = {
-  en_el_dia:        '🔴 En el día',
-  manana:           '🟠 Mañana',
-  esta_semana:      '🟡 Esta semana',
-  sin_apuro:        '🟢 Sin apuro',
-  fecha_especifica: '📅'
+  en_el_dia:        '<i class="pdot pdot-red"></i> En el día',
+  manana:           '<i class="pdot pdot-orange"></i> Mañana',
+  esta_semana:      '<i class="pdot pdot-yellow"></i> Esta semana',
+  sin_apuro:        '<i class="pdot pdot-green"></i> Sin apuro',
+  fecha_especifica: '<i class="pdot pdot-blue"></i>'
 };
 
 function fmtPrioridad(ot) {
   if (!ot.prioridad) return null;
-  if (ot.prioridad === 'fecha_especifica') return `📅 ${fmtDate(ot.fecha_prometida)}`;
+  if (ot.prioridad === 'fecha_especifica') return `<i class="pdot pdot-blue"></i> ${fmtDate(ot.fecha_prometida)}`;
   return PRIORIDAD_LABELS[ot.prioridad] || ot.prioridad;
 }
 
@@ -66,9 +69,9 @@ function renderOT() {
           <div class="text-muted text-xs" style="font-weight:600; letter-spacing:0.04em; margin-bottom:4px">${esc(ot.numero)}</div>
           <h1 class="ot-detalle-title" style="font-size:1.375rem; font-weight:900; letter-spacing:-0.02em; margin-bottom:6px">${esc(ot.patente)} — ${esc(ot.marca)} ${esc(ot.modelo)}</h1>
           <div style="display:flex; gap:12px; flex-wrap:wrap; font-size:0.875rem; color:var(--text-2); align-items:center">
-            <span>👤 ${esc(ot.cliente_nombre)}</span>
-            ${ot.cliente_telefono ? `<a href="${waLink(ot.cliente_telefono)}" target="_blank" style="color:inherit; text-decoration:none">📞 ${esc(ot.cliente_telefono)}</a>` : ''}
-            ${ot.color ? `<span>🎨 ${esc(ot.color)}</span>` : ''}
+            <span>${esc(ot.cliente_nombre)}</span>
+            ${ot.cliente_telefono ? `<a href="${waLink(ot.cliente_telefono)}" target="_blank" style="color:inherit; text-decoration:none">${esc(ot.cliente_telefono)}</a>` : ''}
+            ${ot.color ? `<span>${esc(ot.color)}</span>` : ''}
           </div>
         </div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
@@ -108,7 +111,7 @@ function renderOT() {
         ${puedeAtras  ? `<button class="btn-estado btn-estado-back"    onclick="cambiarEstado('${prevEstado}')">← ${esc(ESTADO_LABELS[prevEstado])}</button>` : `<div style="flex:1"></div>`}
         ${puedeAdelan ? `<button class="btn-estado btn-estado-forward" onclick="cambiarEstado('${nextEstado}')">${esc(ESTADO_LABELS[nextEstado])} →</button>` : `<div style="flex:1"></div>`}
       </div>` : ''}
-      ${vencida ? `<div class="badge-vencida" style="display:inline-flex; align-items:center; gap:4px; margin-top:14px">⚠️ Fecha prometida vencida</div>` : ''}
+      ${vencida ? `<div class="badge-vencida" style="display:inline-flex; align-items:center; gap:4px; margin-top:14px">Fecha prometida vencida</div>` : ''}
     </div>
 
     <!-- Datos del ingreso -->
@@ -117,8 +120,8 @@ function renderOT() {
       <div style="display:flex; flex-direction:column; gap:6px">
         <div class="text-sm text-muted">Ingreso: <strong style="color:var(--text-2)">${fmtDateTime(ot.fecha_ingreso)}</strong></div>
         ${ot.fecha_prometida ? `<div class="text-sm text-muted">Prometida: <strong style="color:var(--text-2)">${fmtDate(ot.fecha_prometida)}</strong></div>` : ''}
-        ${ot.prioridad ? `<div class="text-sm text-muted">⏱ Apuro: <strong style="color:var(--text-2)">${fmtPrioridad(ot)}</strong></div>` : ''}
-        ${ot.cedula ? `<div class="text-sm text-muted">${ot.cedula === 'fisica' ? '🪪' : '📱'} Cédula: <strong style="color:var(--text-2)">${ot.cedula === 'fisica' ? 'Física' : 'Digital'}</strong></div>` : ''}
+        ${ot.prioridad ? `<div class="text-sm text-muted">Apuro: <strong style="color:var(--text-2)">${fmtPrioridad(ot)}</strong></div>` : ''}
+        ${ot.cedula ? `<div class="text-sm text-muted">Cédula: <strong style="color:var(--text-2)">${ot.cedula === 'fisica' ? 'Física' : 'Digital'}</strong></div>` : ''}
       </div>
       <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border)">
         <div class="text-xs text-muted" style="font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px">Problema declarado</div>
@@ -234,10 +237,10 @@ function renderPresupuesto() {
     let btns = '';
     if (canEdit) {
       btns += `<button class="btn btn-secondary btn-sm" id="btnAgregarItem">+ Ítem</button>`;
-      btns += ` <button class="btn btn-secondary btn-sm" id="btnWA">📱 WhatsApp</button>`;
+      btns += ` <button class="btn btn-secondary btn-sm" id="btnWA">WhatsApp</button>`;
     }
     if (otActual.estado === 'entregada') {
-      btns += ` <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ Imprimir</button>`;
+      btns += ` <button class="btn btn-secondary btn-sm" onclick="window.print()">Imprimir</button>`;
     }
     acciones.innerHTML = btns;
     document.getElementById('btnAgregarItem')?.addEventListener('click', abrirModalItem);
@@ -262,8 +265,8 @@ function renderPresupuesto() {
           <span style="font-size:0.875rem; font-weight:600; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${esc(item.descripcion)}</span>
           <span style="font-weight:700; font-size:0.875rem; flex-shrink:0">${fmtMoney(item.cantidad * item.precio_unitario)}</span>
           ${canEdit ? `
-            <button onclick="abrirEditarItem(${item.id})" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--text-muted);font-size:0.875rem;flex-shrink:0;line-height:1">✏️</button>
-            <button onclick="eliminarItem(${pres.id},${item.id})" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:#EF4444;font-size:0.875rem;flex-shrink:0;line-height:1">✕</button>
+            <button onclick="abrirEditarItem(${item.id})" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--text-muted);flex-shrink:0;line-height:1;border-radius:4px" title="Editar">${SVG_EDIT}</button>
+            <button onclick="eliminarItem(${pres.id},${item.id})" style="background:none;border:none;cursor:pointer;padding:4px;color:#EF4444;flex-shrink:0;line-height:1;border-radius:4px" title="Eliminar">${SVG_CLOSE}</button>
           ` : ''}
         </div>
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px">

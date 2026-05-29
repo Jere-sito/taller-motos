@@ -42,11 +42,15 @@ const App = {
     if (document.querySelector('.bottom-nav')) return;
     const path = window.location.pathname;
     const role = this.currentUser?.role;
+    const SVG_HOME   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+    const SVG_ORDERS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+    const SVG_PERSON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+    const SVG_MOTO   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="2.5"/><circle cx="18" cy="17" r="2.5"/><path d="M4.5 17H2v-4l4-6h8l2 5h3.5"/><path d="M11 11V6"/></svg>`;
     const items = [
-      { href: '/',         icon: '📊', label: 'Inicio' },
-      { href: '/ordenes',  icon: '📋', label: 'Órdenes' },
-      { href: '/clientes', icon: '👤', label: 'Clientes' },
-      { href: '/motos',    icon: '🏍️', label: 'Motos' },
+      { href: '/',         icon: SVG_HOME,   label: 'Inicio' },
+      { href: '/ordenes',  icon: SVG_ORDERS, label: 'Órdenes' },
+      { href: '/clientes', icon: SVG_PERSON, label: 'Clientes' },
+      { href: '/motos',    icon: SVG_MOTO,   label: 'Motos' },
     ];
     const nav = document.createElement('nav');
     nav.className = 'bottom-nav';

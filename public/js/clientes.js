@@ -35,12 +35,12 @@ function renderClientes(clientes) {
       <div class="mecanico-card" style="border-radius: var(--radius-md) var(--radius-md) ${c.cant_motos ? '0 0' : 'var(--radius-md) var(--radius-md)'}">
         <div style="flex:1; min-width:0">
           <div style="font-size:1rem; font-weight:700; color:var(--text)">${esc(c.nombre)}</div>
-          ${c.telefono ? `<div class="text-sm text-muted" style="margin-top:2px; white-space:nowrap">📞 ${esc(c.telefono)}</div>` : ''}
-          ${c.email    ? `<div class="text-sm text-muted" style="margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">✉️ ${esc(c.email)}</div>` : ''}
-          ${c.cant_motos ? `<button onclick="toggleMotos(${c.id})" style="margin-top:6px; background:none; border:none; cursor:pointer; padding:0; font-size:0.8125rem; font-weight:600; color:var(--primary)">🏍️ Ver motos (${c.cant_motos})</button>` : ''}
+          ${c.telefono ? `<div class="text-sm text-muted" style="margin-top:2px; white-space:nowrap">Tel: ${esc(c.telefono)}</div>` : ''}
+          ${c.email    ? `<div class="text-sm text-muted" style="margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${esc(c.email)}</div>` : ''}
+          ${c.cant_motos ? `<button onclick="toggleMotos(${c.id})" style="margin-top:6px; background:none; border:none; cursor:pointer; padding:0; font-size:0.8125rem; font-weight:600; color:var(--primary)">Ver motos (${c.cant_motos})</button>` : ''}
         </div>
         <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0; align-items:flex-end">
-          ${wa ? `<a href="${wa}" target="_blank" class="btn btn-sm" style="color:#25D366; border:1px solid #25D366; background:#fff; text-decoration:none">💬 WhatsApp</a>` : ''}
+          ${wa ? `<a href="${wa}" target="_blank" class="btn btn-sm" style="color:#25D366; border:1px solid #25D366; background:#fff; text-decoration:none">WhatsApp</a>` : ''}
           ${canEdit ? `<div style="display:flex; gap:6px">
             <button class="btn btn-secondary btn-sm" onclick="abrirModal(${c.id})">Editar</button>
             <button class="btn btn-sm" style="color:#EF4444; border:1px solid #FCA5A5; background:#fff" onclick="eliminarCliente(${c.id})">✕</button>
