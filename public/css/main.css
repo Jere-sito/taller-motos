@@ -1666,3 +1666,137 @@ tr:hover td { background: var(--bg-subtle); }
   .btn-sm { height: 36px; }
   .modal-footer { padding-top: var(--space-3); }
 }
+
+/* ══ Detalle de orden (estilo mockup 03-ot-detalle) ══════════ */
+.otd { display: flex; flex-direction: column; gap: 12px; }
+
+/* Header */
+.otd-header {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow-sm);
+}
+.otd-header-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.otd-icon-btn {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+  background: var(--bg-subtle);
+  border: none; cursor: pointer;
+  color: var(--text-muted);
+  flex-shrink: 0; text-decoration: none;
+}
+.otd-icon-btn:hover { background: var(--border); }
+.otd-title { font-size: 16px; font-weight: 700; color: var(--text-1); letter-spacing: 0.5px; flex: 1; text-align: center; }
+.otd-meta { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; padding-top: 12px; }
+.badge-estado { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1.5px solid transparent; }
+.badge-estado .dot { width: 6px; height: 6px; border-radius: 50%; }
+.badge-estado.recibida      { background: var(--state-recibida-bg); color: var(--state-recibida-fg); border-color: #BFDBFE; }
+.badge-estado.recibida .dot      { background: var(--state-recibida-fg); }
+.badge-estado.en_reparacion { background: var(--state-en_reparacion-bg); color: var(--state-en_reparacion-fg); border-color: #FDE68A; }
+.badge-estado.en_reparacion .dot { background: var(--state-en_reparacion-fg); }
+.badge-estado.entregada     { background: var(--state-entregada-bg); color: var(--state-entregada-fg); border-color: #A7F3D0; }
+.badge-estado.entregada .dot     { background: var(--state-entregada-fg); }
+.chip-prioridad { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1.5px solid transparent; }
+.chip-prioridad.red    { background: #FEF2F2; color: #DC2626; border-color: #FECACA; }
+.chip-prioridad.orange { background: #FFF7ED; color: #EA580C; border-color: #FDBA74; }
+.chip-prioridad.yellow { background: #FEFCE8; color: #CA8A04; border-color: #FDE68A; }
+.chip-prioridad.green  { background: #F0FDF4; color: #16A34A; border-color: #BBF7D0; }
+.chip-prioridad.blue   { background: #EFF6FF; color: #2563EB; border-color: #BFDBFE; }
+.otd-fecha { width: 100%; text-align: center; font-size: 11.5px; color: var(--text-muted); padding-top: 2px; }
+
+/* Cards del detalle */
+.otd .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-sm); overflow: hidden; padding: 0; margin: 0; }
+.otd .card-body { padding: 16px; }
+.otd .card-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.otd .card-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+
+/* Moto + cliente */
+.otd .moto-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.otd .moto-icon-wrap { width: 44px; height: 44px; background: #FFF7ED; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--primary); }
+.otd .moto-info { flex: 1; min-width: 0; }
+.otd .patente { font-size: 22px; font-weight: 800; color: var(--text-1); letter-spacing: 3px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.otd .moto-modelo { font-size: 13px; color: #64748B; margin-top: 3px; font-weight: 500; }
+.otd .divider { height: 1px; background: var(--border); margin: 14px 0; }
+.otd .cliente-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.otd .cliente-icon { width: 36px; height: 36px; background: var(--bg-subtle); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #64748B; }
+.otd .cliente-nombre { font-size: 15px; font-weight: 700; color: var(--text-1); }
+.otd .cliente-subtag { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.otd .phone-link { display: inline-flex; align-items: center; gap: 7px; color: var(--primary); text-decoration: none; font-size: 14px; font-weight: 600; padding: 8px 0 2px; }
+.otd .btn-whatsapp { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px 16px; border-radius: 10px; background: #22C55E; color: #fff; font-size: 14px; font-weight: 700; border: none; cursor: pointer; margin-top: 12px; }
+
+/* Progreso de estados */
+.otd .steps-container { display: flex; align-items: flex-start; justify-content: space-between; position: relative; padding: 8px 0 4px; margin-bottom: 16px; }
+.otd .steps-line { position: absolute; top: 20px; left: calc(33.33% - 2px); right: calc(33.33% - 2px); height: 2.5px; background: #E2E8F0; z-index: 0; }
+.otd .steps-line.half { background: linear-gradient(to right, var(--primary) 50%, #E2E8F0 50%); }
+.otd .steps-line.full { background: var(--primary); }
+.otd .step-item { display: flex; flex-direction: column; align-items: center; gap: 7px; flex: 1; position: relative; z-index: 1; }
+.otd .step-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; border: none; }
+.otd .step-circle.completed, .otd .step-circle.current { background: var(--primary); color: #fff; }
+.otd .step-circle.pending { background: #fff; border: 2.5px solid #E2E8F0; color: #CBD5E1; }
+.otd .step-label { font-size: 11px; font-weight: 600; text-align: center; line-height: 1.3; color: var(--text-muted); }
+.otd .step-label.active { color: var(--primary); }
+.otd .step-label.done { color: #64748B; }
+.otd .steps-nav { display: flex; gap: 8px; margin-top: 4px; }
+.otd .btn-state-outline { flex: 1; min-height: 48px; padding: 0 10px; border-radius: 10px; border: 2px solid #2563EB; background: #EFF6FF; color: #2563EB; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; }
+.otd .btn-state-filled { flex: 2; min-height: 48px; padding: 0 14px; border-radius: 10px; border: none; background: var(--primary); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+.otd .btn-state-filled:disabled, .otd .btn-state-outline:disabled { opacity: 0.5; cursor: default; }
+
+/* Presupuesto */
+.otd .presupuesto-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 8px; flex-wrap: wrap; }
+.otd .presupuesto-title { font-size: 15px; font-weight: 700; color: var(--text-1); }
+.otd .presupuesto-total { font-size: 20px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+.otd .item-list { display: flex; flex-direction: column; gap: 10px; }
+.otd .item-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.otd .item-left { display: flex; align-items: flex-start; gap: 8px; flex: 1; min-width: 0; }
+.otd .chip-tipo { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+.otd .chip-repuesto { background: #EFF6FF; color: #2563EB; }
+.otd .chip-mo { background: #FFFBEB; color: #D97706; }
+.otd .item-desc { font-size: 13px; color: var(--text-1); font-weight: 500; line-height: 1.4; }
+.otd .item-qty { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.otd .item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+.otd .item-price { font-size: 13.5px; font-weight: 700; color: var(--text-1); white-space: nowrap; font-variant-numeric: tabular-nums; text-align: right; }
+.otd .item-actions { display: flex; gap: 2px; }
+.otd .item-actions button { background: none; border: none; cursor: pointer; padding: 3px; line-height: 1; border-radius: 4px; }
+.otd .total-row { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; margin-top: 2px; border-top: 1.5px solid var(--border); }
+.otd .total-row.descuento { border-top: none; padding-top: 0; margin-top: 8px; }
+.otd .total-label { font-size: 12px; font-weight: 800; color: #64748B; letter-spacing: 1px; text-transform: uppercase; }
+.otd .total-value { font-size: 18px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+.otd .btn-outline-full { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 12px 16px; border-radius: 10px; border: 2px solid var(--border); background: transparent; color: #64748B; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 12px; }
+.otd .btn-wa-green { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 12px 16px; border-radius: 10px; border: none; background: #22C55E; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+
+/* Pagos */
+.otd .pagos-header-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; gap: 8px; }
+.otd .pagos-title { font-size: 15px; font-weight: 700; color: var(--text-1); }
+.otd .pagos-amounts { text-align: right; }
+.otd .pagos-pagado { font-size: 15px; font-weight: 800; color: #059669; font-variant-numeric: tabular-nums; }
+.otd .pagos-total-ref { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.otd .progress-bar-wrap { background: var(--bg-subtle); border-radius: 999px; height: 8px; margin-bottom: 14px; overflow: hidden; }
+.otd .progress-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #EA580C, #F97316); }
+.otd .pago-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.otd .pago-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--bg-subtle); border-radius: 10px; border: 1px solid var(--border); }
+.otd .pago-left { display: flex; align-items: center; gap: 8px; }
+.otd .pago-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.otd .pago-icon.efectivo { background: #DCFCE7; color: #059669; }
+.otd .pago-icon.mp { background: #EFF6FF; color: #2563EB; }
+.otd .pago-icon.otro { background: #F1F5F9; color: #64748B; }
+.otd .pago-metodo { font-size: 13px; font-weight: 600; color: var(--text-1); }
+.otd .pago-fecha { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.otd .pago-monto { font-size: 14px; font-weight: 700; color: var(--text-1); font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
+.otd .pago-del { background: none; border: none; color: #EF4444; cursor: pointer; padding: 2px 4px; font-size: 14px; line-height: 1; }
+.otd .saldo-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #FFF5F5; border-radius: 10px; border: 1px solid #FECACA; margin-bottom: 12px; }
+.otd .saldo-label { font-size: 12px; font-weight: 700; color: #EF4444; text-transform: uppercase; letter-spacing: 0.5px; }
+.otd .saldo-monto { font-size: 16px; font-weight: 800; color: #EF4444; font-variant-numeric: tabular-nums; }
+.otd .pago-completo { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 4px 0 12px; color: #059669; font-weight: 700; font-size: 13px; }
+.otd .btn-outline-naranja { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 13px 16px; border-radius: 10px; border: 2px solid var(--primary); background: #FFF7ED; color: var(--primary); font-size: 14px; font-weight: 700; cursor: pointer; }
+
+/* Problema + notas */
+.otd .problema-title { font-size: 15px; font-weight: 700; color: var(--text-1); margin-bottom: 10px; }
+.otd .problema-text { font-size: 14px; color: #334155; line-height: 1.65; white-space: pre-line; }
+.otd .notas-block { background: var(--bg-subtle); border-radius: 10px; padding: 12px; margin-top: 12px; }
+.otd .notas-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+.otd .notas-text { font-size: 13px; color: #64748B; line-height: 1.6; font-style: italic; }
+.otd .otd-extra { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
+.otd .otd-extra strong { color: var(--text-2); font-weight: 600; }
