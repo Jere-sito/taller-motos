@@ -1800,3 +1800,67 @@ tr:hover td { background: var(--bg-subtle); }
 .otd .notas-text { font-size: 13px; color: #64748B; line-height: 1.6; font-style: italic; }
 .otd .otd-extra { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
 .otd .otd-extra strong { color: var(--text-2); font-weight: 600; }
+
+/* ══ Clientes (estilo mockup 05-clientes) ══════════════════ */
+.stat-chip { font-size: 12px; font-weight: 500; color: var(--text-muted); padding-left: 2px; margin: 8px 0 4px; }
+
+#listaClientes { display: flex; flex-direction: column; gap: 10px; }
+#listaClientes .client-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 14px 14px 12px; box-shadow: var(--shadow-sm); }
+#listaClientes .card-row-1 { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+#listaClientes .client-avatar { width: 38px; height: 38px; border-radius: 50%; background: #FFF7ED; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--primary); flex-shrink: 0; }
+#listaClientes .client-name { flex: 1; font-size: 15px; font-weight: 700; color: var(--text-1); letter-spacing: -0.2px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#listaClientes .moto-chip { font-size: 11px; font-weight: 600; color: #2563EB; background: #EFF6FF; border-radius: 20px; padding: 3px 9px; white-space: nowrap; flex-shrink: 0; }
+#listaClientes .moto-chip.gray { color: #94A3B8; background: #F1F5F9; }
+#listaClientes .cli-actions { display: flex; gap: 2px; flex-shrink: 0; }
+#listaClientes .cli-actions button { background: none; border: none; cursor: pointer; padding: 4px; border-radius: 6px; line-height: 1; display: flex; }
+#listaClientes .card-contact { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+#listaClientes .contact-row { display: flex; align-items: center; gap: 7px; text-decoration: none; }
+#listaClientes .contact-icon { color: #94A3B8; flex-shrink: 0; }
+#listaClientes .contact-text { font-size: 13px; font-weight: 400; color: #64748B; }
+#listaClientes .contact-text.email { font-size: 12px; }
+#listaClientes .toggle-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; color: #2563EB; padding: 0; line-height: 1; }
+#listaClientes .toggle-btn svg { color: #2563EB; }
+#listaClientes .moto-expand { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+#listaClientes .moto-row { display: flex; align-items: center; gap: 9px; padding: 8px 10px; background: var(--bg-subtle); border-radius: 10px; text-decoration: none; }
+#listaClientes .moto-row .moto-icon { color: var(--primary); flex-shrink: 0; }
+#listaClientes .moto-info { flex: 1; min-width: 0; }
+#listaClientes .moto-patente { font-size: 13px; font-weight: 700; color: var(--text-1); display: block; letter-spacing: 1px; }
+#listaClientes .moto-modelo { font-size: 11px; font-weight: 400; color: #94A3B8; display: block; margin-top: 1px; }
+#listaClientes .ot-chip { font-size: 11px; font-weight: 600; color: #64748B; background: var(--border); border-radius: 20px; padding: 3px 8px; white-space: nowrap; flex-shrink: 0; }
+
+/* ══ Wizard Nueva OT (estilo mockup 04-wizard) ═════════════ */
+#modalNuevaOT .wizard-steps { display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+#modalNuevaOT .step-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+#modalNuevaOT .step-circle.done { background: var(--primary); color: #fff; }
+#modalNuevaOT .step-circle.active { background: var(--primary); color: #fff; box-shadow: 0 0 0 4px rgba(234,88,12,0.18); }
+#modalNuevaOT .step-circle.pending { background: var(--bg-subtle); color: #94A3B8; }
+#modalNuevaOT .step-line { flex: 1; height: 3px; background: var(--border); margin: 0 2px; }
+#modalNuevaOT .step-line.done { background: var(--primary); }
+#modalNuevaOT .wizard-labels { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; }
+#modalNuevaOT .wizard-label { font-size: 10px; font-weight: 500; color: #94A3B8; text-align: center; width: 50px; }
+#modalNuevaOT .wizard-label.active { color: var(--primary); font-weight: 600; }
+#modalNuevaOT .wizard-label.done { color: var(--primary); }
+#modalNuevaOT .wizard-label-spacer { flex: 1; }
+
+#modalNuevaOT .summary-card { background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin-bottom: 4px; }
+#modalNuevaOT .summary-row { display: flex; align-items: center; gap: 6px; }
+#modalNuevaOT .summary-row + .summary-row { margin-top: 4px; }
+#modalNuevaOT .summary-card svg { color: var(--primary); flex-shrink: 0; }
+#modalNuevaOT .summary-text { font-size: 12px; font-weight: 600; color: var(--text-1); }
+#modalNuevaOT .summary-sep { font-size: 12px; color: #94A3B8; font-weight: 400; }
+
+#modalNuevaOT .wz-section-title { font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 2px; display: block; }
+
+#modalNuevaOT .urgency-list { display: flex; flex-direction: column; gap: 8px; }
+#modalNuevaOT .urgency-btn { display: flex; align-items: center; min-height: 52px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--bg-subtle); padding: 0 14px; gap: 12px; cursor: pointer; }
+#modalNuevaOT .urgency-btn.selected { background: #FFF7ED; border-color: var(--primary); border-left-width: 4px; padding-left: 12px; }
+#modalNuevaOT .urgency-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+#modalNuevaOT .urgency-label { flex: 1; font-size: 14px; font-weight: 500; color: var(--text-1); }
+#modalNuevaOT .urgency-btn.selected .urgency-label { font-weight: 600; color: var(--primary); }
+#modalNuevaOT .urgency-check { color: var(--primary); flex-shrink: 0; display: none; }
+#modalNuevaOT .urgency-btn.selected .urgency-check { display: block; }
+#modalNuevaOT .urgency-icon { color: #94A3B8; flex-shrink: 0; }
+
+#modalNuevaOT .cedula-row { display: flex; gap: 10px; }
+#modalNuevaOT .cedula-btn { flex: 1; min-height: 52px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--bg-subtle); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500; color: #64748B; }
+#modalNuevaOT .cedula-btn.selected { background: #FFF7ED; border-color: var(--primary); color: var(--primary); font-weight: 600; }

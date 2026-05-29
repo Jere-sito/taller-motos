@@ -98,6 +98,7 @@
     </div>
 
     <div class="wizard-steps" id="wizardDots"></div>
+    <div class="summary-card hidden" id="wizardResumen"></div>
 
     <!-- Paso 1: Patente -->
     <div id="wizardStep1" class="wizard-panel">
@@ -189,22 +190,37 @@
         <textarea id="otObservaciones" class="textarea-list" placeholder="Notas que el cliente no verá..." style="min-height:64px"></textarea>
       </div>
       <div class="form-group">
-        <label class="form-label required">Urgencia / Fecha prometida</label>
-        <div class="cedula-opciones" style="flex-wrap:wrap; gap:8px">
-          <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
-            <input type="radio" name="otPrioridad" value="en_el_dia"><span><i class="pdot pdot-red"></i> En el día</span>
+        <span class="wz-section-title">Urgencia / Fecha prometida</span>
+        <div class="urgency-list">
+          <label class="urgency-btn">
+            <input type="radio" name="otPrioridad" value="en_el_dia" hidden>
+            <span class="urgency-dot" style="background:#EF4444"></span>
+            <span class="urgency-label">En el día</span>
+            <svg class="urgency-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </label>
-          <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
-            <input type="radio" name="otPrioridad" value="manana"><span><i class="pdot pdot-orange"></i> Mañana</span>
+          <label class="urgency-btn">
+            <input type="radio" name="otPrioridad" value="manana" hidden>
+            <span class="urgency-dot" style="background:#F97316"></span>
+            <span class="urgency-label">Mañana</span>
+            <svg class="urgency-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </label>
-          <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
-            <input type="radio" name="otPrioridad" value="esta_semana"><span><i class="pdot pdot-yellow"></i> Esta semana</span>
+          <label class="urgency-btn">
+            <input type="radio" name="otPrioridad" value="esta_semana" hidden>
+            <span class="urgency-dot" style="background:#EAB308"></span>
+            <span class="urgency-label">Esta semana</span>
+            <svg class="urgency-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </label>
-          <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
-            <input type="radio" name="otPrioridad" value="sin_apuro"><span><i class="pdot pdot-green"></i> Sin apuro</span>
+          <label class="urgency-btn">
+            <input type="radio" name="otPrioridad" value="sin_apuro" hidden>
+            <span class="urgency-dot" style="background:#22C55E"></span>
+            <span class="urgency-label">Sin apuro</span>
+            <svg class="urgency-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </label>
-          <label class="cedula-opcion" style="min-width:calc(50% - 4px)">
-            <input type="radio" name="otPrioridad" value="fecha_especifica"><span><i class="pdot pdot-blue"></i> Fecha específica</span>
+          <label class="urgency-btn">
+            <input type="radio" name="otPrioridad" value="fecha_especifica" hidden>
+            <span class="urgency-dot" style="background:#3B82F6"></span>
+            <span class="urgency-label">Fecha específica</span>
+            <svg class="urgency-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           </label>
         </div>
         <div id="grupoPrioridadFecha" class="hidden" style="margin-top:10px">
@@ -222,15 +238,17 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label required">Cédula presentada</label>
-        <div class="cedula-opciones">
-          <label class="cedula-opcion" id="labelCedulaFisica">
-            <input type="radio" name="otCedula" value="fisica" id="radioCedulaFisica">
-            <span>Física</span>
+        <span class="wz-section-title">Cédula presentada</span>
+        <div class="cedula-row">
+          <label class="cedula-btn" id="labelCedulaFisica">
+            <input type="radio" name="otCedula" value="fisica" id="radioCedulaFisica" hidden>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/><line x1="14" y1="15" x2="18" y2="15"/></svg>
+            Física
           </label>
-          <label class="cedula-opcion" id="labelCedulaDigital">
-            <input type="radio" name="otCedula" value="digital" id="radioCedulaDigital">
-            <span>Digital</span>
+          <label class="cedula-btn" id="labelCedulaDigital">
+            <input type="radio" name="otCedula" value="digital" id="radioCedulaDigital" hidden>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><circle cx="12" cy="18" r="1"/></svg>
+            Digital
           </label>
         </div>
       </div>

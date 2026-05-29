@@ -7,6 +7,9 @@ const NuevaOT = {
     this.motoId = null;
     this.clienteId = null;
     this.motoNueva = false;
+    this._motoLabel = '';
+    this._clienteLabel = '';
+    document.querySelectorAll('#modalNuevaOT .urgency-btn, #modalNuevaOT .cedula-btn').forEach(b => b.classList.remove('selected'));
     ['inputPatente','newMotoMarca','newMotoModelo','newMotoColor',
      'searchCliente','ncNombre','ncTelefono','otProblema','otObservaciones',
      'otFechaIngreso','otHoraIngreso']
@@ -43,6 +46,12 @@ const NuevaOT = {
     };
     document.getElementById('wizardTitle').textContent = titles[step] || 'Nueva Orden';
     this._renderDots(step);
+
+    const resumen = document.getElementById('wizardResumen');
+    if (resumen) {
+      if (step === 4) { this._renderResumen(); resumen.classList.remove('hidden'); }
+      else resumen.classList.add('hidden');
+    }
   },
 
   _renderDots(activeStep) {
@@ -51,16 +60,44 @@ const NuevaOT = {
     const pos = flow.indexOf(activeStep);
     const el = document.getElementById('wizardDots');
     if (!el) return;
-    const checkSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-    el.innerHTML = flow.map((s, i) => {
+    const checkSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+    const circles = flow.map((s, i) => {
       const done    = i < pos;
       const current = i === pos;
-      const cls     = done ? 'wstep done' : current ? 'wstep current' : 'wstep';
+      const cls     = done ? 'done' : current ? 'active' : 'pending';
       const inner   = done ? checkSvg : (i + 1);
-      const labelCls = current ? 'wstep-label active' : 'wstep-label';
-      const line    = i < flow.length - 1 ? `<div class="wdot-line${done ? ' done' : ''}"></div>` : '';
-      return `<div class="wstep-wrap"><div class="${cls}">${inner}</div><div class="${labelCls}">${STEP_LABELS[s]}</div></div>${line}`;
+      const line    = i < flow.length - 1 ? `<div class="step-line${i < pos ? ' done' : ''}"></div>` : '';
+      return `<div class="step-circle ${cls}">${inner}</div>${line}`;
     }).join('');
+
+    const labels = flow.map((s, i) => {
+      const done    = i < pos;
+      const current = i === pos;
+      const cls     = done ? 'wizard-label done' : current ? 'wizard-label active' : 'wizard-label';
+      const sep     = i < flow.length - 1 ? `<span class="wizard-label-spacer"></span>` : '';
+      return `<span class="${cls}">${STEP_LABELS[s]}</span>${sep}`;
+    }).join('');
+
+    el.innerHTML = `<div class="wizard-steps">${circles}</div><div class="wizard-labels">${labels}</div>`;
+  },
+
+  _renderResumen() {
+    const el = document.getElementById('wizardResumen');
+    if (!el) return;
+    const patente = (document.getElementById('inputPatente')?.value || '').toUpperCase().trim();
+    let moto = this._motoLabel || '';
+    if (this.motoNueva) {
+      moto = [document.getElementById('newMotoMarca')?.value, document.getElementById('newMotoModelo')?.value]
+        .filter(v => v && v.trim()).join(' ').toUpperCase();
+    }
+    const cliente = this._clienteLabel || (document.getElementById('searchCliente')?.value || '').trim();
+    const MOTO_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3"/><circle cx="18.5" cy="17.5" r="3"/><path d="M8.5 17.5h7M15 6h-4l-2.5 5.5H2"/><path d="M15 6l3.5 5.5"/><path d="M10 6l-1 5.5"/></svg>`;
+    const PERSON_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+    el.innerHTML = `
+      <div class="summary-row">${MOTO_SVG}<span class="summary-text">${esc(patente || '—')}</span>${moto ? `<span class="summary-sep">—</span><span class="summary-text">${esc(moto)}</span>` : ''}</div>
+      ${cliente ? `<div class="summary-row">${PERSON_SVG}<span class="summary-text">${esc(cliente)}</span></div>` : ''}
+    `;
   },
 
   async buscarPatente(patente) {
@@ -72,6 +109,8 @@ const NuevaOT = {
       this.motoId = moto.id;
       this.clienteId = moto.cliente_id;
       this.motoNueva = false;
+      this._motoLabel = `${moto.marca || ''} ${moto.modelo || ''}`.trim();
+      this._clienteLabel = moto.cliente_nombre || '';
       document.getElementById('motoEncontrada').classList.remove('hidden');
       document.getElementById('motoNuevaAlert').classList.add('hidden');
       document.getElementById('motoEncontradaTitle').textContent = `${moto.patente} — ${moto.marca} ${moto.modelo}`.trim();
@@ -237,6 +276,7 @@ const NuevaOT = {
 
   seleccionarCliente(id, nombre) {
     this.clienteId = id;
+    this._clienteLabel = nombre;
     document.getElementById('searchCliente').value = nombre;
     document.getElementById('clienteResults').classList.add('hidden');
     document.getElementById('clienteSeleccionado').classList.remove('hidden');
@@ -339,9 +379,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (grupo) grupo.classList.toggle('hidden', !e.target.checked);
   });
 
-  // Mostrar/ocultar date picker según prioridad seleccionada
+  // Mostrar/ocultar date picker según prioridad seleccionada + marcar selección
   document.querySelectorAll('input[name="otPrioridad"]').forEach(r => {
     r.addEventListener('change', () => {
+      document.querySelectorAll('#modalNuevaOT .urgency-btn').forEach(b => b.classList.remove('selected'));
+      r.closest('.urgency-btn')?.classList.add('selected');
       const grupo = document.getElementById('grupoPrioridadFecha');
       if (r.value === 'fecha_especifica') {
         grupo.classList.remove('hidden');
@@ -349,6 +391,14 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         grupo.classList.add('hidden');
       }
+    });
+  });
+
+  // Marcar selección de cédula
+  document.querySelectorAll('input[name="otCedula"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.querySelectorAll('#modalNuevaOT .cedula-btn').forEach(b => b.classList.remove('selected'));
+      r.closest('.cedula-btn')?.classList.add('selected');
     });
   });
 });
