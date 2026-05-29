@@ -1,18 +1,20 @@
 let filtroEstado = new URLSearchParams(window.location.search).get('estado') || '';
 let timerBusqueda;
 
-const PRIORIDAD_LABELS = {
-  en_el_dia:        '<i class="pdot pdot-red"></i> En el día',
-  manana:           '<i class="pdot pdot-orange"></i> Mañana',
-  esta_semana:      '<i class="pdot pdot-yellow"></i> Esta semana',
-  sin_apuro:        '<i class="pdot pdot-green"></i> Sin apuro',
-  fecha_especifica: '<i class="pdot pdot-blue"></i>'
+const PRIORIDAD_CHIP = {
+  en_el_dia:        `<span class="priority-chip urgente">En el día</span>`,
+  manana:           `<span class="priority-chip manana">Mañana</span>`,
+  esta_semana:      `<span class="priority-chip semana">Esta semana</span>`,
+  sin_apuro:        `<span class="priority-chip sin_apuro">Sin apuro</span>`,
+  fecha_especifica: `<span class="priority-chip fecha">FECHA</span>`
 };
 
 function fmtPrioridad(ot) {
-  if (!ot.prioridad) return null;
-  if (ot.prioridad === 'fecha_especifica') return `<i class="pdot pdot-blue"></i> ${fmtDate(ot.fecha_prometida)}`;
-  return PRIORIDAD_LABELS[ot.prioridad] || ot.prioridad;
+  if (!ot.prioridad) return '';
+  if (ot.prioridad === 'fecha_especifica') {
+    return `<span class="priority-chip fecha">${fmtDate(ot.fecha_prometida)}</span>`;
+  }
+  return PRIORIDAD_CHIP[ot.prioridad] || '';
 }
 
 const ESTADO_LABELS = {
@@ -86,7 +88,7 @@ function renderCard(ot) {
         <div class="ot-card-title">${esc(ot.patente)} — ${esc(ot.marca)} ${esc(ot.modelo)}</div>
         <div class="ot-card-meta">
           <span>${esc(ot.cliente_nombre)}</span>
-          ${ot.prioridad ? `<span>${fmtPrioridad(ot)}</span>` : ''}
+          ${ot.prioridad ? fmtPrioridad(ot) : ''}
           <span>${fmtDate(ot.fecha_ingreso)}</span>
         </div>
       </div>

@@ -8,6 +8,7 @@ const App = {
       this.currentUser = { userId: 1, username: 'dev', displayName: 'Desarrollo', role: 'admin', mecanico_id: null };
     }
     this._renderUserMenu();
+    this._renderSidebarUser();
     this._highlightNav();
     this._injectBottomNav();
     if (typeof onAppReady === 'function') onAppReady();
@@ -29,6 +30,21 @@ const App = {
       const roles = el.dataset.requireRole.split(',');
       if (!roles.includes(this.currentUser.role)) el.style.display = 'none';
     });
+  },
+
+  _renderSidebarUser() {
+    const u = this.currentUser;
+    if (!u) return;
+    const initials = (u.displayName || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const avatarEl = document.getElementById('sidebarAvatar');
+    const nameEl   = document.getElementById('sidebarUserName');
+    const roleEl   = document.getElementById('sidebarUserRole');
+    if (avatarEl) avatarEl.textContent = initials;
+    if (nameEl)   nameEl.textContent = u.displayName || '';
+    if (roleEl) {
+      const labels = { admin: 'Admin', mecanico: 'Mecánico', recepcion: 'Recepción' };
+      roleEl.textContent = labels[u.role] || u.role || '';
+    }
   },
 
   _highlightNav() {
