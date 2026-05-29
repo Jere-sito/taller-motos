@@ -1,7 +1,7 @@
 const ESTADO_LABELS = {
-  recibida:      'Ingresadas',
+  recibida:      'Recibida',
   en_reparacion: 'En reparación',
-  entregada:     'Entregadas'
+  entregada:     'Entregada'
 };
 
 async function onAppReady() {
@@ -17,6 +17,66 @@ async function cargarDashboard() {
   } catch (e) {
     console.error(e);
   }
+  cargarRecientes();
+}
+
+const PRIORIDAD_BADGE = {
+  en_el_dia:   { cls: 'red',        label: 'EN EL DÍA' },
+  manana:      { cls: 'amber-warn', label: 'MAÑANA' },
+  esta_semana: { cls: 'amber-warn', label: 'ESTA SEMANA' }
+};
+
+function badgePrioridad(ot) {
+  if (!ot.prioridad) return '';
+  if (ot.prioridad === 'fecha_especifica') {
+    return ot.fecha_prometida ? `<span class="badge red">${esc(fmtDate(ot.fecha_prometida))}</span>` : '';
+  }
+  const b = PRIORIDAD_BADGE[ot.prioridad];
+  return b ? `<span class="badge ${b.cls}">${b.label}</span>` : '';
+}
+
+const PERSON_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+const CHEVRON_SVG = `<svg class="chevron-right" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+
+async function cargarRecientes() {
+  const container = document.getElementById('dashRecientes');
+  if (!container) return;
+  try {
+    const ordenes = await API.get('/api/ordenes');
+    const recientes = ordenes.slice(0, 8);
+    if (!recientes.length) {
+      container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted); font-size:0.875rem">Sin órdenes registradas</div>`;
+      return;
+    }
+    container.innerHTML = recientes.map(renderReciente).join('');
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted); font-size:0.875rem">Error al cargar</div>`;
+  }
+}
+
+function renderReciente(ot) {
+  const est = ot.estado;
+  const moto = [ot.marca, ot.modelo].filter(Boolean).join(' ').toUpperCase();
+  return `<a href="/ot-detalle?id=${ot.id}" class="order-card">
+    <div class="order-left-bar ${est}"></div>
+    <div class="order-info">
+      <div class="order-top-row">
+        <span class="order-number">${esc(ot.numero)}</span>
+        <span class="order-plate">${esc(ot.patente)}</span>
+        ${badgePrioridad(ot)}
+      </div>
+      ${moto ? `<div class="order-model">${esc(moto)}</div>` : ''}
+      <div class="order-bottom-row">
+        ${PERSON_SVG}
+        <span class="order-client">${esc(ot.cliente_nombre || '')}</span>
+      </div>
+    </div>
+    <div class="order-right">
+      <span class="badge ${est}">${esc(ESTADO_LABELS[est] || est)}</span>
+      ${CHEVRON_SVG}
+    </div>
+  </a>`;
 }
 
 function renderEstados(porEstado) {
