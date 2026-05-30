@@ -620,6 +620,19 @@ tr:hover td { background: var(--bg-subtle); }
 }
 .modal-box.modal-lg { max-width: 720px; }
 
+/* ── Fix scroll SOLO del modal Nueva Orden (#modalNuevaOT) ──
+   El overlay no scrollea; la caja tiene altura máxima acotada a la
+   pantalla y su propio scroll interno suave. overscroll-behavior:contain
+   evita que el scroll se propague al fondo. */
+#modalNuevaOT { overflow: hidden; overscroll-behavior: contain; }
+#modalNuevaOT .modal-box {
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -1633,6 +1646,11 @@ tr:hover td { background: var(--bg-subtle); }
     margin: 0 auto 20px;
   }
   .modal-box.modal-lg { max-width: 100%; }
+
+  /* Sheet móvil del modal Nueva Orden: casi alto completo + scroll interno */
+  #modalNuevaOT .modal-box {
+    max-height: calc(100dvh - 20px);
+  }
 
   /* Tablas */
   th { font-size: 0.6875rem; padding: 8px 10px; }
