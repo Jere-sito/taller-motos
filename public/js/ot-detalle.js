@@ -251,7 +251,13 @@ function renderPresupuesto() {
   const descMonto = (subtotal * (pres?.descuento || 0)) / 100;
   const total     = subtotal - descMonto;
 
-  const itemsHTML = items.map(item => {
+  // Agrupar siempre: primero repuestos, después mano de obra (solo visual)
+  const repuestos = items.filter(i => i.tipo !== 'mano_obra');
+  const manoObra  = items.filter(i => i.tipo === 'mano_obra');
+  const subRep = repuestos.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
+  const subMO  = manoObra.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
+
+  function renderItemRow(item) {
     const esMO    = item.tipo === 'mano_obra';
     const tipoCls = esMO ? 'chip-mo' : 'chip-repuesto';
     const tipoLbl = esMO ? 'M. Obra' : 'Repuesto';
@@ -273,14 +279,29 @@ function renderPresupuesto() {
           </div>` : ''}
         </div>
       </div>`;
-  }).join('');
+  }
+
+  function renderGrupo(titulo, lista, subtotalGrupo) {
+    if (!lista.length) return '';
+    return `
+      <div class="presup-grupo">
+        ${lista.map(renderItemRow).join('')}
+        <div class="subtotal-row">
+          <span class="subtotal-label">Subtotal ${titulo}</span>
+          <span class="subtotal-val">${fmtMoney(subtotalGrupo)}</span>
+        </div>
+      </div>`;
+  }
 
   contenido.innerHTML = `
     <div class="presupuesto-header">
       <span class="presupuesto-title">Presupuesto</span>
     </div>
     ${items.length ? `
-      <div class="item-list">${itemsHTML}</div>
+      <div class="item-list">
+        ${renderGrupo('repuestos', repuestos, subRep)}
+        ${renderGrupo('mano de obra', manoObra, subMO)}
+      </div>
       ${pres.descuento > 0 ? `<div class="total-row descuento"><span class="total-label">Descuento (${pres.descuento}%)</span><span class="total-value" style="font-size:14px">-${fmtMoney(descMonto)}</span></div>` : ''}
       <div class="total-row"><span class="total-label">Total</span><span class="total-value">${fmtMoney(total)}</span></div>
     ` : `<div class="text-muted text-sm" style="padding:2px 0 8px">Sin ítems aún.${canEdit ? ' Usá el botón para agregar.' : ''}</div>`}
