@@ -278,7 +278,6 @@ function renderPresupuesto() {
   contenido.innerHTML = `
     <div class="presupuesto-header">
       <span class="presupuesto-title">Presupuesto</span>
-      <span class="presupuesto-total">${fmtMoney(total)}</span>
     </div>
     ${items.length ? `
       <div class="item-list">${itemsHTML}</div>
