@@ -286,12 +286,10 @@ function renderPresupuesto() {
       <div class="total-row"><span class="total-label">Total</span><span class="total-value">${fmtMoney(total)}</span></div>
     ` : `<div class="text-muted text-sm" style="padding:2px 0 8px">Sin ítems aún.${canEdit ? ' Usá el botón para agregar.' : ''}</div>`}
     ${canEdit ? `<button class="btn-outline-full" id="btnAgregarItem">${PLUS_SVG}Agregar ítem</button>` : ''}
-    ${items.length ? `<button class="btn-wa-green" id="btnWA">${WA_SVG}Compartir por WhatsApp</button>` : ''}
     ${otActual.estado === 'entregada' ? `<button class="btn-outline-full" onclick="window.print()" style="margin-top:8px">Imprimir</button>` : ''}
   `;
 
   document.getElementById('btnAgregarItem')?.addEventListener('click', abrirModalItem);
-  document.getElementById('btnWA')?.addEventListener('click', compartirWhatsApp);
 }
 
 async function eliminarItem(presId, itemId) {
