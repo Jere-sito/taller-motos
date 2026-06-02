@@ -87,19 +87,34 @@ async function cargarOrdenes() {
 
 function renderCard(ot) {
   const sColor = getComputedStyle(document.documentElement).getPropertyValue(`--state-${ot.estado}`).trim();
-  const moto = [ot.marca, ot.modelo].filter(Boolean).join(' ').toUpperCase();
   const prio = ot.prioridad ? fmtPrioridad(ot) : '';
+  const esRep = ot.tipo === 'repuesto';
+
+  // Chip de tipo (distingue de un vistazo, sin leer el contenido)
+  const tipoChip = esRep
+    ? `<span class="ot-tipo-chip repuesto">Repuesto</span>`
+    : `<span class="ot-tipo-chip moto">Moto</span>`;
+
+  // Línea de identidad: patente+modelo (moto) o detalle truncado (repuesto)
+  let identidad;
+  if (esRep) {
+    identidad = `<div class="ot-detalle">${esc(ot.detalle_repuesto || '—')}</div>`;
+  } else {
+    const moto = [ot.marca, ot.modelo].filter(Boolean).join(' ').toUpperCase();
+    identidad = `<div class="ot-plate">${esc(ot.patente || '')}</div>
+        ${moto ? `<div class="ot-model">${esc(moto)}</div>` : ''}`;
+  }
 
   return `<a href="/ot-detalle?id=${ot.id}" class="ot-card">
     <div class="ot-card-state-bar" style="background:${sColor}"></div>
     <div class="ot-card-body">
       <div class="otrow-1">
         <span class="ot-card-numero">${esc(ot.numero)}</span>
+        ${tipoChip}
         <span class="badge ${ot.estado}">${esc(ESTADO_LABELS[ot.estado] || ot.estado)}</span>
       </div>
       <div class="otrow-2">
-        <div class="ot-plate">${esc(ot.patente)}</div>
-        ${moto ? `<div class="ot-model">${esc(moto)}</div>` : ''}
+        ${identidad}
       </div>
       <div class="otrow-3">
         <div class="ot-client">${PERSON_SVG}<span class="ot-client-name">${esc(ot.cliente_nombre || '')}</span></div>

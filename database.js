@@ -208,6 +208,90 @@ function initSchema() {
     }
   } catch (_) {}
 
+  // ── Migración: órdenes tipo moto/repuesto + moto_id nullable ──────────────
+  // Columnas nuevas (idempotente). En filas existentes: tipo='moto'.
+  try { db.exec(`ALTER TABLE ordenes_trabajo ADD COLUMN tipo TEXT DEFAULT 'moto'`); } catch (_) {}
+  try { db.exec(`ALTER TABLE ordenes_trabajo ADD COLUMN detalle_repuesto TEXT DEFAULT ''`); } catch (_) {}
+  try { db.exec(`ALTER TABLE ordenes_trabajo ADD COLUMN cliente_id INTEGER`); } catch (_) {}
+
+  // Rebuild SOLO si moto_id todavía es NOT NULL (idempotente: si ya es nullable, no se repite)
+  try {
+    const motoCol = db.prepare("PRAGMA table_info(ordenes_trabajo)").all().find(c => c.name === 'moto_id');
+    if (motoCol && motoCol.notnull === 1) {
+      // (1) Backup del .db — checkpoint del WAL para consolidar antes de copiar
+      try { db.exec('PRAGMA wal_checkpoint(TRUNCATE)'); } catch (_) {}
+      const backup = `${DB_PATH}.bak-${Date.now()}`;
+      fs.copyFileSync(DB_PATH, backup);
+      console.log('[migración OT] backup creado:', backup);
+
+      // (2) Rebuild atómico (transacción), con FK desactivadas (toggle fuera de la txn)
+      db.exec('PRAGMA foreign_keys = OFF');
+      db.exec('BEGIN');
+      try {
+        db.exec('DROP TABLE IF EXISTS ordenes_trabajo_v3');
+        db.exec(`
+          CREATE TABLE ordenes_trabajo_v3 (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            numero TEXT NOT NULL UNIQUE,
+            moto_id INTEGER,
+            mecanico_id INTEGER,
+            estado TEXT DEFAULT 'recibida' CHECK(estado IN ('recibida','en_reparacion','entregada')),
+            fecha_ingreso TEXT DEFAULT (datetime('now')),
+            km_ingreso INTEGER DEFAULT 0,
+            problema_declarado TEXT DEFAULT '',
+            observaciones_internas TEXT DEFAULT '',
+            fecha_prometida TEXT,
+            fecha_entrega_real TEXT,
+            cedula TEXT,
+            prioridad TEXT,
+            tipo TEXT DEFAULT 'moto',
+            detalle_repuesto TEXT DEFAULT '',
+            cliente_id INTEGER,
+            created_by INTEGER,
+            updated_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (moto_id) REFERENCES motos(id) ON DELETE RESTRICT,
+            FOREIGN KEY (mecanico_id) REFERENCES mecanicos(id) ON DELETE SET NULL,
+            FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE SET NULL,
+            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+          )
+        `);
+        db.exec(`
+          INSERT INTO ordenes_trabajo_v3
+            (id, numero, moto_id, mecanico_id, estado, fecha_ingreso, km_ingreso,
+             problema_declarado, observaciones_internas, fecha_prometida, fecha_entrega_real,
+             cedula, prioridad, tipo, detalle_repuesto, cliente_id, created_by, updated_at)
+          SELECT
+             id, numero, moto_id, mecanico_id, estado, fecha_ingreso, km_ingreso,
+             problema_declarado, observaciones_internas, fecha_prometida, fecha_entrega_real,
+             cedula, prioridad,
+             COALESCE(tipo, 'moto'), COALESCE(detalle_repuesto, ''), cliente_id, created_by, updated_at
+          FROM ordenes_trabajo
+        `);
+        db.exec('DROP TABLE ordenes_trabajo');
+        db.exec('ALTER TABLE ordenes_trabajo_v3 RENAME TO ordenes_trabajo');
+        // (3) recrear los índices de usuario de la tabla (idempotente)
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_ot_moto ON ordenes_trabajo(moto_id)`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_ot_mecanico ON ordenes_trabajo(mecanico_id)`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_ot_estado ON ordenes_trabajo(estado)`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_ot_fecha_prometida ON ordenes_trabajo(fecha_prometida)`);
+        db.exec('COMMIT');
+        console.log('[migración OT] ordenes_trabajo reconstruida: moto_id nullable + tipo/detalle_repuesto/cliente_id');
+      } catch (e) {
+        try { db.exec('ROLLBACK'); } catch (_) {}
+        throw e;
+      } finally {
+        db.exec('PRAGMA foreign_keys = ON');
+      }
+
+      // (4) chequeo de integridad referencial post-migración
+      const fkProblems = db.prepare('PRAGMA foreign_key_check').all();
+      if (fkProblems.length) console.error('[migración OT] foreign_key_check PROBLEMAS:', fkProblems);
+      else console.log('[migración OT] foreign_key_check OK (sin problemas)');
+    }
+  } catch (e) {
+    console.error('[migración OT] rebuild falló:', e.message);
+  }
+
   // Tabla de pagos
   db.exec(`
     CREATE TABLE IF NOT EXISTS pagos (

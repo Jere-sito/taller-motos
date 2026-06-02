@@ -2,17 +2,19 @@ const NuevaOT = {
   motoId: null,
   clienteId: null,
   motoNueva: false,
+  tipo: null,
 
   abrir() {
     this.motoId = null;
     this.clienteId = null;
     this.motoNueva = false;
+    this.tipo = null;
     this._motoLabel = '';
     this._clienteLabel = '';
     document.querySelectorAll('#modalNuevaOT .urgency-btn, #modalNuevaOT .cedula-btn').forEach(b => b.classList.remove('selected'));
     ['inputPatente','newMotoMarca','newMotoModelo','newMotoColor',
      'searchCliente','ncNombre','ncTelefono','otProblema','otObservaciones',
-     'otFechaIngreso','otHoraIngreso']
+     'otDetalleRepuesto','otFechaIngreso','otHoraIngreso']
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     document.querySelectorAll('input[name="otCedula"]').forEach(r => r.checked = false);
     document.querySelectorAll('input[name="otPrioridad"]').forEach(r => r.checked = false);
@@ -20,6 +22,7 @@ const NuevaOT = {
     if (chkManual) chkManual.checked = false;
     document.getElementById('grupoFechaManual')?.classList.add('hidden');
     document.getElementById('grupoPrioridadFecha')?.classList.add('hidden');
+    document.getElementById('grupoDetalleRepuesto')?.classList.add('hidden');
     const elFP = document.getElementById('otFechaPrioridad');
     if (elFP) elFP.value = '';
     document.getElementById('patenteStatus').textContent = '';
@@ -29,34 +32,70 @@ const NuevaOT = {
     document.getElementById('clienteSeleccionado').classList.add('hidden');
     document.getElementById('formNuevoCliente').classList.add('hidden');
     document.getElementById('clienteResults').classList.add('hidden');
-    this._goTo(1);
+    this._goTo('tipo');
     App.openModal('modalNuevaOT');
-    setTimeout(() => document.getElementById('inputPatente').focus(), 100);
+  },
+
+  // Selector inicial de tipo de orden
+  seleccionarTipo(tipo) {
+    this.tipo = tipo;
+    this.motoNueva = false;
+    this.motoId = null;
+    document.getElementById('btnTipoMoto')?.classList.toggle('selected', tipo === 'moto');
+    document.getElementById('btnTipoRepuesto')?.classList.toggle('selected', tipo === 'repuesto');
+    if (tipo === 'moto') {
+      this._goTo(1);
+      setTimeout(() => document.getElementById('inputPatente')?.focus(), 100);
+    } else {
+      this.clienteId = null;
+      this._goTo(3); // reusa el selector de cliente actual
+      setTimeout(() => document.getElementById('searchCliente')?.focus(), 100);
+    }
   },
 
   _goTo(step) {
-    [1,2,3,4].forEach(n => document.getElementById(`wizardStep${n}`)?.classList.add('hidden'));
-    const panel = document.getElementById(`wizardStep${step}`);
-    if (panel) panel.classList.remove('hidden');
-    const titles = {
-      1: 'Nueva Orden',
-      2: 'Datos de la moto',
-      3: 'Titular de la moto',
-      4: 'Datos del ingreso'
-    };
+    ['Tipo', 1, 2, 3, 4].forEach(n => document.getElementById(`wizardStep${n}`)?.classList.add('hidden'));
+    const panelId = step === 'tipo' ? 'wizardStepTipo' : `wizardStep${step}`;
+    document.getElementById(panelId)?.classList.remove('hidden');
+
+    const dots = document.getElementById('wizardDots');
+    const resumen = document.getElementById('wizardResumen');
+
+    // Paso 0: selección de tipo (sin dots ni resumen)
+    if (step === 'tipo') {
+      document.getElementById('wizardTitle').textContent = 'Nueva Orden';
+      if (dots) dots.innerHTML = '';
+      resumen?.classList.add('hidden');
+      return;
+    }
+
+    const titlesMoto = { 1: 'Nueva Orden', 2: 'Datos de la moto', 3: 'Titular de la moto', 4: 'Datos del ingreso' };
+    const titlesRep  = { 3: 'Cliente', 4: 'Detalle del ingreso' };
+    const titles = this.tipo === 'repuesto' ? titlesRep : titlesMoto;
     document.getElementById('wizardTitle').textContent = titles[step] || 'Nueva Orden';
     this._renderDots(step);
 
-    const resumen = document.getElementById('wizardResumen');
-    if (resumen) {
-      if (step === 4) { this._renderResumen(); resumen.classList.remove('hidden'); }
-      else resumen.classList.add('hidden');
+    if (step === 4) {
+      const esRep = this.tipo === 'repuesto';
+      // Detalle de repuesto solo en repuesto; problema declarado solo en moto
+      document.getElementById('grupoDetalleRepuesto')?.classList.toggle('hidden', !esRep);
+      document.getElementById('grupoProblema')?.classList.toggle('hidden', esRep);
+      // Cédula opcional en repuesto
+      const tCed = document.getElementById('tituloCedula');
+      if (tCed) tCed.textContent = esRep ? 'Cédula presentada (opcional)' : 'Cédula presentada';
+      this._renderResumen();
+      resumen?.classList.remove('hidden');
+    } else {
+      resumen?.classList.add('hidden');
     }
   },
 
   _renderDots(activeStep) {
-    const flow = this.motoNueva ? [1,2,3,4] : [1,4];
-    const STEP_LABELS = { 1: 'Patente', 2: 'Moto', 3: 'Titular', 4: 'Ingreso' };
+    const esRep = this.tipo === 'repuesto';
+    const flow = esRep ? [3, 4] : (this.motoNueva ? [1,2,3,4] : [1,4]);
+    const STEP_LABELS = esRep
+      ? { 3: 'Cliente', 4: 'Detalle' }
+      : { 1: 'Patente', 2: 'Moto', 3: 'Titular', 4: 'Ingreso' };
     const pos = flow.indexOf(activeStep);
     const el = document.getElementById('wizardDots');
     if (!el) return;
@@ -93,7 +132,17 @@ const NuevaOT = {
     }
     const cliente = this._clienteLabel || (document.getElementById('searchCliente')?.value || '').trim();
     const MOTO_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3"/><circle cx="18.5" cy="17.5" r="3"/><path d="M8.5 17.5h7M15 6h-4l-2.5 5.5H2"/><path d="M15 6l3.5 5.5"/><path d="M10 6l-1 5.5"/></svg>`;
+    const WRENCH_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
     const PERSON_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+
+    if (this.tipo === 'repuesto') {
+      el.innerHTML = `
+        <div class="summary-row">${WRENCH_SVG}<span class="summary-text">Repuesto suelto</span></div>
+        ${cliente ? `<div class="summary-row">${PERSON_SVG}<span class="summary-text">${esc(cliente)}</span></div>` : ''}
+      `;
+      return;
+    }
+
     el.innerHTML = `
       <div class="summary-row">${MOTO_SVG}<span class="summary-text">${esc(patente || '—')}</span>${moto ? `<span class="summary-sep">—</span><span class="summary-text">${esc(moto)}</span>` : ''}</div>
       ${cliente ? `<div class="summary-row">${PERSON_SVG}<span class="summary-text">${esc(cliente)}</span></div>` : ''}
@@ -162,18 +211,32 @@ const NuevaOT = {
   async paso3Siguiente() {
     if (!this.clienteId) return this._shake('searchCliente', 'Seleccioná o creá el cliente');
     this._goTo(4);
-    setTimeout(() => document.getElementById('otProblema')?.focus(), 100);
+    const foco = this.tipo === 'repuesto' ? 'otDetalleRepuesto' : 'otProblema';
+    setTimeout(() => document.getElementById(foco)?.focus(), 100);
   },
 
   async crearOT() {
-    const problema = document.getElementById('otProblema').value.trim();
-    if (!problema) return this._shake('otProblema', 'Describí el problema declarado por el cliente');
+    const esRep = this.tipo === 'repuesto';
+
+    // Validaciones comunes
     const prioridad = document.querySelector('input[name="otPrioridad"]:checked')?.value;
     if (!prioridad) return App.toast('Indicá el apuro del cliente', 'error');
     const fechaPrioridad = document.getElementById('otFechaPrioridad').value;
     if (prioridad === 'fecha_especifica' && !fechaPrioridad) return App.toast('Seleccioná la fecha específica', 'error');
-    const cedula = document.querySelector('input[name="otCedula"]:checked')?.value;
-    if (!cedula) return App.toast('Indicá si la cédula es física o digital', 'error');
+
+    const cedula = document.querySelector('input[name="otCedula"]:checked')?.value || null;
+
+    // Validaciones específicas por tipo
+    let problema = '', detalle = '';
+    if (esRep) {
+      detalle = document.getElementById('otDetalleRepuesto').value.trim();
+      if (!detalle) return this._shake('otDetalleRepuesto', 'Describí el repuesto que entra a reparar');
+      if (!this.clienteId) return App.toast('Seleccioná el cliente', 'error');
+    } else {
+      problema = document.getElementById('otProblema').value.trim();
+      if (!problema) return this._shake('otProblema', 'Describí el problema declarado por el cliente');
+      if (!cedula) return App.toast('Indicá si la cédula es física o digital', 'error');
+    }
 
     const usaFechaManual = document.getElementById('otFechaManual')?.checked;
     const fechaIngreso = usaFechaManual
@@ -182,7 +245,8 @@ const NuevaOT = {
           : null)
       : null;
 
-    if (this.motoNueva) {
+    // Para moto nueva: crear la moto antes
+    if (!esRep && this.motoNueva) {
       const patente = document.getElementById('inputPatente').value.trim().toUpperCase().replace(/\s+/g, '');
       try {
         const moto = await API.post('/api/motos', {
@@ -198,20 +262,34 @@ const NuevaOT = {
       }
     }
 
-    if (!this.motoId) return App.toast('Error: moto no identificada', 'error');
+    if (!esRep && !this.motoId) return App.toast('Error: moto no identificada', 'error');
+
+    const payload = esRep
+      ? {
+          tipo: 'repuesto',
+          cliente_id: this.clienteId,
+          detalle_repuesto: detalle,
+          observaciones_internas: document.getElementById('otObservaciones').value.trim(),
+          fecha_prometida: prioridad === 'fecha_especifica' ? fechaPrioridad : null,
+          fecha_ingreso: fechaIngreso,
+          prioridad,
+          cedula // opcional; puede ir null
+        }
+      : {
+          tipo: 'moto',
+          moto_id: this.motoId,
+          problema_declarado: problema,
+          observaciones_internas: document.getElementById('otObservaciones').value.trim(),
+          fecha_prometida: prioridad === 'fecha_especifica' ? fechaPrioridad : null,
+          fecha_ingreso: fechaIngreso,
+          prioridad,
+          cedula
+        };
 
     const btn = document.getElementById('btnCrearOT');
     btn.disabled = true; btn.textContent = 'Creando...';
     try {
-      const ot = await API.post('/api/ordenes', {
-        moto_id: this.motoId,
-        problema_declarado: problema,
-        observaciones_internas: document.getElementById('otObservaciones').value.trim(),
-        fecha_prometida: prioridad === 'fecha_especifica' ? fechaPrioridad : null,
-        fecha_ingreso: fechaIngreso,
-        prioridad,
-        cedula
-      });
+      const ot = await API.post('/api/ordenes', payload);
       App.closeModal('modalNuevaOT');
       App.toast(`Orden ${ot.numero} creada`, 'success');
       window.location.href = `/ot-detalle?id=${ot.id}`;
@@ -351,10 +429,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnPaso1Siguiente')?.addEventListener('click', () => NuevaOT.paso1Siguiente());
   document.getElementById('btnPaso2Atras')?.addEventListener('click', () => NuevaOT._goTo(1));
   document.getElementById('btnPaso2Siguiente')?.addEventListener('click', () => NuevaOT.paso2Siguiente());
-  document.getElementById('btnPaso3Atras')?.addEventListener('click', () => NuevaOT._goTo(2));
+  document.getElementById('btnPaso3Atras')?.addEventListener('click', () => {
+    NuevaOT.tipo === 'repuesto' ? NuevaOT._goTo('tipo') : NuevaOT._goTo(2);
+  });
   document.getElementById('btnPaso3Siguiente')?.addEventListener('click', () => NuevaOT.paso3Siguiente());
   document.getElementById('btnPaso4Atras')?.addEventListener('click', () => {
-    NuevaOT.motoNueva ? NuevaOT._goTo(3) : NuevaOT._goTo(1);
+    if (NuevaOT.tipo === 'repuesto') NuevaOT._goTo(3);
+    else NuevaOT.motoNueva ? NuevaOT._goTo(3) : NuevaOT._goTo(1);
   });
   document.getElementById('btnCrearOT')?.addEventListener('click', () => NuevaOT.crearOT());
 

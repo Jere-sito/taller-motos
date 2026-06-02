@@ -57,16 +57,32 @@ async function cargarRecientes() {
 
 function renderReciente(ot) {
   const est = ot.estado;
-  const moto = [ot.marca, ot.modelo].filter(Boolean).join(' ').toUpperCase();
+  const esRep = ot.tipo === 'repuesto';
+
+  const tipoChip = esRep
+    ? `<span class="ot-tipo-chip repuesto">Repuesto</span>`
+    : `<span class="ot-tipo-chip moto">Moto</span>`;
+
+  // En repuesto: chip en lugar de patente, y el detalle en la 2da línea (trunca con elipsis)
+  const plate = esRep ? '' : `<span class="order-plate">${esc(ot.patente || '')}</span>`;
+  let linea2;
+  if (esRep) {
+    linea2 = `<div class="order-model">${esc(ot.detalle_repuesto || '—')}</div>`;
+  } else {
+    const moto = [ot.marca, ot.modelo].filter(Boolean).join(' ').toUpperCase();
+    linea2 = moto ? `<div class="order-model">${esc(moto)}</div>` : '';
+  }
+
   return `<a href="/ot-detalle?id=${ot.id}" class="order-card">
     <div class="order-left-bar ${est}"></div>
     <div class="order-info">
       <div class="order-top-row">
         <span class="order-number">${esc(ot.numero)}</span>
-        <span class="order-plate">${esc(ot.patente)}</span>
+        ${plate}
+        ${tipoChip}
         ${badgePrioridad(ot)}
       </div>
-      ${moto ? `<div class="order-model">${esc(moto)}</div>` : ''}
+      ${linea2}
       <div class="order-bottom-row">
         ${PERSON_SVG}
         <span class="order-client">${esc(ot.cliente_nombre || '')}</span>

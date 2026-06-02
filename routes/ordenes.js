@@ -19,9 +19,9 @@ router.get('/ordenes', (req, res) => {
 
   if (estado) { where.push('ot.estado = ?'); params.push(estado); }
   if (q?.trim()) {
-    where.push('(m.patente LIKE ? OR UPPER(c.nombre) LIKE ? OR ot.numero LIKE ?)');
+    where.push('(m.patente LIKE ? OR UPPER(c.nombre) LIKE ? OR ot.numero LIKE ? OR UPPER(ot.detalle_repuesto) LIKE ?)');
     const t = `%${q.trim().toUpperCase()}%`;
-    params.push(t, t, t);
+    params.push(t, t, t, t);
   }
   if (fecha_desde) { where.push('ot.fecha_ingreso >= ?'); params.push(fecha_desde); }
   if (fecha_hasta) { where.push('ot.fecha_ingreso <= ?'); params.push(fecha_hasta + ' 23:59:59'); }
@@ -30,11 +30,12 @@ router.get('/ordenes', (req, res) => {
 
   const ordenes = db.prepare(`
     SELECT ot.id, ot.numero, ot.estado, ot.fecha_ingreso, ot.fecha_prometida, ot.prioridad,
+           ot.tipo, ot.detalle_repuesto,
            m.patente, m.marca, m.modelo,
            c.nombre as cliente_nombre, c.telefono as cliente_telefono
     FROM ordenes_trabajo ot
-    JOIN motos m ON m.id = ot.moto_id
-    JOIN clientes c ON c.id = m.cliente_id
+    LEFT JOIN motos m    ON m.id = ot.moto_id
+    LEFT JOIN clientes c ON c.id = COALESCE(m.cliente_id, ot.cliente_id)
     ${whereClause}
     ORDER BY ot.fecha_ingreso DESC
     LIMIT 200
@@ -45,14 +46,46 @@ router.get('/ordenes', (req, res) => {
 
 // POST /api/ordenes
 router.post('/ordenes', (req, res) => {
-  const { moto_id, problema_declarado = '', observaciones_internas = '', fecha_prometida, cedula, prioridad, fecha_ingreso } = req.body;
-  if (!moto_id) return res.status(400).json({ error: 'La moto es requerida.' });
-  if (!cedula || !['fisica','digital'].includes(cedula.toLowerCase())) return res.status(400).json({ error: 'Indicá si la cédula es física o digital.' });
-  if (!prioridad || !['en_el_dia','manana','esta_semana','sin_apuro','fecha_especifica'].includes(prioridad.toLowerCase())) return res.status(400).json({ error: 'Indicá el apuro del cliente.' });
+  const {
+    tipo = 'moto', moto_id, cliente_id, detalle_repuesto = '',
+    problema_declarado = '', observaciones_internas = '',
+    fecha_prometida, cedula, prioridad, fecha_ingreso
+  } = req.body;
+
+  const t = String(tipo).toLowerCase();
+  if (!['moto', 'repuesto'].includes(t)) return res.status(400).json({ error: 'Tipo de orden inválido.' });
+
+  // Prioridad obligatoria en ambos tipos
+  if (!prioridad || !['en_el_dia','manana','esta_semana','sin_apuro','fecha_especifica'].includes(String(prioridad).toLowerCase()))
+    return res.status(400).json({ error: 'Indicá el apuro del cliente.' });
 
   const db = getDb();
-  const moto = db.prepare('SELECT id FROM motos WHERE id = ?').get(Number(moto_id));
-  if (!moto) return res.status(404).json({ error: 'Moto no encontrada.' });
+
+  // Valores finales según el tipo
+  let motoIdFinal = null, clienteIdFinal = null, detalleFinal = '', cedulaFinal = null;
+
+  if (t === 'moto') {
+    if (!moto_id) return res.status(400).json({ error: 'La moto es requerida.' });
+    if (cliente_id || (detalle_repuesto && detalle_repuesto.trim()))
+      return res.status(400).json({ error: 'Una orden de moto no acepta cliente ni detalle de repuesto sueltos.' });
+    if (!cedula || !['fisica','digital'].includes(String(cedula).toLowerCase()))
+      return res.status(400).json({ error: 'Indicá si la cédula es física o digital.' });
+    const moto = db.prepare('SELECT id FROM motos WHERE id = ?').get(Number(moto_id));
+    if (!moto) return res.status(404).json({ error: 'Moto no encontrada.' });
+    motoIdFinal = Number(moto_id);
+    cedulaFinal = String(cedula).toLowerCase();
+  } else { // repuesto
+    if (moto_id) return res.status(400).json({ error: 'Una orden de repuesto no debe incluir una moto.' });
+    if (!cliente_id) return res.status(400).json({ error: 'El cliente es requerido.' });
+    if (!detalle_repuesto || !detalle_repuesto.trim()) return res.status(400).json({ error: 'El detalle del repuesto es requerido.' });
+    const cli = db.prepare('SELECT id FROM clientes WHERE id = ?').get(Number(cliente_id));
+    if (!cli) return res.status(404).json({ error: 'Cliente no encontrado.' });
+    if (cedula && !['fisica','digital'].includes(String(cedula).toLowerCase()))
+      return res.status(400).json({ error: 'Cédula inválida.' });
+    clienteIdFinal = Number(cliente_id);
+    detalleFinal   = detalle_repuesto.trim();
+    cedulaFinal    = cedula ? String(cedula).toLowerCase() : null; // opcional en repuesto
+  }
 
   const numero = generateOTNumber(db);
 
@@ -61,12 +94,12 @@ router.post('/ordenes', (req, res) => {
     db.exec('BEGIN');
     const result = db.prepare(`
       INSERT INTO ordenes_trabajo
-        (numero, moto_id, estado, problema_declarado, observaciones_internas, fecha_ingreso, fecha_prometida, cedula, prioridad, created_by)
-      VALUES (?, ?, 'recibida', ?, ?, COALESCE(?, datetime('now')), ?, ?, ?, ?)
+        (numero, tipo, moto_id, cliente_id, detalle_repuesto, estado, problema_declarado, observaciones_internas, fecha_ingreso, fecha_prometida, cedula, prioridad, created_by)
+      VALUES (?, ?, ?, ?, ?, 'recibida', ?, ?, COALESCE(?, datetime('now')), ?, ?, ?, ?)
     `).run(
-      numero, Number(moto_id),
+      numero, t, motoIdFinal, clienteIdFinal, detalleFinal,
       problema_declarado, observaciones_internas,
-      fecha_ingreso || null, fecha_prometida || null, cedula.toLowerCase(), prioridad.toLowerCase(), req.session.userId
+      fecha_ingreso || null, fecha_prometida || null, cedulaFinal, String(prioridad).toLowerCase(), req.session.userId
     );
 
     ordenId = result.lastInsertRowid;
@@ -176,8 +209,8 @@ function _getOTCompleta(db, id) {
            c.id as cliente_id, c.nombre as cliente_nombre,
            c.telefono as cliente_telefono, c.email as cliente_email
     FROM ordenes_trabajo ot
-    JOIN motos m ON m.id = ot.moto_id
-    JOIN clientes c ON c.id = m.cliente_id
+    LEFT JOIN motos m    ON m.id = ot.moto_id
+    LEFT JOIN clientes c ON c.id = COALESCE(m.cliente_id, ot.cliente_id)
     WHERE ot.id = ?
   `).get(id);
   if (!ot) return null;

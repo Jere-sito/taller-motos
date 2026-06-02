@@ -91,9 +91,29 @@ function renderOT() {
       </div>`;
   }).join('');
 
+  const esRep     = ot.tipo === 'repuesto';
   const moto      = [ot.marca, ot.modelo].filter(Boolean).join(' ');
   const motoLinea = ot.color ? `${moto} — ${ot.color}` : moto;
   const telDigits = (ot.cliente_telefono || '').replace(/[^0-9+]/g, '');
+
+  // En repuesto va el detalle donde iría la moto/patente; lo que no aplica se oculta
+  const WRENCH_SVG = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
+  const headerIdentidad = esRep
+    ? `<div class="moto-icon-wrap">${WRENCH_SVG}</div>
+       <div class="moto-info">
+         <div class="rep-kicker">Repuesto a reparar</div>
+         <div class="rep-detalle">${esc(ot.detalle_repuesto || '—')}</div>
+       </div>`
+    : `<div class="moto-icon-wrap">${MOTO_SVG}</div>
+       <div class="moto-info">
+         <div class="patente">${esc(ot.patente || '—')}</div>
+         <div class="moto-modelo">${esc(motoLinea || '—')}</div>
+       </div>`;
+
+  // Card "Problema declarado": en moto como hoy; en repuesto solo si tiene contenido
+  const tieneProblema   = !!(ot.problema_declarado && String(ot.problema_declarado).trim());
+  const mostrarProblema = tieneProblema || !esRep;
+  const mostrarCardNotas = mostrarProblema || ot.observaciones_internas || ot.fecha_prometida;
 
   document.getElementById('paginaDetalle').innerHTML = `
   <div class="otd">
@@ -115,11 +135,7 @@ function renderOT() {
     <!-- Moto + Cliente -->
     <div class="card"><div class="card-body">
       <div class="moto-header">
-        <div class="moto-icon-wrap">${MOTO_SVG}</div>
-        <div class="moto-info">
-          <div class="patente">${esc(ot.patente)}</div>
-          <div class="moto-modelo">${esc(motoLinea || '—')}</div>
-        </div>
+        ${headerIdentidad}
       </div>
       <div class="divider"></div>
       <div class="cliente-row">
@@ -158,9 +174,11 @@ function renderOT() {
     </div></div>
 
     <!-- Problema + notas -->
+    ${mostrarCardNotas ? `
     <div class="card"><div class="card-body">
+      ${mostrarProblema ? `
       <div class="problema-title">Problema declarado</div>
-      <div class="problema-text">${esc(ot.problema_declarado || '—')}</div>
+      <div class="problema-text">${esc(ot.problema_declarado || '—')}</div>` : ''}
       ${ot.observaciones_internas ? `
       <div class="notas-block">
         <div class="notas-label">${NOTE_SVG}Notas internas</div>
@@ -170,7 +188,7 @@ function renderOT() {
       <div class="otd-extra">
         <span>Prometida: <strong>${fmtDate(ot.fecha_prometida)}</strong></span>
       </div>` : ''}
-    </div></div>
+    </div></div>` : ''}
 
   </div>`;
 
@@ -209,6 +227,9 @@ async function abrirEditarOT() {
   document.getElementById('editProblema').value = otActual.problema_declarado || '';
   document.getElementById('editObservaciones').value = otActual.observaciones_internas || '';
   document.getElementById('editFechaPrometida').value = otActual.fecha_prometida?.slice(0,10) || '';
+  // "Problema declarado" no aplica a repuesto: se oculta (el textarea conserva el valor
+  // original, así al guardar se reenvía sin cambios y no pisa nada).
+  document.getElementById('grupoEditProblema')?.classList.toggle('hidden', otActual.tipo === 'repuesto');
   App.openModal('modalEditarOT');
 
   document.getElementById('btnGuardarEdicion').onclick = async () => {
