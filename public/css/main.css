@@ -1770,7 +1770,7 @@ tr:hover td { background: var(--bg-subtle); }
 .otd .presup-grupo { display: flex; flex-direction: column; gap: 10px; }
 .otd .subtotal-row { display: flex; align-items: center; justify-content: space-between; padding-top: 9px; border-top: 1px dashed var(--border); }
 .otd .subtotal-label { font-size: 12px; font-weight: 800; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.6px; }
-.otd .subtotal-val { font-size: 15.5px; font-weight: 800; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.otd .subtotal-val { font-size: 15.5px; font-weight: 800; color: #475569; font-variant-numeric: tabular-nums; }
 .otd .item-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .otd .item-left { display: flex; align-items: flex-start; gap: 8px; flex: 1; min-width: 0; }
 .otd .chip-tipo { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
