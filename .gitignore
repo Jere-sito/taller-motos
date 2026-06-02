@@ -6,3 +6,8 @@ uploads/
 *.db
 *.db-shm
 *.db-wal
+
+# Scratch / insumos (no se commitean)
+.planning/
+Logos iconos/
+UI design/
