@@ -164,9 +164,7 @@ function eliminarCliente(id) {
   const c = _clientesData[id];
   if (!c) return;
   const motos = c.cant_motos || 0;
-  const linea = motos > 0
-    ? `¿Eliminar a <strong>${esc(c.nombre)}</strong>? También se eliminarán sus ${motos} moto(s) y todas sus órdenes.`
-    : `¿Eliminar al cliente <strong>${esc(c.nombre)}</strong>?`;
+  const linea = `¿Eliminar a <strong>${esc(c.nombre)}</strong>? Se eliminarán también ${motos > 0 ? `sus ${motos} moto(s) y ` : ''}todas sus órdenes (incluidas las de repuesto). Esta acción no se puede deshacer.`;
   App.confirmarDoble(
     'Eliminar cliente',
     c.nombre,

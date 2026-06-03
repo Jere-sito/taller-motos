@@ -95,6 +95,9 @@ router.delete('/:id', (req, res) => {
   if (!cliente) return res.status(404).json({ error: 'Cliente no encontrado.' });
   try {
     db.exec('BEGIN');
+    // Órdenes de repuesto del cliente (cuelgan por cliente_id, sin moto)
+    db.prepare('DELETE FROM ordenes_trabajo WHERE cliente_id = ?').run(id);
+    // Órdenes de moto del cliente (cuelgan por su(s) moto(s))
     const motos = db.prepare('SELECT id FROM motos WHERE cliente_id = ?').all(id);
     for (const moto of motos) {
       db.prepare('DELETE FROM ordenes_trabajo WHERE moto_id = ?').run(moto.id);

@@ -202,6 +202,26 @@ router.patch('/ordenes/:id/estado', (req, res) => {
   res.json(otActualizada);
 });
 
+// DELETE /api/ordenes/:id  — borra la orden (cascada: presupuesto+ítems, pagos, historial)
+router.delete('/ordenes/:id', (req, res) => {
+  const db = getDb();
+  const id = Number(req.params.id);
+  const ot = db.prepare('SELECT id, numero FROM ordenes_trabajo WHERE id = ?').get(id);
+  if (!ot) return res.status(404).json({ error: 'Orden no encontrada.' });
+  try {
+    db.exec('BEGIN');
+    // Las tablas hijas (presupuestos→items, pagos, ot_estado_historial) tienen ON DELETE CASCADE
+    db.prepare('DELETE FROM ordenes_trabajo WHERE id = ?').run(id);
+    db.exec('COMMIT');
+  } catch (err) {
+    console.error('[ordenes] eliminar orden:', err);
+    try { db.exec('ROLLBACK'); } catch (_) {}
+    return res.status(500).json({ error: 'Error al eliminar la orden.' });
+  }
+  try { req.app.locals.broadcast('ot_deleted', { id }); } catch (_) {}
+  res.json({ ok: true });
+});
+
 function _getOTCompleta(db, id) {
   const ot = db.prepare(`
     SELECT ot.*,
