@@ -8,6 +8,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../public/css/main.css">
+  <style>
+    /* KPI principal en el color de marca en vez de un color de estado de orden */
+    .stat-card.brand::before { background: var(--primary); }
+    .stat-number.brand { color: var(--primary); }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -277,8 +282,8 @@ function initSelectorPeriodo(onChange) {
 function renderKPIs(kpis) {
   const container = document.getElementById('kpiCards');
   container.innerHTML = `
-    <div class="stat-card entregada">
-      <div class="stat-number entregada">${fmtMoney(kpis.total)}</div>
+    <div class="stat-card brand">
+      <div class="stat-number brand">${fmtMoney(kpis.total)}</div>
       <div class="stat-label">Total facturado</div>
     </div>
     <div class="stat-card recibida">
