@@ -28,7 +28,18 @@
         <button type="button" class="btn btn-secondary btn-sm" id="btnMesSiguiente">→</button>
       </div>
 
-      <div id="modoRango" style="display:none; margin-bottom:16px;"></div>
+      <div id="modoRango" style="display:none; margin-bottom:16px;">
+        <button type="button" class="btn btn-secondary" id="btnAbrirCalendario"></button>
+        <div class="card" id="popoverCalendario" style="display:none; position:absolute; z-index:10; margin-top:8px; width:260px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="calMesAnterior">←</button>
+            <span id="calLabelMes" style="font-weight:700;"></span>
+            <button type="button" class="btn btn-secondary btn-sm" id="calMesSiguiente">→</button>
+          </div>
+          <div id="calGrid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center; font-size:0.8125rem;"></div>
+          <div class="text-muted" style="font-size:0.75rem; margin-top:8px;">Elegí la fecha "desde" y después la fecha "hasta".</div>
+        </div>
+      </div>
 
       <div class="chips" id="chipsVista" style="margin-bottom:16px;">
         <button type="button" class="chip active" data-vista="total">Total</button>
@@ -161,6 +172,80 @@ function getRangoActual() {
   return { desdeISO: toISO(rangoDesde), hastaISO: toISO(rangoHasta) };
 }
 
+let calMesVisible = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+let seleccionandoInicio = true;
+
+function actualizarLabelRango() {
+  document.getElementById('btnAbrirCalendario').textContent =
+    `${toISO(rangoDesde).split('-').reverse().join('/')} – ${toISO(rangoHasta).split('-').reverse().join('/')}`;
+}
+
+function renderCalGrid() {
+  document.getElementById('calLabelMes').textContent = labelMes(calMesVisible);
+  const primerDia = new Date(calMesVisible.getFullYear(), calMesVisible.getMonth(), 1);
+  const ultimoDia = new Date(calMesVisible.getFullYear(), calMesVisible.getMonth() + 1, 0);
+  const offset = (primerDia.getDay() + 6) % 7; // lunes = 0
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  ['L','M','X','J','V','S','D'].forEach(d => {
+    grid.innerHTML += `<div style="font-weight:700; color:var(--text-muted);">${d}</div>`;
+  });
+  for (let i = 0; i < offset; i++) grid.innerHTML += '<div></div>';
+
+  for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
+    const fecha = new Date(calMesVisible.getFullYear(), calMesVisible.getMonth(), dia);
+    const enRango = fecha >= rangoDesde && fecha <= rangoHasta;
+    grid.innerHTML += `<button type="button" class="btn-day${enRango ? ' active' : ''}" data-fecha="${toISO(fecha)}"
+      style="border:none; background:${enRango ? 'var(--primary)' : 'transparent'}; color:${enRango ? '#fff' : 'inherit'}; border-radius:6px; padding:4px 0; cursor:pointer;">${dia}</button>`;
+  }
+
+  grid.querySelectorAll('.btn-day').forEach(btn => {
+    btn.addEventListener('click', () => onClickDia(btn.dataset.fecha));
+  });
+}
+
+function onClickDia(fechaISO) {
+  const fecha = new Date(fechaISO + 'T00:00:00');
+  if (seleccionandoInicio) {
+    rangoDesde = fecha;
+    rangoHasta = fecha;
+    seleccionandoInicio = false;
+  } else if (fecha < rangoDesde) {
+    rangoDesde = fecha;
+    rangoHasta = fecha;
+  } else {
+    rangoHasta = fecha;
+    seleccionandoInicio = true;
+    document.getElementById('popoverCalendario').style.display = 'none';
+    actualizarLabelRango();
+    onCambioRangoCallback && onCambioRangoCallback();
+  }
+  actualizarLabelRango();
+  renderCalGrid();
+}
+
+let onCambioRangoCallback = null;
+
+function initCalendarioRango(onChange) {
+  onCambioRangoCallback = onChange;
+  actualizarLabelRango();
+  renderCalGrid();
+
+  document.getElementById('btnAbrirCalendario').addEventListener('click', () => {
+    const pop = document.getElementById('popoverCalendario');
+    pop.style.display = pop.style.display === 'none' ? 'block' : 'none';
+  });
+  document.getElementById('calMesAnterior').addEventListener('click', () => {
+    calMesVisible = new Date(calMesVisible.getFullYear(), calMesVisible.getMonth() - 1, 1);
+    renderCalGrid();
+  });
+  document.getElementById('calMesSiguiente').addEventListener('click', () => {
+    calMesVisible = new Date(calMesVisible.getFullYear(), calMesVisible.getMonth() + 1, 1);
+    renderCalGrid();
+  });
+}
+
 function initSelectorPeriodo(onChange) {
   document.getElementById('labelMesActual').textContent = labelMes(mesActual);
 
@@ -185,6 +270,8 @@ function initSelectorPeriodo(onChange) {
       onChange();
     });
   });
+
+  initCalendarioRango(onChange);
 }
 
 function renderKPIs(kpis) {
