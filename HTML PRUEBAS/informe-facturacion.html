@@ -17,6 +17,11 @@
       <h1 class="page-title">Informe de facturación</h1>
     </div>
     <div id="informeFacturacion">
+      <div class="chips" id="chipsVista" style="margin-bottom:16px;">
+        <button type="button" class="chip active" data-vista="total">Total</button>
+        <button type="button" class="chip" data-vista="mano_obra">Mano de obra</button>
+        <button type="button" class="chip" data-vista="repuestos">Repuestos</button>
+      </div>
       <div class="stat-cards" id="kpiCards" style="grid-template-columns:repeat(3,1fr);"></div>
       <div class="card" id="chartCard" style="margin-top:16px;">
         <canvas id="graficoFacturacion" height="90"></canvas>
@@ -107,6 +112,19 @@ function fmtMoney(n) {
   return '$' + Number(n).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
+let vistaActual = 'total';
+
+function initSelectorVista(onChange) {
+  document.querySelectorAll('#chipsVista .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      vistaActual = chip.dataset.vista;
+      document.querySelectorAll('#chipsVista .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      onChange();
+    });
+  });
+}
+
 function renderKPIs(kpis) {
   const container = document.getElementById('kpiCards');
   container.innerHTML = `
@@ -125,6 +143,8 @@ function renderKPIs(kpis) {
 }
 
 renderKPIs(generarDatosMock(bucketPeriod('2026-07-01','2026-07-31').buckets).kpis);
+
+initSelectorVista(() => console.log('vista:', vistaActual));
 </script>
 </body>
 </html>
