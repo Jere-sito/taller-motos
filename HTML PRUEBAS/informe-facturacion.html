@@ -16,7 +16,12 @@
     <div class="page-header">
       <h1 class="page-title">Informe de facturación</h1>
     </div>
-    <div id="informeFacturacion"></div>
+    <div id="informeFacturacion">
+      <div class="stat-cards" id="kpiCards" style="grid-template-columns:repeat(3,1fr);"></div>
+      <div class="card" id="chartCard" style="margin-top:16px;">
+        <canvas id="graficoFacturacion" height="90"></canvas>
+      </div>
+    </div>
   </div>
 </div>
 <script>
@@ -96,6 +101,30 @@ function generarDatosMock(buckets) {
 
   return { series, kpis };
 }
+
+function fmtMoney(n) {
+  if (n == null || isNaN(n)) return '$0';
+  return '$' + Number(n).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function renderKPIs(kpis) {
+  const container = document.getElementById('kpiCards');
+  container.innerHTML = `
+    <div class="stat-card entregada">
+      <div class="stat-number entregada">${fmtMoney(kpis.total)}</div>
+      <div class="stat-label">Total facturado</div>
+    </div>
+    <div class="stat-card recibida">
+      <div class="stat-number recibida">${kpis.cantidad_ordenes}</div>
+      <div class="stat-label">Órdenes entregadas</div>
+    </div>
+    <div class="stat-card en_reparacion">
+      <div class="stat-number en_reparacion">${fmtMoney(kpis.ticket_promedio)}</div>
+      <div class="stat-label">Ticket promedio</div>
+    </div>`;
+}
+
+renderKPIs(generarDatosMock(bucketPeriod('2026-07-01','2026-07-31').buckets).kpis);
 </script>
 </body>
 </html>
