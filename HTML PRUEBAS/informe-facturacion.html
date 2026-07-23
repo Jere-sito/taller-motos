@@ -294,6 +294,59 @@ function renderKPIs(kpis) {
 renderKPIs(generarDatosMock(bucketPeriod('2026-07-01','2026-07-31').buckets).kpis);
 
 initSelectorVista(() => console.log('vista:', vistaActual));
+
+let chartInstance = null;
+
+function renderGrafico(series, vista) {
+  const ctx = document.getElementById('graficoFacturacion').getContext('2d');
+  const labels = series.map(s => s.label);
+  const data = series.map(s => s[vista]);
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+  gradient.addColorStop(0, 'rgba(234,88,12,0.35)');
+  gradient.addColorStop(1, 'rgba(234,88,12,0.02)');
+
+  const config = {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: '#EA580C',
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.35,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: '#EA580C',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => fmtMoney(ctx.parsed.y) }
+        }
+      },
+      scales: {
+        y: { ticks: { callback: v => fmtMoney(v) }, grid: { color: '#F1F5F9' } },
+        x: { grid: { display: false } }
+      }
+    }
+  };
+
+  if (chartInstance) {
+    chartInstance.data = config.data;
+    chartInstance.options = config.options;
+    chartInstance.update();
+  } else {
+    chartInstance = new Chart(ctx, config);
+  }
+}
+
+renderGrafico(generarDatosMock(bucketPeriod('2026-07-01','2026-07-31').buckets).series, 'total');
 </script>
 </body>
 </html>
