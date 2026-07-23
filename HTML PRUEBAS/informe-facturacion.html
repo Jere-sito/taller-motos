@@ -17,6 +17,19 @@
       <h1 class="page-title">Informe de facturación</h1>
     </div>
     <div id="informeFacturacion">
+      <div class="chips" id="chipsModoPeriodo" style="margin-bottom:12px;">
+        <button type="button" class="chip active" data-modo="mes">Mes</button>
+        <button type="button" class="chip" data-modo="rango">Rango personalizado</button>
+      </div>
+
+      <div id="modoMes" style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <button type="button" class="btn btn-secondary btn-sm" id="btnMesAnterior">←</button>
+        <span id="labelMesActual" style="font-weight:700; min-width:140px; text-align:center;"></span>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnMesSiguiente">→</button>
+      </div>
+
+      <div id="modoRango" style="display:none; margin-bottom:16px;"></div>
+
       <div class="chips" id="chipsVista" style="margin-bottom:16px;">
         <button type="button" class="chip active" data-vista="total">Total</button>
         <button type="button" class="chip" data-vista="mano_obra">Mano de obra</button>
@@ -120,6 +133,55 @@ function initSelectorVista(onChange) {
       vistaActual = chip.dataset.vista;
       document.querySelectorAll('#chipsVista .chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
+      onChange();
+    });
+  });
+}
+
+let modoPeriodo = 'mes';
+const hoy = new Date();
+let mesActual = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+let rangoDesde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+let rangoHasta = hoy;
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function toISO(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+
+function labelMes(d) {
+  return d.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+    .replace(/^\w/, c => c.toUpperCase());
+}
+
+function getRangoActual() {
+  if (modoPeriodo === 'mes') {
+    const inicio = new Date(mesActual.getFullYear(), mesActual.getMonth(), 1);
+    const fin = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 0);
+    return { desdeISO: toISO(inicio), hastaISO: toISO(fin) };
+  }
+  return { desdeISO: toISO(rangoDesde), hastaISO: toISO(rangoHasta) };
+}
+
+function initSelectorPeriodo(onChange) {
+  document.getElementById('labelMesActual').textContent = labelMes(mesActual);
+
+  document.getElementById('btnMesAnterior').addEventListener('click', () => {
+    mesActual = new Date(mesActual.getFullYear(), mesActual.getMonth() - 1, 1);
+    document.getElementById('labelMesActual').textContent = labelMes(mesActual);
+    onChange();
+  });
+  document.getElementById('btnMesSiguiente').addEventListener('click', () => {
+    mesActual = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 1);
+    document.getElementById('labelMesActual').textContent = labelMes(mesActual);
+    onChange();
+  });
+
+  document.querySelectorAll('#chipsModoPeriodo .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      modoPeriodo = chip.dataset.modo;
+      document.querySelectorAll('#chipsModoPeriodo .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      document.getElementById('modoMes').style.display = modoPeriodo === 'mes' ? 'flex' : 'none';
+      document.getElementById('modoRango').style.display = modoPeriodo === 'rango' ? 'block' : 'none';
       onChange();
     });
   });
