@@ -69,6 +69,33 @@ console.assert(bucketPeriod('2026-07-01', '2026-07-31').buckets.length === 31, '
 console.assert(bucketPeriod('2026-06-01', '2026-08-15').granularidad === 'semana', '76 días deben agrupar por semana');
 console.assert(bucketPeriod('2026-01-01', '2026-12-31').granularidad === 'mes', 'Un año debe agrupar por mes');
 console.assert(bucketPeriod('2026-01-01', '2026-12-31').buckets.length === 12, 'Un año calendario debe dar 12 buckets mensuales');
+
+function generarDatosMock(buckets) {
+  let totalGeneral = 0;
+  let cantidadOrdenes = 0;
+
+  const series = buckets.map(b => {
+    // Semilla determinística por fecha para que no "salte" al re-renderizar sin cambiar el período
+    const seed = b.desde.getTime() / 86400000;
+    const pseudo = Math.abs(Math.sin(seed)) ;
+    const ordenesDelBucket = Math.round(1 + pseudo * 4);
+    const manoObra = Math.round((3000 + pseudo * 15000) * ordenesDelBucket);
+    const repuestos = Math.round((5000 + (1 - pseudo) * 25000) * ordenesDelBucket);
+
+    cantidadOrdenes += ordenesDelBucket;
+    totalGeneral += manoObra + repuestos;
+
+    return { label: b.label, mano_obra: manoObra, repuestos: repuestos, total: manoObra + repuestos };
+  });
+
+  const kpis = {
+    total: totalGeneral,
+    cantidad_ordenes: cantidadOrdenes,
+    ticket_promedio: cantidadOrdenes ? Math.round(totalGeneral / cantidadOrdenes) : 0
+  };
+
+  return { series, kpis };
+}
 </script>
 </body>
 </html>
