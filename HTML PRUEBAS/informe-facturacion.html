@@ -291,10 +291,6 @@ function renderKPIs(kpis) {
     </div>`;
 }
 
-renderKPIs(generarDatosMock(bucketPeriod('2026-07-01','2026-07-31').buckets).kpis);
-
-initSelectorVista(() => console.log('vista:', vistaActual));
-
 let chartInstance = null;
 
 function renderGrafico(series, vista) {
@@ -346,7 +342,17 @@ function renderGrafico(series, vista) {
   }
 }
 
-renderGrafico(generarDatosMock(bucketPeriod('2026-07-01','2026-07-31').buckets).series, 'total');
+function actualizarInforme() {
+  const { desdeISO, hastaISO } = getRangoActual();
+  const { buckets } = bucketPeriod(desdeISO, hastaISO);
+  const { series, kpis } = generarDatosMock(buckets);
+  renderKPIs(kpis);
+  renderGrafico(series, vistaActual);
+}
+
+initSelectorPeriodo(actualizarInforme);
+initSelectorVista(actualizarInforme);
+actualizarInforme();
 </script>
 </body>
 </html>
