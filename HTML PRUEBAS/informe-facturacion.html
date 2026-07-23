@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Prototipo — Informe de facturación</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../public/css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="main-wrapper">
+  <div class="page" style="max-width:900px; margin:0 auto;">
+    <div class="page-header">
+      <h1 class="page-title">Informe de facturación</h1>
+    </div>
+    <div id="informeFacturacion"></div>
+  </div>
+</div>
+<script>
+function bucketPeriod(desdeISO, hastaISO) {
+  const desde = new Date(desdeISO + 'T00:00:00');
+  const hasta = new Date(hastaISO + 'T00:00:00');
+  const dias = Math.round((hasta - desde) / 86400000) + 1;
+
+  let granularidad;
+  if (dias <= 31) granularidad = 'dia';
+  else if (dias <= 180) granularidad = 'semana';
+  else granularidad = 'mes';
+
+  const buckets = [];
+  const fmtLabelDia = d => d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+  const fmtLabelMes = d => d.toLocaleDateString('es-AR', { month: 'short', year: 'numeric' });
+
+  if (granularidad === 'dia') {
+    for (let d = new Date(desde); d <= hasta; d.setDate(d.getDate() + 1)) {
+      const inicio = new Date(d);
+      const fin = new Date(d);
+      buckets.push({ desde: inicio, hasta: fin, label: fmtLabelDia(inicio) });
+    }
+  } else if (granularidad === 'semana') {
+    let cursor = new Date(desde);
+    while (cursor <= hasta) {
+      const inicio = new Date(cursor);
+      const fin = new Date(cursor);
+      fin.setDate(fin.getDate() + 6);
+      if (fin > hasta) fin.setTime(hasta.getTime());
+      buckets.push({ desde: inicio, hasta: fin, label: `${fmtLabelDia(inicio)}–${fmtLabelDia(fin)}` });
+      cursor.setDate(cursor.getDate() + 7);
+    }
+  } else {
+    let cursor = new Date(desde.getFullYear(), desde.getMonth(), 1);
+    while (cursor <= hasta) {
+      const inicio = new Date(Math.max(cursor, desde));
+      const finMes = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0);
+      const fin = new Date(Math.min(finMes, hasta));
+      buckets.push({ desde: inicio, hasta: fin, label: fmtLabelMes(cursor) });
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+    }
+  }
+  return { granularidad, buckets };
+}
+
+// Self-checks (revisar consola del navegador — no debe haber "Assertion failed")
+console.assert(bucketPeriod('2026-07-01', '2026-07-31').granularidad === 'dia', 'Un mes calendario debe agrupar por día');
+console.assert(bucketPeriod('2026-07-01', '2026-07-31').buckets.length === 31, 'Julio tiene 31 buckets diarios');
+console.assert(bucketPeriod('2026-06-01', '2026-08-15').granularidad === 'semana', '76 días deben agrupar por semana');
+console.assert(bucketPeriod('2026-01-01', '2026-12-31').granularidad === 'mes', 'Un año debe agrupar por mes');
+console.assert(bucketPeriod('2026-01-01', '2026-12-31').buckets.length === 12, 'Un año calendario debe dar 12 buckets mensuales');
+</script>
+</body>
+</html>
