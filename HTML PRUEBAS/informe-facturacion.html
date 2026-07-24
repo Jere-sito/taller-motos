@@ -160,9 +160,13 @@ function generarDatosMock(buckets) {
     // en una ventana de ~90 días en lugar de un zigzag semanal. Sigue siendo determinístico
     // (mismo bucket -> mismo valor).
     const pseudo = Math.abs(Math.sin(seed / 12));
-    const ordenesDelBucket = Math.round(1 + pseudo * 4);
-    const manoObra = Math.round((3000 + pseudo * 15000) * ordenesDelBucket);
-    const repuestos = Math.round((5000 + (1 - pseudo) * 25000) * ordenesDelBucket);
+    // Factor continuo (sin redondear) para escalar la plata: evita "escalones" en la curva
+    // cuando el redondeo a entero de las órdenes cruza un umbral (ej. 2 -> 3).
+    const ordenesFraccion = 1 + pseudo * 4;
+    // Versión entera, solo para el conteo de órdenes (no puede haber "2.7 órdenes" en el KPI).
+    const ordenesDelBucket = Math.round(ordenesFraccion);
+    const manoObra = Math.round((3000 + pseudo * 15000) * ordenesFraccion);
+    const repuestos = Math.round((5000 + (1 - pseudo) * 25000) * ordenesFraccion);
 
     cantidadOrdenes += ordenesDelBucket;
     totalGeneral += manoObra + repuestos;
