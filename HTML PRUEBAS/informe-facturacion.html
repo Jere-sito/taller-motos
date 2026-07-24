@@ -12,6 +12,44 @@
     /* KPI principal en el color de marca en vez de un color de estado de orden */
     .stat-card.brand::before { background: var(--primary); }
     .stat-number.brand { color: var(--primary); }
+
+    /* Card oscura del gráfico de facturación (única sección con tema oscuro) */
+    #chartCard.chart-dark {
+      background: var(--sidebar-bg);
+      border-color: transparent;
+      position: relative;
+    }
+    #chartCard.chart-dark .chart-title {
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 16px;
+      margin: 0 0 4px 0;
+    }
+    #chartCard.chart-dark .chart-subtitle {
+      color: #94A3B8;
+      font-size: 13px;
+      margin: 0 0 16px 0;
+    }
+    #chartTooltip {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      background: #1E293B;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translate(-9999px, -9999px);
+      transition: opacity 0.1s ease;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    #chartTooltip .tt-fecha { color: #FFFFFF; font-weight: 700; }
+    #chartTooltip .tt-valor { color: var(--primary); margin-top: 2px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
@@ -52,8 +90,11 @@
         <button type="button" class="chip" data-vista="repuestos">Repuestos</button>
       </div>
       <div class="stat-cards" id="kpiCards" style="grid-template-columns:repeat(3,1fr);"></div>
-      <div class="card" id="chartCard" style="margin-top:16px;">
+      <div class="card chart-dark" id="chartCard" style="margin-top:16px;">
+        <h3 class="chart-title">Evolución de la facturación</h3>
+        <p class="chart-subtitle">Cómo cambió lo facturado día a día en el período.</p>
         <canvas id="graficoFacturacion" height="90"></canvas>
+        <div id="chartTooltip"></div>
       </div>
     </div>
   </div>
@@ -140,6 +181,14 @@ function fmtMoney(n) {
   if (n == null || isNaN(n)) return '$0';
   return '$' + Number(n).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
+
+// Formato abreviado ("$8k", "$120k") — solo para el eje Y del gráfico. No tocar fmtMoney: se usa en KPIs y en el tooltip.
+function fmtMoneyCompacto(n) {
+  if (n == null || isNaN(n)) return '$0k';
+  return '$' + Math.round(n / 1000).toLocaleString('es-AR') + 'k';
+}
+
+const VISTA_LABELS = { total: 'Total facturado', mano_obra: 'Mano de obra', repuestos: 'Repuestos' };
 
 let vistaActual = 'total';
 
@@ -298,14 +347,72 @@ function renderKPIs(kpis) {
 
 let chartInstance = null;
 
+// Vista activa recordada para que el tooltip externo (que no recibe "vista" como argumento)
+// sepa qué etiqueta mostrar ("Total facturado" / "Mano de obra" / "Repuestos").
+let vistaGraficoActual = 'total';
+
+// Plugin custom: dibuja la línea vertical (crosshair) en el punto activo al hacer hover.
+const crosshairPlugin = {
+  id: 'crosshair',
+  afterDraw(chart) {
+    const active = chart.getActiveElements();
+    if (!active || !active.length) return;
+    const { ctx, chartArea } = chart;
+    const x = active[0].element.x;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x, chartArea.top);
+    ctx.lineTo(x, chartArea.bottom);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+
+// Tooltip 100% custom (HTML) posicionado sobre #chartTooltip, siguiendo el patrón documentado
+// de Chart.js v4 para "external" tooltips (options.plugins.tooltip.enabled=false + external callback).
+function externalTooltipHandler(context) {
+  const { chart, tooltip } = context;
+  const tooltipEl = document.getElementById('chartTooltip');
+  if (!tooltipEl) return;
+
+  if (tooltip.opacity === 0) {
+    tooltipEl.style.opacity = 0;
+    return;
+  }
+
+  const dataPoint = tooltip.dataPoints && tooltip.dataPoints[0];
+  if (!dataPoint) return;
+
+  const fecha = dataPoint.label;
+  const valor = dataPoint.parsed.y;
+  const label = VISTA_LABELS[vistaGraficoActual] || VISTA_LABELS.total;
+
+  tooltipEl.innerHTML =
+    `<div class="tt-fecha">${fecha}</div>` +
+    `<div class="tt-valor">${label} : ${fmtMoney(valor)}</div>`;
+
+  const canvasEl = chart.canvas;
+  const chartCardEl = document.getElementById('chartCard');
+  tooltipEl.style.opacity = 1;
+
+  let left = canvasEl.offsetLeft + tooltip.caretX + 14;
+  let top = canvasEl.offsetTop + tooltip.caretY - tooltipEl.offsetHeight - 10;
+
+  const maxLeft = chartCardEl.clientWidth - tooltipEl.offsetWidth - 8;
+  if (left > maxLeft) left = canvasEl.offsetLeft + tooltip.caretX - tooltipEl.offsetWidth - 14;
+  if (left < 8) left = 8;
+  if (top < 8) top = canvasEl.offsetTop + tooltip.caretY + 14;
+
+  tooltipEl.style.transform = `translate(${left}px, ${top}px)`;
+}
+
 function renderGrafico(series, vista) {
+  vistaGraficoActual = vista;
   const ctx = document.getElementById('graficoFacturacion').getContext('2d');
   const labels = series.map(s => s.label);
   const data = series.map(s => s[vista]);
-
-  const gradient = ctx.createLinearGradient(0, 0, 0, 260);
-  gradient.addColorStop(0, 'rgba(234,88,12,0.35)');
-  gradient.addColorStop(1, 'rgba(234,88,12,0.02)');
 
   const config = {
     type: 'line',
@@ -314,28 +421,42 @@ function renderGrafico(series, vista) {
       datasets: [{
         data,
         borderColor: '#EA580C',
-        backgroundColor: gradient,
-        fill: true,
+        backgroundColor: 'transparent',
+        fill: false,
         tension: 0.35,
         pointRadius: 0,
         pointHoverRadius: 5,
-        pointHoverBackgroundColor: '#EA580C',
-        borderWidth: 2
+        pointHoverBackgroundColor: '#FFFFFF',
+        pointHoverBorderColor: '#EA580C',
+        pointHoverBorderWidth: 2,
+        borderWidth: 2.5
       }]
     },
     options: {
       responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      hover: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
         tooltip: {
-          callbacks: { label: ctx => fmtMoney(ctx.parsed.y) }
+          enabled: false,
+          external: externalTooltipHandler
         }
       },
       scales: {
-        y: { ticks: { callback: v => fmtMoney(v) }, grid: { color: '#F1F5F9' } },
-        x: { grid: { display: false } }
+        y: {
+          ticks: { callback: v => fmtMoneyCompacto(v), color: '#94A3B8', font: { size: 11 } },
+          grid: { color: 'rgba(255,255,255,0.08)', drawTicks: false, borderDash: [4, 4] },
+          border: { display: false }
+        },
+        x: {
+          ticks: { color: '#94A3B8', font: { size: 11 }, maxRotation: 0, autoSkip: true },
+          grid: { display: false },
+          border: { display: false }
+        }
       }
-    }
+    },
+    plugins: [crosshairPlugin]
   };
 
   if (chartInstance) {
