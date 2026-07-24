@@ -13,20 +13,18 @@
     .stat-card.brand::before { background: var(--primary); }
     .stat-number.brand { color: var(--primary); }
 
-    /* Card oscura del gráfico de facturación (única sección con tema oscuro) */
-    #chartCard.chart-dark {
-      background: var(--sidebar-bg);
-      border-color: transparent;
+    /* Card del gráfico de facturación (tema claro, igual al resto de la página) */
+    #chartCard {
       position: relative;
     }
-    #chartCard.chart-dark .chart-title {
-      color: #FFFFFF;
+    #chartCard .chart-title {
+      color: var(--text);
       font-weight: 700;
       font-size: 16px;
       margin: 0 0 4px 0;
     }
-    #chartCard.chart-dark .chart-subtitle {
-      color: #94A3B8;
+    #chartCard .chart-subtitle {
+      color: var(--text-muted);
       font-size: 13px;
       margin: 0 0 16px 0;
     }
@@ -90,7 +88,7 @@
         <button type="button" class="chip" data-vista="repuestos">Repuestos</button>
       </div>
       <div class="stat-cards" id="kpiCards" style="grid-template-columns:repeat(3,1fr);"></div>
-      <div class="card chart-dark" id="chartCard" style="margin-top:16px;">
+      <div class="card" id="chartCard" style="margin-top:16px;">
         <h3 class="chart-title">Evolución de la facturación</h3>
         <p class="chart-subtitle">Cómo cambió lo facturado día a día en el período.</p>
         <canvas id="graficoFacturacion" height="90"></canvas>
@@ -157,7 +155,11 @@ function generarDatosMock(buckets) {
   const series = buckets.map(b => {
     // Semilla determinística por fecha para que no "salte" al re-renderizar sin cambiar el período
     const seed = b.desde.getTime() / 86400000;
-    const pseudo = Math.abs(Math.sin(seed)) ;
+    // Dividir la semilla suaviza la oscilación. Como se usa Math.abs(), el período real
+    // es π×12 ≈ 37.7 días (no 2π×12) en vez de ~6 días, dando 2-3 ondas amplias y graduales
+    // en una ventana de ~90 días en lugar de un zigzag semanal. Sigue siendo determinístico
+    // (mismo bucket -> mismo valor).
+    const pseudo = Math.abs(Math.sin(seed / 12));
     const ordenesDelBucket = Math.round(1 + pseudo * 4);
     const manoObra = Math.round((3000 + pseudo * 15000) * ordenesDelBucket);
     const repuestos = Math.round((5000 + (1 - pseudo) * 25000) * ordenesDelBucket);
@@ -364,7 +366,7 @@ const crosshairPlugin = {
     ctx.moveTo(x, chartArea.top);
     ctx.lineTo(x, chartArea.bottom);
     ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.strokeStyle = 'rgba(15,23,42,0.35)';
     ctx.stroke();
     ctx.restore();
   }
@@ -446,7 +448,7 @@ function renderGrafico(series, vista) {
       scales: {
         y: {
           ticks: { callback: v => fmtMoneyCompacto(v), color: '#94A3B8', font: { size: 11 } },
-          grid: { color: 'rgba(255,255,255,0.08)', drawTicks: false, borderDash: [4, 4] },
+          grid: { color: 'rgba(15,23,42,0.08)', drawTicks: false, borderDash: [4, 4] },
           border: { display: false }
         },
         x: {
