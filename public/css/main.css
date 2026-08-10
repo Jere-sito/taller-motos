@@ -1931,3 +1931,40 @@ tr:hover td { background: var(--bg-subtle); }
 #listaMotos .moto-chevron { color: #CBD5E1; flex-shrink: 0; }
 #listaMotos .moto-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
 #listaMotos .moto-actions button { background: none; border: none; cursor: pointer; padding: 4px; border-radius: 6px; line-height: 1; display: flex; }
+
+/* ── Informe de facturación (Dashboard) ──────────────────────────────── */
+.stat-card.brand::before { background: var(--primary); }
+.stat-number.brand { color: var(--primary); }
+
+#chartCard { position: relative; }
+#chartCard .chart-title {
+  color: var(--text);
+  font-weight: 700;
+  font-size: 16px;
+  margin: 0 0 4px 0;
+}
+#chartCard .chart-subtitle {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0 0 16px 0;
+}
+#chartTooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background: #1E293B;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-9999px, -9999px);
+  transition: opacity 0.1s ease;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+#chartTooltip .tt-fecha { color: #FFFFFF; font-weight: 700; }
+#chartTooltip .tt-valor { color: var(--primary); margin-top: 2px; }
