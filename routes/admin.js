@@ -32,4 +32,50 @@ router.get('/stats', (req, res) => {
   res.json({ totales, por_mecanico: porMecanico });
 });
 
+// GET /api/admin/facturacion?desde=&hasta= — solo lectura
+router.get('/facturacion', (req, res) => {
+  if (req.session.role === 'mecanico') return res.status(403).json({ error: 'Sin permiso.' });
+
+  const { desde, hasta } = req.query;
+  if (!desde || !hasta) return res.status(400).json({ error: 'Los parámetros desde y hasta son requeridos.' });
+
+  const db = getDb();
+  const filas = db.prepare(`
+    SELECT
+      o.id as orden_id,
+      date(o.fecha_entrega_real) as fecha,
+      COALESCE(p.descuento, 0) as descuento,
+      COALESCE(SUM(CASE WHEN pi.tipo = 'mano_obra' THEN pi.cantidad * pi.precio_unitario ELSE 0 END), 0) as bruto_mano_obra,
+      COALESCE(SUM(CASE WHEN pi.tipo = 'repuesto'  THEN pi.cantidad * pi.precio_unitario ELSE 0 END), 0) as bruto_repuestos
+    FROM ordenes_trabajo o
+    LEFT JOIN presupuestos p ON p.orden_id = o.id
+    LEFT JOIN presupuesto_items pi ON pi.presupuesto_id = p.id
+    WHERE o.estado = 'entregada'
+      AND o.fecha_entrega_real >= ?
+      AND o.fecha_entrega_real <= ?
+    GROUP BY o.id
+  `).all(desde, hasta + ' 23:59:59');
+
+  const porDia = new Map();
+  for (const fila of filas) {
+    const factor = 1 - (fila.descuento || 0) / 100;
+    const manoObra = fila.bruto_mano_obra * factor;
+    const repuestos = fila.bruto_repuestos * factor;
+
+    if (!porDia.has(fila.fecha)) {
+      porDia.set(fila.fecha, { fecha: fila.fecha, mano_obra: 0, repuestos: 0, cantidad_ordenes: 0 });
+    }
+    const acc = porDia.get(fila.fecha);
+    acc.mano_obra += manoObra;
+    acc.repuestos += repuestos;
+    acc.cantidad_ordenes += 1;
+  }
+
+  const dias = Array.from(porDia.values())
+    .map(d => ({ ...d, mano_obra: Math.round(d.mano_obra), repuestos: Math.round(d.repuestos) }))
+    .sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+  res.json({ dias });
+});
+
 module.exports = router;
