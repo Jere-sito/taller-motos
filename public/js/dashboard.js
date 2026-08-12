@@ -8,6 +8,7 @@ async function onAppReady() {
   await cargarDashboard();
   setInterval(cargarDashboard, 30000);
   document.getElementById('btnNuevaOT')?.addEventListener('click', () => NuevaOT.abrir());
+  Facturacion.init();
 }
 
 async function cargarDashboard() {
