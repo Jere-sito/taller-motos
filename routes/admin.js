@@ -40,10 +40,13 @@ router.get('/facturacion', (req, res) => {
   if (!desde || !hasta) return res.status(400).json({ error: 'Los parámetros desde y hasta son requeridos.' });
 
   const db = getDb();
+  // fecha_entrega_real se guarda en UTC; Argentina es UTC-3 sin horario de verano, así que se ajusta
+  // acá para que el día del gráfico coincida con el día real del negocio. Deliberadamente distinto del
+  // criterio de /stats (decisión del usuario tras ver el bug en producción).
   const filas = db.prepare(`
     SELECT
       o.id as orden_id,
-      date(o.fecha_entrega_real) as fecha,
+      date(o.fecha_entrega_real, '-3 hours') as fecha,
       COALESCE(p.descuento, 0) as descuento,
       COALESCE(SUM(CASE WHEN pi.tipo = 'mano_obra' THEN pi.cantidad * pi.precio_unitario ELSE 0 END), 0) as bruto_mano_obra,
       COALESCE(SUM(CASE WHEN pi.tipo = 'repuesto'  THEN pi.cantidad * pi.precio_unitario ELSE 0 END), 0) as bruto_repuestos
@@ -51,8 +54,8 @@ router.get('/facturacion', (req, res) => {
     LEFT JOIN presupuestos p ON p.orden_id = o.id
     LEFT JOIN presupuesto_items pi ON pi.presupuesto_id = p.id
     WHERE o.estado = 'entregada'
-      AND o.fecha_entrega_real >= ?
-      AND o.fecha_entrega_real <= ?
+      AND o.fecha_entrega_real >= datetime(?, '+3 hours')
+      AND o.fecha_entrega_real <= datetime(?, '+3 hours')
     GROUP BY o.id
   `).all(desde, hasta + ' 23:59:59');
 

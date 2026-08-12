@@ -70,7 +70,7 @@ const Facturacion = {
   },
 
   // ---- Suma los días reales del servidor dentro de cada bucket ----
-  agregarDias(diasReales, buckets) {
+  agregarDias(diasReales, buckets, vista) {
     let totalGeneral = 0;
     let cantidadOrdenes = 0;
 
@@ -89,9 +89,11 @@ const Facturacion = {
       }
 
       cantidadOrdenes += ordenes;
-      totalGeneral += manoObra + repuestos;
+      const total = manoObra + repuestos;
+      const valorSegunVista = vista === 'mano_obra' ? manoObra : vista === 'repuestos' ? repuestos : total;
+      totalGeneral += valorSegunVista;
 
-      return { label: b.label, mano_obra: manoObra, repuestos: repuestos, total: manoObra + repuestos };
+      return { label: b.label, mano_obra: manoObra, repuestos: repuestos, total };
     });
 
     const kpis = {
@@ -233,12 +235,13 @@ const Facturacion = {
     });
   },
 
-  renderKPIs(kpis) {
+  renderKPIs(kpis, vista) {
     const container = document.getElementById('kpiCards');
+    const labelPrincipal = VISTA_LABELS[vista] || VISTA_LABELS.total;
     container.innerHTML = `
       <div class="stat-card brand">
         <div class="stat-number brand">${fmtMoney(kpis.total)}</div>
-        <div class="stat-label">Total facturado</div>
+        <div class="stat-label">${labelPrincipal}</div>
       </div>
       <div class="stat-card recibida">
         <div class="stat-number recibida">${kpis.cantidad_ordenes}</div>
@@ -369,8 +372,8 @@ const Facturacion = {
     try {
       const { dias } = await API.get(`/api/admin/facturacion?desde=${desdeISO}&hasta=${hastaISO}`);
       const { buckets } = this.bucketPeriod(desdeISO, hastaISO);
-      const { series, kpis } = this.agregarDias(dias, buckets);
-      this.renderKPIs(kpis);
+      const { series, kpis } = this.agregarDias(dias, buckets, this.vistaActual);
+      this.renderKPIs(kpis, this.vistaActual);
       this.renderGrafico(series, this.vistaActual);
     } catch (e) {
       console.error(e);
