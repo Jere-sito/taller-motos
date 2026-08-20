@@ -4,7 +4,6 @@ const SVG_EDIT = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" st
 const SVG_CLOSE = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 let otActual = null;
 let presupuestoActual = null;
-let pagosActuales = [];
 let editandoItemId = null;
 
 const ESTADO_LABELS = {
@@ -49,8 +48,6 @@ const EDIT_HDR_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none
 const TRASH_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
 const NOTE_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
 const BACK_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>`;
-const BILL_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg>`;
-const CARD_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>`;
 
 async function onAppReady() {
   if (!otId) { window.location.href = '/ordenes'; return; }
@@ -61,7 +58,7 @@ async function cargarOT() {
   try {
     otActual = await API.get(`/api/ordenes/${otId}`);
     renderOT();
-    await Promise.all([cargarPresupuesto(), cargarPagos()]);
+    await cargarPresupuesto();
   } catch {
     document.getElementById('paginaDetalle').innerHTML =
       `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Orden no encontrada</p></div>`;
@@ -169,11 +166,6 @@ function renderOT() {
       <div class="text-muted text-sm">Cargando...</div>
     </div></div>
 
-    <!-- Pagos -->
-    <div class="card" id="seccionPagos"><div class="card-body" id="contenidoPagos">
-      <div class="text-muted text-sm">Cargando...</div>
-    </div></div>
-
     <!-- Problema + notas -->
     ${mostrarCardNotas ? `
     <div class="card"><div class="card-body">
@@ -216,7 +208,6 @@ async function cambiarEstado(nuevoEstado) {
     App.toast(ESTADO_LABELS[nuevoEstado], 'success');
     renderOT();
     await cargarPresupuesto();
-    renderPagos();
   } catch (e) {
     document.querySelectorAll('.btn-state-outline, .btn-state-filled').forEach(b => { b.disabled = false; });
     App.toast(e.message || 'Error al cambiar estado', 'error');
@@ -257,7 +248,7 @@ function eliminarOrden() {
   App.confirmarDoble(
     'Eliminar orden',
     `Orden ${ot.numero}`,
-    `¿Eliminar la orden <strong>${esc(ot.numero)}</strong>? Se borrarán también su presupuesto y sus pagos.`,
+    `¿Eliminar la orden <strong>${esc(ot.numero)}</strong>? Se borrará también su presupuesto.`,
     async () => {
       try {
         await API.del(`/api/ordenes/${otId}`);
@@ -275,7 +266,6 @@ async function cargarPresupuesto() {
   try {
     presupuestoActual = await API.get(`/api/ordenes/${otId}/presupuesto`);
     renderPresupuesto();
-    renderPagos();
   } catch {
     const contenido = document.getElementById('contenidoPresupuesto');
     if (contenido) contenido.innerHTML = `<div class="text-muted text-sm">Sin ítems aún.</div>`;
@@ -417,113 +407,6 @@ function abrirEditarItem(itemId) {
   App.openModal('modalAgregarItem');
 }
 
-// ── Pagos ─────────────────────────────────────────────────────────────────
-const MEDIO_LABELS = {
-  efectivo: 'Efectivo', mercadopago: 'MercadoPago', puente: 'Puente',
-  credito: 'Tarjeta crédito', debito: 'Tarjeta débito'
-};
-
-async function cargarPagos() {
-  try {
-    pagosActuales = await API.get(`/api/ordenes/${otId}/pagos`);
-  } catch {
-    pagosActuales = [];
-  }
-  renderPagos();
-}
-
-function renderPagos() {
-  const contenido = document.getElementById('contenidoPagos');
-  if (!contenido) return;
-  const canEdit = App.canEdit();
-
-  const totalPagado = pagosActuales.reduce((s, p) => s + p.monto, 0);
-  let total = null, saldo = null, pct = 0;
-  if (presupuestoActual) {
-    const items     = presupuestoActual.items || [];
-    const subtotal  = items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
-    const descMonto = (subtotal * (presupuestoActual.descuento || 0)) / 100;
-    total = subtotal - descMonto;
-    saldo = total - totalPagado;
-    pct   = total > 0 ? Math.min(100, Math.round((totalPagado / total) * 100)) : (totalPagado > 0 ? 100 : 0);
-  }
-
-  const pagosHTML = pagosActuales.map(p => {
-    const iconCls = p.medio === 'efectivo' ? 'efectivo' : p.medio === 'mercadopago' ? 'mp' : 'otro';
-    const icon    = p.medio === 'efectivo' ? BILL_SVG : CARD_SVG;
-    const sub     = [fmtDate(p.created_at), p.proveedor, p.notas].filter(Boolean).join(' · ');
-    return `
-      <div class="pago-row">
-        <div class="pago-left">
-          <div class="pago-icon ${iconCls}">${icon}</div>
-          <div>
-            <div class="pago-metodo">${esc(MEDIO_LABELS[p.medio] || p.medio)}</div>
-            ${sub ? `<div class="pago-fecha">${esc(sub)}</div>` : ''}
-          </div>
-        </div>
-        <div class="pago-monto">${fmtMoney(p.monto)}${canEdit ? `<button class="pago-del" onclick="eliminarPago(${p.id})" title="Eliminar">✕</button>` : ''}</div>
-      </div>`;
-  }).join('');
-
-  contenido.innerHTML = `
-    <div class="pagos-header-row">
-      <span class="pagos-title">Pagos registrados</span>
-      <div class="pagos-amounts">
-        <div class="pagos-pagado">${fmtMoney(totalPagado)}</div>
-        ${total !== null ? `<div class="pagos-total-ref">de ${fmtMoney(total)}</div>` : ''}
-      </div>
-    </div>
-    ${total !== null && total > 0 ? `<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>` : ''}
-    ${pagosActuales.length ? `<div class="pago-list">${pagosHTML}</div>` : `<div class="text-muted text-sm" style="margin-bottom:12px">Sin pagos registrados.</div>`}
-    ${saldo !== null && saldo > 0 ? `<div class="saldo-row"><span class="saldo-label">Saldo pendiente</span><span class="saldo-monto">${fmtMoney(saldo)}</span></div>` : ''}
-    ${saldo !== null && saldo <= 0 && totalPagado > 0 ? `<div class="pago-completo">✓ Pago completo</div>` : ''}
-    ${canEdit ? `<button class="btn-outline-naranja" id="btnRegistrarPago">${PLUS_SVG}Registrar pago</button>` : ''}
-  `;
-
-  document.getElementById('btnRegistrarPago')?.addEventListener('click', abrirModalPago);
-}
-
-async function eliminarPago(pagoId) {
-  if (!App.confirm('¿Eliminar este pago?')) return;
-  try {
-    await API.del(`/api/ordenes/${otId}/pagos/${pagoId}`);
-    await cargarPagos();
-    App.toast('Pago eliminado', 'success');
-  } catch (e) { App.toast(e.message || 'Error', 'error'); }
-}
-
-function abrirModalPago() {
-  document.getElementById('pagoMedio').value = 'efectivo';
-  document.getElementById('grupoProveedor').classList.add('hidden');
-  document.getElementById('pagoProveedor').value = '';
-  document.getElementById('pagoMonto').value = '';
-  document.getElementById('pagoNotas').value = '';
-  App.openModal('modalPago');
-}
-
-async function guardarPago() {
-  const medio     = document.getElementById('pagoMedio').value;
-  const proveedor = document.getElementById('pagoProveedor').value.trim();
-  const monto     = parseInt(document.getElementById('pagoMonto').value.replace(/\./g, '').replace(/[^0-9]/g, '')) || 0;
-  const notas     = document.getElementById('pagoNotas').value.trim();
-
-  if (medio === 'puente' && !proveedor) return App.toast('Ingresá el proveedor destino', 'error');
-  if (!monto || monto <= 0)             return App.toast('Ingresá un monto válido', 'error');
-
-  const btn = document.getElementById('btnGuardarPago');
-  btn.disabled = true;
-  try {
-    await API.post(`/api/ordenes/${otId}/pagos`, { medio, proveedor, monto, notas });
-    App.closeModal('modalPago');
-    await cargarPagos();
-    App.toast('Pago registrado', 'success');
-  } catch (e) {
-    App.toast(e.message || 'Error al registrar el pago', 'error');
-  } finally {
-    btn.disabled = false;
-  }
-}
-
 async function guardarItem() {
   const tipo            = document.getElementById('itemTipo').value;
   const descripcion     = document.getElementById('itemDescripcion').value.trim();
@@ -559,15 +442,4 @@ async function guardarItem() {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('itemTipo')?.addEventListener('change', e => _actualizarCamposCantidad(e.target.value));
   document.getElementById('btnGuardarItem')?.addEventListener('click', guardarItem);
-
-  document.getElementById('pagoMedio')?.addEventListener('change', e => {
-    const grupoProveedor = document.getElementById('grupoProveedor');
-    if (e.target.value === 'puente') {
-      grupoProveedor.classList.remove('hidden');
-    } else {
-      grupoProveedor.classList.add('hidden');
-      document.getElementById('pagoProveedor').value = '';
-    }
-  });
-  document.getElementById('btnGuardarPago')?.addEventListener('click', guardarPago);
 });
