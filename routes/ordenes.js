@@ -29,7 +29,7 @@ router.get('/ordenes', (req, res) => {
   const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
 
   const ordenes = db.prepare(`
-    SELECT ot.id, ot.numero, ot.estado, ot.fecha_ingreso, ot.fecha_prometida, ot.prioridad,
+    SELECT ot.id, ot.numero, ot.estado, ot.fecha_ingreso, ot.fecha_prometida, ot.fecha_entrega_real, ot.prioridad,
            ot.tipo, ot.detalle_repuesto,
            m.patente, m.marca, m.modelo,
            c.nombre as cliente_nombre, c.telefono as cliente_telefono

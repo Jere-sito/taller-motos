@@ -754,6 +754,7 @@ tr:hover td { background: var(--bg-subtle); }
   text-overflow: ellipsis;
 }
 .ot-date { font-size: 11px; color: #94A3B8; font-weight: 400; }
+.ot-date-entregada { color: var(--state-entregada); font-weight: 600; }
 .ot-chevron {
   display: flex;
   align-items: center;
